@@ -1,0 +1,46 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
+ROOT_DIR="$SCRIPT_DIR/.."
+VIRTUALENV_DIR_NAME=".venv"
+VIRTUALENV_DIR=$SCRIPT_DIR/../$VIRTUALENV_DIR_NAME;
+POSTGRES_DATA_DIR=$ROOT_DIR/data;
+
+cd $ROOT_DIR
+
+function init_postgresql_cluster {
+	# todo (hlysig): Check if the data folder already exists.
+	# we warn the user and ask him if he would like to remove it.
+	echo "$(tput setaf 1)Initalizing postgresql cluster in $POSTGRES_DATA_DIR$(tput sgr0)"; 
+	mkdir -p $POSTGRES_DATA_DIR;
+	cd $POSTGRES_DATA_DIR
+	# todo (hlysig): Check if the initdb command is available.
+	initdb -d $POSTGRES_DATA_DIR
+	echo "$(tput setaf 3)Initalizing postgresql cluster$(tput sgr0)";
+};
+
+function create_database_schema {
+    # todo (hlysig) check if the createdb function is available.
+	createdb
+	#psql database < schema.sql
+};
+
+function create_virtualenv {
+	echo "$(tput setaf 3)Creating virtualenv in $VIRTUALENV_DIR$(tput sgr0)";
+	virtualenv $VIRTUALENV_DIR
+	source .venv/bin/activate
+	pip install -r $ROOT_DIR/requirements.txt
+};
+
+function start_postgres {
+	$VIRTUALENV_DIR/bin/honcho start
+}
+
+function main {
+	if [ -d "$VIRTUALENV_DIR" ]; then
+		source $VIRTUALENV_DIR/bin/activate
+	fi
+	$1 $@;
+};
+
+main $@;
