@@ -59,3 +59,4 @@ target/
 # Virtualenv and other generated data.
 .venv/
 data/
+.ropeproject/
