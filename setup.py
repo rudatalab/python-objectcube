@@ -9,6 +9,7 @@ description = 'Implementation of the ObjectCube model, defined by ' \
 package_name = 'python-objectcube'
 authors = 'hlysig, siggirh'
 authors_email = 'hlysig@gmail.com'
+requirements = ''.join(open('requirements.txt').readlines()).split('\n')
 
 setup(
     name='python-objectcube',
@@ -18,5 +19,6 @@ setup(
     author=authors,
     author_email=authors_email,
     url='https://github.com/rudatalab/{0}'.format(package_name),
+    install_requires=requirements,
     packages=find_packages()
 )
