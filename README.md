@@ -2,6 +2,19 @@
 Implementation of the ObjectCube model, defined by Grimur Tomasson
 &lt;grimurt@ru.is> and Bjorn Thor Jonsson &lt;bjorn@ru.is>
 
+# Install
+We currently don't have a ready release for this module and we have not pushed
+it to any global repository.
+
+To use this library in other Python projects, you can install the package
+directly into your project, using Pip, from Github as follows.
+
+    pip install git+git://github.com/rudatalab/python-objectcube.git@master
+    
+The last parameter is the name of the branch that you want to clone from. We
+look at master as the next release candidate, so this branch should always be
+safe to install.
+
 ##Running tests
 Currently, for running the test, you must have a running PostgreSQL instance on
 your machine. No worries, the scripts helps with initialising your own cluster
