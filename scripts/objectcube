@@ -36,6 +36,10 @@ function start_postgres {
 	$VIRTUALENV_DIR/bin/honcho start
 }
 
+function run_test {
+    $VIRTUALENV_DIR/bin/nosetests -v -s
+}
+
 function main {
 	if [ -d "$VIRTUALENV_DIR" ]; then
 		source $VIRTUALENV_DIR/bin/activate
