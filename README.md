@@ -84,4 +84,12 @@ development with
 
 Note that you must have the PostgreSQL terminal up and running while you are
 running the tests.
+
+
+# API
+    concept_service = concept_service()
+    concept_type = concept_service.add_concept_type(name='Alphanumerical', base_type=ConceptType.ALPHANUMERICAL) 
+    concept = concept_service.add_concept('CarObjects', concept_type=concept_type)
+    concept.add_tag('fooo')
+    
     

@@ -60,3 +60,4 @@ target/
 .venv/
 data/
 .ropeproject/
+.idea/
