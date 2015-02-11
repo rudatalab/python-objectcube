@@ -5,7 +5,7 @@ import settings
 def create_connection_string(**kwargs):
     data = {
         'dbname': kwargs.get('dbname', ''),
-        'user': kwargs.get('dbname', ''),
+        'user': kwargs.get('user', ''),
         'host': kwargs.get('host', ''),
         'password': kwargs.get('password', '')
     }
