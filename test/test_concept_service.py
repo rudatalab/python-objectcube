@@ -12,7 +12,10 @@ class TestConceptService(TestDatabaseAwareTest):
         self.concept_service = ConceptService()
         self.concept_type_service = ConceptTypeService()
 
-    def _create_content_type(self, name, base_type, regex=None):
+    def _create_concept_type(self, name, base_type, regex=None):
+        """
+        Helper function for creating concept type in the tests.
+        """
         return ConceptTypeService().\
             add_concept_type(name=name,
                              concept_base_type=base_type,
@@ -43,7 +46,7 @@ class TestConceptService(TestDatabaseAwareTest):
             self.concept_service.add_concept(concept_type=4.3, name='t')
 
     def test_creates_concept_return_concept_object(self):
-        ct = self._create_content_type(name='AlphaNumerical',
+        ct = self._create_concept_type(name='AlphaNumerical',
                                        base_type=ConceptType.ALPHANUMERICAL)
 
         concept = self.concept_service.add_concept(concept_type=ct,
@@ -51,7 +54,7 @@ class TestConceptService(TestDatabaseAwareTest):
         self.assertTrue(isinstance(concept, Concept))
 
     def test_returning_concept_contains_id(self):
-        ct = self._create_content_type(name='AlphaNumerical',
+        ct = self._create_concept_type(name='AlphaNumerical',
                                        base_type=ConceptType.ALPHANUMERICAL)
 
         concept1 = self.concept_service.add_concept(concept_type=ct,
@@ -65,22 +68,22 @@ class TestConceptService(TestDatabaseAwareTest):
 
     def test_create_concept_increases_concept_count(self):
         self.assertEquals(self.concept_service.get_concept_count(), 0)
-        ct = self._create_content_type(name='Creation date',
+        ct = self._create_concept_type(name='Creation date',
                                        base_type=ConceptType.DATETIME)
         self.concept_service.add_concept(concept_type=ct, name='test_concept1')
         self.assertEquals(self.concept_service.get_concept_count(), 1)
 
     def test_uniqueness_of_concept_name(self):
         concept_name = 'aperture speed'
-        self._create_content_type(name=concept_name,
+        self._create_concept_type(name=concept_name,
                                   base_type=ConceptType.NUMERICAL)
 
         with self.assertRaises(ObjectCubeDatabaseException):
-            self._create_content_type(name=concept_name,
+            self._create_concept_type(name=concept_name,
                                       base_type=ConceptType.ALPHANUMERICAL)
 
     def test_fetch_concept_by_id(self):
-        ct = self._create_content_type(name='Creation date',
+        ct = self._create_concept_type(name='Creation date',
                                        base_type=ConceptType.DATETIME)
         concept = self.concept_service.add_concept(concept_type=ct,
                                                    name='test_concept1')
@@ -92,7 +95,7 @@ class TestConceptService(TestDatabaseAwareTest):
         self.assertIsNone(self.concept_service.get_concept_by_id(1000))
 
     def test_get_by_name(self):
-        ct = self._create_content_type(name='Creation date',
+        ct = self._create_concept_type(name='Creation date',
                                        base_type=ConceptType.DATETIME)
         concept = self.concept_service.add_concept(concept_type=ct,
                                                    name='test_concept1')
@@ -105,7 +108,7 @@ class TestConceptService(TestDatabaseAwareTest):
 
     def test_fetch_all_less_than_offset(self):
         number_created = 5
-        ct = self._create_content_type(name='Creation date',
+        ct = self._create_concept_type(name='Creation date',
                                        base_type=ConceptType.DATETIME)
         for i in range(number_created):
             self.concept_service.add_concept(ct, 'concept-{0}'.format(i))
@@ -122,15 +125,17 @@ class TestConceptService(TestDatabaseAwareTest):
             self.concept_service.get_concepts(limit=-1)
 
     def test_get_limit_offset(self):
-        ct = self._create_content_type(name='Date',
+        ct = self._create_concept_type(name='Date',
                                        base_type=ConceptType.DATE)
         number_created = 200
 
         for i in range(number_created):
             self.concept_service.add_concept(concept_type=ct, name=str(i))
 
-        self.assertEquals(len(self.concept_service.get_concepts(limit=10, offset=0)), 10)
-        self.assertEquals(len(self.concept_service.get_concepts(limit=10, offset=1)), 10)
+        self.assertEquals(len(self.concept_service.get_concepts(limit=10,
+                                                                offset=0)), 10)
+        self.assertEquals(len(self.concept_service.get_concepts(limit=10,
+                                                                offset=1)), 10)
 
         for i in range(10):
             concepts = self.concept_service.get_concepts(limit=10, offset=i)

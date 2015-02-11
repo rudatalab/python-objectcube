@@ -31,17 +31,17 @@ class ConceptService(object):
     @with_connection
     def add_concept(self, concept_type, name, description='', connection=None):
         """
-
+        Adds new concept to data store.
         :param concept_type: Can be id for a given concept type, or ConceptType
         object.
-        :param title:
-        :param description:
-        :param connection:
+        :param title: Title for the concept.
+        :param description: Description of the concept.
+        :param connection: Connection object
         :raises: ObjectCubeException of param concept_type is not number or
         ConceptType.
         :raises: ObjectCubeException if concept_type points to invalid, or
         nonexistent Concept type.
-        :return:
+        :return: Newly created concept object.
         """
         if not name:
             raise ObjectCubeException('name is required')
@@ -89,8 +89,11 @@ class ConceptService(object):
     def get_concepts(self, limit=10, offset=0, connection=None):
         """
         Fetch all concept types that have been added to data store.
-        :param connection: Connection object to database.
-        :return: List of ConceptType objects.
+        :param limit: Limit for the result fetched from data store.
+        :param offset: Offset with respect to the limit of the results fetched
+        from data store.
+        :param connection: Connection object.
+        :return: List of Concept objects.
         """
         if offset < 0 or limit < 0:
             raise ObjectCubeException('Offset and limit must be positive')
@@ -112,6 +115,13 @@ class ConceptService(object):
 
     @with_connection
     def get_concept_by_id(self, concept_id, connection=None):
+        """
+        Fetches concept from data store by id.
+        :param concept_id: Id for a given Concept to be fetched from
+        data store.
+        :param connection: Connection object.
+        :return: Concept object if found, None otherwise.
+        """
         sql = "SELECT ID, NAME, DESCRIPTION, CONCEPT_TYPE_ID FROM " \
               "CONCEPTS WHERE ID=%s"
         try:
@@ -130,6 +140,13 @@ class ConceptService(object):
 
     @with_connection
     def get_concept_by_name(self, name, connection=None):
+        """
+        Fetches concept from data store by name.
+        :param name: Id for a given Concept to be fetched from
+        data store.
+        :param connection: Connection object.
+        :return: Concept object if found, None otherwise.
+        """
         sql = "SELECT ID, NAME, DESCRIPTION, CONCEPT_TYPE_ID FROM " \
               "CONCEPTS WHERE NAME=%s"
         try:
