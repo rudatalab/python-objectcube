@@ -4,6 +4,7 @@ from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
 from objectcube.services.concept_type import ConceptTypeService
 from objectcube.vo import Concept, ConceptType
+from objectcube import settings
 
 
 class ConceptService(object):
@@ -86,10 +87,14 @@ class ConceptService(object):
             connection.close()
 
     @with_connection
-    def get_concepts(self, limit=10, offset=0, connection=None):
+    def get_concepts(self, limit=settings.CONCEPT_SERVICE_DEFAULT_LIMIT,
+                     offset=0, connection=None):
         """
         Fetch all concept types that have been added to data store.
-        :param limit: Limit for the result fetched from data store.
+        :param limit: Limit for the result fetched from data store. This value
+        can be controlled with environment variable
+        named OBJECTCUBE_CONCEPT_SERVICE_MAX_LIMIT
+        and CONCEPT_SERVICE_MAX_LIMIT
         :param offset: Offset with respect to the limit of the results fetched
         from data store.
         :param connection: Connection object.
@@ -97,6 +102,13 @@ class ConceptService(object):
         """
         if offset < 0 or limit < 0:
             raise ObjectCubeException('Offset and limit must be positive')
+
+        # TODO (hlysig): Add tests for this logic.
+        # Check if the value for limit is exceeding the configured max limit
+        if limit > settings.CONCEPT_SERVICE_MAX_LIMIT:
+            raise ObjectCubeException('Requested limit size is greater than '
+                                      'configured LIMIT size. Please configure '
+                                      'CONCEPT_SERVICE_MAX_LIMIT if needed.')
 
         return_values = []
         sql = 'SELECT id, name, description, concept_type_id ' \
