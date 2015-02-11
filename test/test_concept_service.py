@@ -112,3 +112,27 @@ class TestConceptService(TestDatabaseAwareTest):
 
         self.assertEquals(len(self.concept_service.get_concepts()),
                           number_created)
+
+    def test_raises_exception_on_negative_offset(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.get_concepts(offset=-3)
+
+    def test_raises_exception_on_negative_limit(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.get_concepts(limit=-1)
+
+    def test_get_limit_offset(self):
+        ct = self._create_content_type(name='Date',
+                                       base_type=ConceptType.DATE)
+        number_created = 200
+
+        for i in range(number_created):
+            self.concept_service.add_concept(concept_type=ct, name=str(i))
+
+        self.assertEquals(len(self.concept_service.get_concepts(limit=10, offset=0)), 10)
+        self.assertEquals(len(self.concept_service.get_concepts(limit=10, offset=1)), 10)
+
+        for i in range(10):
+            concepts = self.concept_service.get_concepts(limit=10, offset=i)
+            for n, c in enumerate(concepts):
+                self.assertEquals(int(c.name), n + i)

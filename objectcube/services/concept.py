@@ -86,18 +86,21 @@ class ConceptService(object):
             connection.close()
 
     @with_connection
-    def get_concepts(self, offset=10, limit=10, connection=None):
+    def get_concepts(self, limit=10, offset=0, connection=None):
         """
         Fetch all concept types that have been added to data store.
         :param connection: Connection object to database.
         :return: List of ConceptType objects.
         """
+        if offset < 0 or limit < 0:
+            raise ObjectCubeException('Offset and limit must be positive')
+
         return_values = []
         sql = 'SELECT id, name, description, concept_type_id ' \
-              'FROM CONCEPTS'
+              'FROM CONCEPTS LIMIT %s OFFSET %s'
         cursor = connection.cursor(
             cursor_factory=psycopg2.extras.NamedTupleCursor)
-        cursor.execute(sql)
+        cursor.execute(sql, (limit, offset))
         rows = cursor.fetchall()
 
         for r in rows:
