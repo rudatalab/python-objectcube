@@ -55,7 +55,6 @@ class ConceptService(object):
             raise ObjectCubeException('Parameter concept_type must either '
                                       'be a number or instance of Concept')
 
-        # TODO (hlysig): Write test for this case.
         if isinstance(concept_type, (int, long)):
             concept_type_id = concept_type
             concept_type = \
@@ -103,7 +102,6 @@ class ConceptService(object):
         if offset < 0 or limit < 0:
             raise ObjectCubeException('Offset and limit must be positive')
 
-        # TODO (hlysig): Add tests for this logic.
         # Check if the value for limit is exceeding the configured max limit
         if limit > settings.CONCEPT_SERVICE_MAX_LIMIT:
             raise ObjectCubeException('Requested limit size is greater than '
