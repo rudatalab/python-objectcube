@@ -22,9 +22,10 @@ ObjectCube schema.
 
     mkdir ~/postgresdata; cd $_
     initdb -d .
-	postgres -D data
+    postgres -D .
     createdb
-	psql database < curl https://raw.githubusercontent.com/rudatalab/python-objectcube/master/schema.sql
+    wget https://raw.githubusercontent.com/rudatalab/python-objectcube/master/schema.sql
+    psql database_name_or_user_login_if_default < schema.sql
 
 Then run your application with the following environment variables set with
 your database details
@@ -49,7 +50,7 @@ relatively easy
 
 For Ubuntu users
 
-    sudo apt-get install postgresql postgresql-contrib
+    sudo apt-get install postgresql postgresql-contrib postgresql-server-dev-{version or all}
     
 If this is your local workstation, you should disable PostgreSQL for starting
 up on boot time.
@@ -84,12 +85,3 @@ development with
 
 Note that you must have the PostgreSQL terminal up and running while you are
 running the tests.
-
-
-# API
-    concept_service = concept_service()
-    concept_type = concept_service.add_concept_type(name='Alphanumerical', base_type=ConceptType.ALPHANUMERICAL) 
-    concept = concept_service.add_concept('CarObjects', concept_type=concept_type)
-    concept.add_tag('fooo')
-    
-    
