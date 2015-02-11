@@ -9,7 +9,7 @@ from objectcube.exceptions import (ObjectCubeDatabaseException,
 
 class ConceptTypeService(object):
     @with_connection
-    def get_concept_types(self, connection):
+    def get_concept_types(self, connection=None):
         """
         Fetch all concept types that have been added to data store.
         :param connection: Connection object to database.
@@ -29,7 +29,6 @@ class ConceptTypeService(object):
         cursor.close()
         connection.close()
         return return_values
-
 
     @with_connection
     def add_concept_type(self, name, regex_pattern='', concept_base_type=None,
@@ -62,7 +61,12 @@ class ConceptTypeService(object):
                                (name, regex_pattern, concept_base_type))
 
                 connection.commit()
-                return cursor.fetchone()[0]
+                return ConceptType(**{
+                    'id': cursor.fetchone()[0],
+                    'name': name,
+                    'regex_pattern': regex_pattern,
+                    'concept_base_type': concept_base_type})
+
         except Exception as ex:
             raise ObjectCubeDatabaseException(ex)
         finally:
@@ -132,7 +136,5 @@ class ConceptTypeService(object):
         finally:
             connection.close()
 
-
-
-
-
+    def delete_concept(self, id):
+        raise Exception('Not implemented')

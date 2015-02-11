@@ -24,10 +24,16 @@ class SerializableMixin(object):
 
 
 class ConceptType(SerializableMixin):
+    DATE = 'DATE'
+    TIME = 'TIME'
+    DATETIME = 'DATETIME'
+    ALPHANUMERICAL = 'ALPHANUMERICAL'
+    NUMERICAL = 'NUMERICAL'
+    REGEX = 'REGEX'
+
     fields = ['id', 'name', 'regex_pattern', 'concept_base_type']
-    allowed_types = ['DATE', 'TIME', 'DATETIME', 'ALPHANUMERICAL',
-                     'NUMERICAL', 'REGEX']
-    default_type = 'ALPHANUMERICAL'
+    allowed_types = [DATE, DATETIME, TIME, ALPHANUMERICAL, NUMERICAL, REGEX]
+    default_type = ALPHANUMERICAL
 
     def __init__(self, **kwargs):
         super(ConceptType, self).__init__(**kwargs)
@@ -35,3 +41,18 @@ class ConceptType(SerializableMixin):
     def __repr__(self):
         return self.name
 
+
+class Concept(SerializableMixin):
+    fields = ['id', 'name', 'description', 'concept_type_id']
+
+    def __init__(self, **kwargs):
+        super(Concept, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return self.name
+
+    def __eq__(self, other):
+        for field in self.fields:
+            if getattr(self, field) != getattr(other, field):
+                return False
+        return True
