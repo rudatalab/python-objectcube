@@ -3,32 +3,22 @@ Implementation of the ObjectCube model, defined by Grimur Tomasson
 &lt;grimurt@ru.is> and Bjorn Thor Jonsson &lt;bjorn@ru.is>
 
 # Install
-We currently don't have a ready release for this module and we have not pushed
-it to any global repository.
-
-To use this library in other Python projects, you can install the package
-directly into your project, using Pip, from Github as follows.
+This package has not been pushed to any global repository. However, it can be
+installed the package from Github with pip as follows.
 
     pip install git+git://github.com/rudatalab/python-objectcube.git@master
-    
-The last parameter is the name of the branch that you want to clone from. We
-look at master as the next release candidate, so this branch should always be
-safe to install.
+
+If you need to install directly from another branch than master, you can change
+the branch name after the at sign.
 
 # Configure
-Currently, this implementation of ObjectCube depends on PostgreSQL. You
-must have a running PostgreSQL instance and create database with the
-ObjectCube schema.
+This implementation of ObjectCube depends on PostgreSQL. To use it properly you
+must point it a running PostgreSQL server with the required table schema.  This
+schema can be found in the repository in a file named
+[schema.sql](https://raw.githubusercontent.com/rudatalab/python-objectcube/master/schema.sql).
 
-    mkdir ~/postgresdata; cd $_
-    initdb -d .
-    postgres -D .
-    createdb
-    wget https://raw.githubusercontent.com/rudatalab/python-objectcube/master/schema.sql
-    psql database_name_or_user_login_if_default < schema.sql
-
-Then run your application with the following environment variables set with
-your database details
+Database connection settings are configured with environment variables. The
+most important variables to configure are the following.
 
     export OBJECTCUBE_DB_HOST=..
     export OBJECTCUBE_DB_USER=..
@@ -36,22 +26,14 @@ your database details
     export OBJECTCUBE_DB_NAME=..
     export OBJECTCUBE_DB_PASSWORD=..
 
-These variables have sensible defaults, so If you create your PostgreSQL
-cluster with the above mentioned commands, you don't need to set these
-variables.
+# Running tests
+To run the test, you must have PostgreSQL installed. If not you must install
+it. For Linux distributions with the Apt package manger, type in the following.
 
-##Running tests
-Currently, for running the test, you must have a running PostgreSQL instance on
-your machine. No worries, the scripts helps with initialising your own cluster
-and running. But you must have PostgreSQL installed.
-
-On most nix-like operating system such as Ubuntu on OS X this step is
-relatively easy
-
-For Ubuntu users
+The scripts helps with initialising your own cluster
 
     sudo apt-get install postgresql postgresql-contrib postgresql-server-dev-{version or all}
-    
+
 If this is your local workstation, you should disable PostgreSQL for starting
 up on boot time.
 
@@ -59,29 +41,24 @@ up on boot time.
     sudo service postgresql stop
 
 On OS X, we suggest that you use [Homebrew](http://brew.sh/). You can find good
-setup instructions on their web page, so they will not be uttered here (which
-movie reference was that?)
+setup instructions on their web page.
 
     brew install postgresql
-    
-With that said, let us run the tests
 
-    scripts/objectcube create_virtualenv
-    scripts/objectcube init_postgresql_cluster
+You can than use the help scripts in the repository to initialize as a test
+PostgreSQL cluster for running the test.
+    
+    scripts/objectcube setup
+
+After that you can run
+
+    scripts/objectcube run_tests
+
+Note that this command will start a PostgreSQL server in background. To start the server you can
+use the scripts as follows.
+
+    scripts/objectcube stop_postgres
+
+The server can also be started with
+
     scripts/objectcube start_postgres
-
-After this, your terminal will be occupied with running, and showing you
-PostgreSQL output.
-
-Now, open up a new terminal, and we initialize our PostgreSQL cluster with our
-database schema.
-
-    scripts/objectcube create_database_schema
-    
-After this, you can run the tests, as often as you like throughout your
-development with
-
-    scripts/objectcube run_test
-
-Note that you must have the PostgreSQL terminal up and running while you are
-running the tests.

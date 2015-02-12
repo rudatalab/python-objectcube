@@ -8,21 +8,19 @@ POSTGRES_DATA_DIR=$ROOT_DIR/data;
 
 cd $ROOT_DIR
 
+function cout {
+	echo "$(tput setaf 2)$1$(tput sgr0)"; 
+}
+
 function init_postgresql_cluster {
-	# todo (hlysig): Check if the data folder already exists.
-	# we warn the user and ask him if he would like to remove it.
-	echo "$(tput setaf 1)Initalizing postgresql cluster in $POSTGRES_DATA_DIR$(tput sgr0)"; 
+    cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
 	mkdir -p $POSTGRES_DATA_DIR;
-	cd $POSTGRES_DATA_DIR
-	# todo (hlysig): Check if the initdb command is available.
 	initdb -d $POSTGRES_DATA_DIR
-	echo "$(tput setaf 3)Initalizing postgresql cluster$(tput sgr0)";
 };
 
 function create_database_schema {
-    # todo (hlysig) check if the createdb function is available.
 	createdb
-	#psql database < schema.sql
+	psql $USER < $ROOT_DIR/schema.sql
 };
 
 function create_virtualenv {
@@ -33,11 +31,25 @@ function create_virtualenv {
 };
 
 function start_postgres {
-	$VIRTUALENV_DIR/bin/honcho start
+    pg_ctl -D $POSTGRES_DATA_DIR -l $ROOT_DIR/postgres.log start
+    cout "Postgres started"
+}
+
+function stop_postgres {
+    cout "Stopping postgres in $POSTGRES_DATA_DIR"
+    pg_ctl -D $POSTGRES_DATA_DIR stop -s -m fast
 }
 
 function run_test {
     $VIRTUALENV_DIR/bin/nosetests -v -s
+}
+
+function setup {
+    create_virtualenv
+    init_postgresql_cluster
+    start_postgres
+    sleep 5
+    create_database_schema
 }
 
 function main {
