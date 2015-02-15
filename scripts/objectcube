@@ -12,8 +12,28 @@ function cout {
 	echo "$(tput setaf 2)$1$(tput sgr0)"; 
 }
 
+function is_postgres_running {
+  if [ -f "$POSTGRES_DATA_DIR/postmaster.pid" ];
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function clean {
+  if is_postgres_running; then
+    cout "Stopping postgres"
+    stop_postgres
+    sleep 5
+  fi
+  rm -rf POSTGRES_DATA_DIR
+  rm -rf $VIRTUALENV_DIR
+  cout "Done"
+}
+
 function init_postgresql_cluster {
-    cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
+  cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
 	mkdir -p $POSTGRES_DATA_DIR;
 	initdb -d $POSTGRES_DATA_DIR
 };

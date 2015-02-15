@@ -3,18 +3,9 @@ class SerializableMixin(object):
         self.data = {}
         for field in self.fields:
             if field not in kwargs:
-                raise Exception('expected argument of name {}'.format(field))
+                self.data[field] = None
 
             self.data[field] = kwargs.get(field)
-
-    def serialize(self):
-        raise Exception('Not implemented')
-
-    def deserialize(self):
-        raise Exception('Not implemented')
-
-    def validate_value(self):
-        raise Exception('Not implemented')
 
     def __getattr__(self, key):
         if key not in self.data:
@@ -22,37 +13,25 @@ class SerializableMixin(object):
                             .format(self.__class__.__str__(), key))
         return self.data.get(key)
 
+    def __setattr__(self, key, value):
+        super(SerializableMixin, self).__setattr__(key, value)
+        self.data[key] = value
 
-class ConceptType(SerializableMixin):
-    DATE = 'DATE'
-    TIME = 'TIME'
-    DATETIME = 'DATETIME'
-    ALPHANUMERICAL = 'ALPHANUMERICAL'
-    NUMERICAL = 'NUMERICAL'
-    REGEX = 'REGEX'
 
-    fields = ['id', 'name', 'regex_pattern', 'concept_base_type']
-    allowed_types = [DATE, DATETIME, TIME, ALPHANUMERICAL, NUMERICAL, REGEX]
-    default_type = ALPHANUMERICAL
+class Tag(SerializableMixin):
+    fields = ['id', 'value', 'description', 'mutable', 'type', 'plugin_id']
 
     def __init__(self, **kwargs):
-        super(ConceptType, self).__init__(**kwargs)
+        super(Tag, self).__init__(**kwargs)
+
+    def __str__(self):
+        return self.value
 
     def __repr__(self):
-        return self.name
-
-
-class Concept(SerializableMixin):
-    fields = ['id', 'name', 'description', 'concept_type_id']
-
-    def __init__(self, **kwargs):
-        super(Concept, self).__init__(**kwargs)
-
-    def __repr__(self):
-        return self.name
+        return str(self.data.get('id'))
 
     def __eq__(self, other):
-        for field in self.fields:
-            if getattr(self, field) != getattr(other, field):
+        for f in self.fields:
+            if getattr(self, f) != getattr(other, f):
                 return False
         return True

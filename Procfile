@@ -1,1 +1,0 @@
-database: postgres -D data
