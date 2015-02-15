@@ -1,6 +1,6 @@
 # python-objectcube
 Implementation of the ObjectCube model, defined by Grimur Tomasson
-&lt;grimurt@ru.is> and Bjorn Thor Jonsson &lt;bjorn@ru.is>
+&lt;grimurt@ru.is> and Bjorn Thor Jonsson &lt;bjorn@ru.is>.
 
 # Install
 This package has not been pushed to any global repository. However, it can be
