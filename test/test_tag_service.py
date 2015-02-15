@@ -10,10 +10,15 @@ class TestTagService(TestDatabaseAwareTest):
         super(TestTagService, self).__init__(*args, **kwargs)
         self.tag_service = get_service_class('TagService')
 
-    def _create_test_tag(self):
+    def _create_test_tag(self, value=''):
+        """
+        Helper function for creating test tags in tests.
+        :param value: Value for the tag being created
+        :return: Tag instance that can be added to data store.
+        """
         return Tag(**{
             'id': None,
-            'value': '',
+            'value': value,
             'description': '',
             'mutable': False,
             'type': 0,
@@ -22,10 +27,14 @@ class TestTagService(TestDatabaseAwareTest):
 
     def test_count_returns_number(self):
         val = self.tag_service.count()
-        self.assertTrue(isinstance(val, int))
+        self.assertTrue(isinstance(val, int),
+                        msg='The count function should return a list objects')
 
     def test_count_return_zero_when_database_is_empty(self):
-        self.assertEquals(self.tag_service.count(), 0)
+        self.assertTrue(self.tag_service.count() == 0,
+                        msg='When now tags have been added to data storage, '
+                            'then the count function should '
+                            'return the value zero.')
 
     def test_get_tags_returns_list(self):
         self.assertTrue(isinstance(self.tag_service.get_tags(), list),
@@ -34,9 +43,11 @@ class TestTagService(TestDatabaseAwareTest):
 
     def test_get_tags_returns_empty_list(self):
         tags = self.tag_service.get_tags()
-        self.assertEquals(len(tags), 0)
+        self.assertTrue(len(tags) == 0,
+                        msg='When no tags are in data store then count '
+                            'should return empty list')
 
-    def test_get_tags_fits_in_one_page(self):
+    def test_get_tags_offset_limit(self):
         number_of_tags = 20
         for i in range(number_of_tags):
             self.tag_service.add_tag(Tag(**{
@@ -64,7 +75,9 @@ class TestTagService(TestDatabaseAwareTest):
             }))
 
         tags = self.tag_service.get_tags(offset=100)
-        self.assertTrue(len(tags) == 0)
+        self.assertTrue(len(tags) == 0,
+                        msg='When selected offset which is outside of the '
+                            'data set, then we will get an empty list')
 
     def test_add_tag_raises_exception_if_has_id(self):
         t = self._create_test_tag()
