@@ -58,9 +58,10 @@ class Tree(object):
         self.children = children if children else []
 
     def serialize(self):
-        if not self.name:
-            raise Exception('Node is not root')
+        """
 
+        :return:
+        """
         data = {'name': self.name, 'tag_id': self.tag_id, 'children': []}
 
         for c in self.children:
@@ -77,11 +78,17 @@ class Tree(object):
         return {'tag_id': root.tag_id, 'children': children }
 
     def add_child(self, tree):
+        """
+        :param tree:
+        :return:
+        """
         self.children.append(tree)
         return tree
 
-
     @staticmethod
     def deserialize(data):
+        pass
+
+    def _deserialize_recursive(self, node):
         pass
 

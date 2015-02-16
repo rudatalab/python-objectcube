@@ -2,36 +2,49 @@ from unittest import TestCase
 from objectcube.vo import Tree
 
 
-class TestTreeConstructions(TestCase):
+class TestTreeSerialize(TestCase):
     def test_single_node_tre(self):
-        t = Tree(1, name='foobar')
-        data = t.serialize()
-        self.assertTrue(data.get('name') == 'foobar')
-        self.assertTrue(len(data.get('children')) == 0)
-        self.assertTrue(data.get('tag_id') == 1)
+        root = Tree(1, name='foobar')
+        actual = root.serialize()
+        expected = {'name': 'foobar', 'children': [], 'tag_id': 1}
+        self.assertDictEqual(actual, expected)
 
     def test_root_with_one_children(self):
-        t = Tree(1, name='foobar')
-        t.children.append(Tree(2))
-
-        data = t.serialize()
-
-        self.assertTrue(data.get('name') == 'foobar')
-        self.assertTrue(len(data.get('children')) == 1)
-        self.assertTrue(data.get('tag_id') == 1)
-
-        data = data.get('children')[0]
-
-        self.assertFalse(data.get('name'))
-        self.assertTrue(len(data.get('children')) == 0)
-        self.assertTrue(data.get('tag_id') == 2)
+        root = Tree(tag_id=1, name='foobar')
+        root.children.append(Tree(tag_id=2))
+        actual = root.serialize()
+        expected = {
+            'tag_id': 1,
+            'name': 'foobar',
+            'children': [
+                {
+                    'tag_id': 2,
+                    'children': []
+                }
+            ]}
+        self.assertDictEqual(actual, expected)
 
     def test_root_with_two_children(self):
         t = Tree(1, name='foobar')
         t.children.append(Tree(2))
         t.children.append(Tree(3))
 
-        data = t.serialize()
+        actual = t.serialize()
+        expected = {
+            'name': 'foobar',
+            'tag_id': 1,
+            'children': [
+                {
+                    'tag_id': 2,
+                    'children': []
+                },
+                {
+                    'tag_id': 3,
+                    'children': []
+                }
+            ]
+        }
+        self.assertDictEqual(actual, expected)
 
     def test_root_with_extra_level(self):
         root = Tree(1, name='root')
@@ -39,4 +52,29 @@ class TestTreeConstructions(TestCase):
         tree.add_child(Tree(2))
         tree.add_child(Tree(3))
         root.add_child(Tree(4))
-        data = root.serialize()
+        actual = root.serialize()
+        expected = {
+            'name': 'root',
+            'tag_id': 1,
+            'children': [
+                {
+                    'tag_id': 1,
+                    'children': [
+                        {
+                            'tag_id': 2,
+                            'children': []
+                        },
+                        {
+                            'tag_id': 3,
+                            'children': []
+                        }
+                    ]
+                },
+                {
+                    'tag_id': 4,
+                    'children': []
+                }
+
+            ]
+        }
+        self.assertDictEqual(actual, expected)
