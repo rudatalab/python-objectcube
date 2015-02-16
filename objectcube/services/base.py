@@ -1,4 +1,4 @@
-class BaseTagService(object):
+class TagService(object):
     def get_tags(self, offset=0, limit=10):
         """
         Fetch tags from data store.
@@ -41,3 +41,42 @@ class BaseTagService(object):
         :return: List of tag objects, or empty list if none are found.
         """
         raise NotImplementedError()
+
+
+class PluginService(object):
+    def count(self):
+        raise NotImplementedError()
+
+    def get_plugins(self):
+        raise NotImplementedError()
+
+    def get_plugin_by_name(self):
+        raise NotImplementedError()
+
+    def get_plugin_by_id(self):
+        raise NotImplementedError()
+
+    def add_plugin(self, plugin):
+        raise NotImplementedError()
+
+    def process(self, _object, _data):
+        raise NotImplementedError()
+
+
+class BaseObjectService(object):
+    def add(self, resource_uri, name):
+        raise NotImplementedError()
+
+    def count(self):
+        raise NotImplementedError()
+
+    def add_tag(self, _object, tag_or_tags):
+        raise NotImplementedError()
+
+
+class BaseDimensionsService(object):
+    def create(self, name, tree):
+        pass
+
+    def update(self, name_or_id, tree):
+        pass

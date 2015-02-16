@@ -1,13 +1,13 @@
 import psycopg2.extras
 
-from objectcube.services.base import BaseTagService
+from objectcube.services.base import TagService
 from objectcube.contexts import Connection
 from objectcube.vo import Tag
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
 
 
-class TestTagServicePostgreSQL(BaseTagService):
+class TestTagServicePostgreSQL(TagService):
     def get_by_value(self, value):
         return_list = []
         if not value:

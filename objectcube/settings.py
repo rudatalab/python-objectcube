@@ -12,3 +12,7 @@ FACTORY_CONFIG = {
     'TagService': 'objectcube.services.impl.postgresql.tag.'
                   'TestTagServicePostgreSQL'
 }
+
+PLUGINS = (
+    'objectcube.plugin.exif.ExifPlugin'
+)
