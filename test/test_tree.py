@@ -78,3 +78,30 @@ class TestTreeSerialize(TestCase):
             ]
         }
         self.assertDictEqual(actual, expected)
+
+
+class TestTreeDeserialize(TestCase):
+    def test_single_node_tre(self):
+        serialized_tree = {
+            'name': 'foobar',
+            'children': [],
+            'tag_id': 1
+        }
+        tree = Tree.deserialize_tree(serialized_tree)
+
+        self.assertDictEqual(serialized_tree,
+                             tree.serialize())
+
+    def test_root_with_one_children(self):
+        serialized_tree = {
+            'tag_id': 1,
+            'name': 'foobar',
+            'children': [
+                {
+                    'tag_id': 2,
+                    'children': []
+                }
+            ]}
+
+        tree = Tree.deserialize_tree(serialized_tree)
+        self.assertDictEqual(serialized_tree, tree.serialize())

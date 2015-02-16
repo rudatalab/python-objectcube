@@ -52,14 +52,13 @@ class Object(SerializableMixin):
 
 
 class Tree(object):
-    def __init__(self, tag_id, children=None, name=None):
+    def __init__(self, tag_id, name=None):
         self.name = name
         self.tag_id = tag_id
-        self.children = children if children else []
+        self.children = []
 
     def serialize(self):
         """
-
         :return:
         """
         data = {'name': self.name, 'tag_id': self.tag_id, 'children': []}
@@ -86,9 +85,18 @@ class Tree(object):
         return tree
 
     @staticmethod
-    def deserialize(data):
-        pass
+    def deserialize_tree(data):
+        root = Tree(tag_id=data.get('tag_id'), name=data.get('name'))
+        for c in data.get('children'):
+            root.add_child(Tree._deserialize_recursive(c))
+        return root
 
-    def _deserialize_recursive(self, node):
-        pass
+    @staticmethod
+    def _deserialize_recursive(node):
+        children = []
+        for c in node.get('children'):
+            children.append(Tree._deserialize_recursive(c))
 
+        t = Tree(tag_id=node.get('tag_id'))
+        t.children = children
+        return t
