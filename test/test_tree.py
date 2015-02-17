@@ -171,10 +171,9 @@ class TestTreeRemoveChild(TestCase):
         new_child.add_child(Tree(3))
         self.assertTrue(len(root.children) == 1)
         self.assertTrue(len(new_child.children) == 1)
-        removed = new_child.remove_child(3)
+        removed = root.remove_child(2)
         self.assertTrue(removed)
-        self.assertTrue(len(root.children) == 1)
-        self.assertTrue(len(new_child.children) == 0)
+        self.assertTrue(len(root.children) == 0)
 
 
 class TestTreeGetChild(TestCase):
