@@ -74,7 +74,7 @@ class Tree(object):
         for c in root.children:
             children.append(self._serialize_recursion(c))
 
-        return {'tag_id': root.tag_id, 'children': children }
+        return {'tag_id': root.tag_id, 'children': children}
 
     def add_child(self, tree):
         """
@@ -83,6 +83,29 @@ class Tree(object):
         """
         self.children.append(tree)
         return tree
+
+    def remove_child(self, tag_id):
+        """
+        :param tree:
+        :return:
+        """
+        for c in self.children:
+            if c.tag_id == tag_id:
+                self._remove_subtrees(c)
+                self.children.remove(c)
+                return True
+        return False
+
+    def _remove_subtrees(self, root):
+        for c in root.children:
+            root._remove_subtrees(c)
+            root.children.remove(c)
+            del c
+
+    def get_child(self, tag_id):
+        for c in self.children:
+            if c.tag_id == tag_id:
+                return c
 
     @staticmethod
     def deserialize_tree(data):
