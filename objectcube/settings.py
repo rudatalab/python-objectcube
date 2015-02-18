@@ -10,7 +10,9 @@ DB_PASSWORD = os.environ.get('OBJECTCUBE_DB_PASSWORD', os.getlogin())
 # Concept service configuration.
 FACTORY_CONFIG = {
     'TagService': 'objectcube.services.impl.postgresql.tag.'
-                  'TestTagServicePostgreSQL'
+                  'TagServicePostgreSQL',
+    'DimensionService': 'objectcube.services.impl.postgresql.dimension.'
+                  'DimensionServicePostgreSQL',
 }
 
 PLUGINS = (

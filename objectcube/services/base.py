@@ -1,4 +1,4 @@
-class TagService(object):
+class BaseTagService(object):
     def get_tags(self, offset=0, limit=10):
         """
         Fetch tags from data store.
@@ -43,7 +43,7 @@ class TagService(object):
         raise NotImplementedError()
 
 
-class PluginService(object):
+class BasePluginService(object):
     def count(self):
         raise NotImplementedError()
 
@@ -74,9 +74,34 @@ class BaseObjectService(object):
         raise NotImplementedError()
 
 
-class BaseDimensionsService(object):
-    def create(self, name, tree):
-        pass
+class BaseDimensionService(object):
+    def add_dimension(self, tree):
+        """
+        Insert Dimension into database as a tree.
+        :param tree: The tree object that should be added.
+        :return: Returns nothing.
+        """
+        raise NotImplementedError()
 
-    def update(self, name_or_id, tree):
-        pass
+    def get_dimensions(self):
+        """
+        Retrieve all Dimension objects from database.
+        :return: List of dimensions
+        """
+        raise NotImplementedError()
+
+    def get_by_id(self, _id):
+        """
+        Fetches dimension by id.
+        :param _id: ID for the Dimension to retrieve.
+        :return: Dimension object if found, None otherwise
+        """
+        raise NotImplementedError()
+
+    def get_by_name(self, name):
+        """
+        Fetches Dimension by name.
+        :param name: Name of the Dimension to retrieve.
+        :return: Dimension object matching the name.
+        """
+        raise NotImplementedError()

@@ -1,13 +1,13 @@
-import psycopg2.extras
+from psycopg2.extras import NamedTupleCursor
 
-from objectcube.services.base import TagService
+from objectcube.services.base import BaseTagService
 from objectcube.contexts import Connection
 from objectcube.vo import Tag
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
 
 
-class TestTagServicePostgreSQL(TagService):
+class TagServicePostgreSQL(BaseTagService):
     def get_by_value(self, value):
         return_list = []
         if not value:
@@ -15,8 +15,8 @@ class TestTagServicePostgreSQL(TagService):
 
         sql = "SELECT * FROM TAGS WHERE VALUE = '%s'" % value
         try:
-            with Connection() as connection:
-                with connection.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor) as cursor:
+            with Connection() as c:
+                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
                     cursor.execute(sql)
 
                     for row in cursor.fetchall():
@@ -33,8 +33,8 @@ class TestTagServicePostgreSQL(TagService):
         sql = "SELECT * FROM TAGS WHERE ID = {}".format(_id)
 
         try:
-            with Connection() as connection:
-                with connection.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor) as cursor:
+            with Connection() as c:
+                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
                     cursor.execute(sql)
                     row = cursor.fetchone()
                     if row:
@@ -58,9 +58,8 @@ class TestTagServicePostgreSQL(TagService):
 
         sql = 'SELECT * FROM TAGS LIMIT %s OFFSET %s'
         try:
-            with Connection() as connection:
-                with connection.cursor(
-                        cursor_factory=psycopg2.extras.NamedTupleCursor) as cursor:
+            with Connection() as c:
+                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
                     cursor.execute(sql, (limit, offset))
 
                     for row in cursor.fetchall():
