@@ -105,3 +105,11 @@ class BaseDimensionService(object):
         :return: Dimension object matching the name.
         """
         raise NotImplementedError()
+
+    def update_dimension(self, name, new_dimension):
+        """
+        Update a dimension.
+        :param name: Name of the dimension to modify.
+        :return: Returns nothing.
+        """
+        raise NotImplementedError()

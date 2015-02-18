@@ -47,7 +47,7 @@ class DimensionServicePostgreSQL(BaseDimensionService):
         if not name or name == '' or not isinstance(name, basestring):
             raise ObjectCubeException('NAME must be a nonempty string')
 
-        sql = "SELECT TREE FROM DIMENSIONS WHERE NAME = '{}'".format(name)
+        sql = "SELECT TREE FROM DIMENSIONS WHERE NAME = '{0}'".format(name)
 
         try:
             with Connection() as c:
@@ -68,5 +68,19 @@ class DimensionServicePostgreSQL(BaseDimensionService):
                     cursor.execute(sql, (tree.name, dumps(tree.serialize())))
                     tree.id = cursor.fetchone()[0]
                     connection.commit()
+        except Exception as ex:
+            raise ObjectCubeDatabaseException(ex)
+
+    def update_dimension(self, name, new_tree):
+        if not name or name == '' or not isinstance(new_tree, Tree):
+            raise ObjectCubeException('Updating requires a non empty name '
+                                      'and a replacement tree')
+
+        sql = "UPDATE DIMENSIONS SET TREE=%s WHERE NAME=%s"
+
+        try:
+            with Connection() as c:
+                with c.cursor() as cursor:
+                    cursor.execute(sql, (dumps(new_tree.serialize()), name))
         except Exception as ex:
             raise ObjectCubeDatabaseException(ex)

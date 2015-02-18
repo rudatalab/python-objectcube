@@ -12,8 +12,8 @@ class TestDimensionService(TestDatabaseAwareTest):
     def _create_test_tree(self, name='foobar'):
         root = Tree(1, name=name)
         first_child = root.add_child(Tree(2))
-        second_child = root.add_child(Tree(3))
-        first_grandchild = first_child.add_child(Tree(4))
+        root.add_child(Tree(3))
+        first_child.add_child(Tree(4))
         return root
 
     def test_add_dimension_should_return_id(self):
@@ -55,13 +55,13 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def test_get_by_bogus_name_should_throw_error(self):
         with self.assertRaises(ObjectCubeException):
-            dim_get = self.dimension_service.get_by_name(1)
+            self.dimension_service.get_by_name(1)
 
         with self.assertRaises(ObjectCubeException):
-            dim_get = self.dimension_service.get_by_name('')
+            self.dimension_service.get_by_name('')
 
         with self.assertRaises(ObjectCubeException):
-            dim_get = self.dimension_service.get_by_name([])
+            self.dimension_service.get_by_name([])
 
     def test_get_by_name_should_return_correct_object(self):
         dim = self._create_test_tree('foobar')
@@ -70,3 +70,38 @@ class TestDimensionService(TestDatabaseAwareTest):
         self.assertEquals(dim.serialize(), dim_get.serialize(),
                           msg='Fetching an object by its name should return '
                           'the correct object')
+
+    def test_update_dimension_bogus_input_throws(self):
+        tree = self._create_test_tree('foo')
+        with self.assertRaises(ObjectCubeException):
+            self.dimension_service.update_dimension('', tree)
+
+        with self.assertRaises(ObjectCubeException):
+            self.dimension_service.update_dimension('', 1)
+
+        with self.assertRaises(ObjectCubeException):
+            self.dimension_service.update_dimension('foo', 1)
+
+    def test_update_dimension_name_should_update_object(self):
+        dim = self._create_test_tree('foobar')
+        old_name = dim.name
+        old_children = dim.serialize().get('children')
+        self.dimension_service.add_dimension(dim)
+        dim.name = 'foo'
+        self.dimension_service.update_dimension(old_name, dim)
+        new_dim = self.dimension_service.get_by_id(dim.id)
+        new_children = new_dim.serialize().get('children')
+        self.assertTrue(new_dim.name == 'foo')
+        self.assertEquals(old_children, new_children)
+        self.assertTrue(new_dim.tag_id == dim.tag_id)
+
+    def test_update_dimension_children_should_update_object(self):
+        dim = self._create_test_tree('foobar')
+        self.dimension_service.add_dimension(dim)
+        self.assertTrue(len(dim.children) == 2)
+        dim.add_child(Tree(2))
+        self.dimension_service.update_dimension(dim.name, dim)
+        new_dim = self.dimension_service.get_by_name(dim.name)
+        self.assertEquals(new_dim.serialize(), dim.serialize())
+        self.assertTrue(new_dim.name == 'foobar')
+        self.assertTrue(len(new_dim.children) == 3)
