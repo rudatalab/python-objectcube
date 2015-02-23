@@ -1,3 +1,6 @@
+from objectcube.exceptions import ObjectCubeException
+
+
 class BaseTagService(object):
     def get_tags(self, offset=0, limit=10):
         """
@@ -64,6 +67,10 @@ class BasePluginService(object):
 
 
 class BaseObjectService(object):
+    def __init__(self, blob_service=None):
+        self.blob_service = None
+        self.set_blob_service(blob_service)
+
     def add(self, resource_uri, name):
         raise NotImplementedError()
 
@@ -72,6 +79,12 @@ class BaseObjectService(object):
 
     def add_tag(self, _object, tag_or_tags):
         raise NotImplementedError()
+
+    def set_blob_service(self, blob_service):
+        if blob_service and not isinstance(blob_service, BaseBlobService):
+            raise ObjectCubeException()
+
+        self.blob_service = blob_service
 
 
 class BaseDimensionService(object):
@@ -113,3 +126,7 @@ class BaseDimensionService(object):
         :return: Returns nothing.
         """
         raise NotImplementedError()
+
+
+class BaseBlobService(object):
+    pass
