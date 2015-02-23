@@ -1,6 +1,7 @@
 import importlib
 
 from objectcube.settings import FACTORY_CONFIG
+from objectcube.exceptions import ObjectCubeException
 
 
 def load_class(class_path):
@@ -13,5 +14,11 @@ def load_class(class_path):
 
 
 def get_service_class(service_name, *args, **kwargs):
+
+    # Check if the service_name has been configured in settings
+    if service_name not in FACTORY_CONFIG.keys():
+        raise ObjectCubeException('Service class {} has not been '
+                                  'configured'.format(service_name))
+
     class_ = load_class(FACTORY_CONFIG.get(service_name))
     return class_(*args, **kwargs)

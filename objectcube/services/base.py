@@ -67,11 +67,10 @@ class BasePluginService(object):
 
 
 class BaseObjectService(object):
-    def __init__(self, blob_service=None):
+    def __init__(self):
         self.blob_service = None
-        self.set_blob_service(blob_service)
 
-    def add(self, resource_uri, name):
+    def add(self, stream, name):
         raise NotImplementedError()
 
     def count(self):
@@ -79,12 +78,6 @@ class BaseObjectService(object):
 
     def add_tag(self, _object, tag_or_tags):
         raise NotImplementedError()
-
-    def set_blob_service(self, blob_service):
-        if blob_service and not isinstance(blob_service, BaseBlobService):
-            raise ObjectCubeException()
-
-        self.blob_service = blob_service
 
 
 class BaseDimensionService(object):
