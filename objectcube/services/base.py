@@ -1,6 +1,3 @@
-from objectcube.exceptions import ObjectCubeException
-
-
 class BaseTagService(object):
     def get_tags(self, offset=0, limit=10):
         """
@@ -76,7 +73,23 @@ class BaseObjectService(object):
     def count(self):
         raise NotImplementedError()
 
-    def add_tag(self, _object, tag_or_tags):
+    def add_tags_to_objects(self, objects, tags):
+        """
+        Add tags to objects. All tags in the tags parameter
+        will be applied to all objects in the objects parameter.
+        """
+        raise NotImplementedError()
+
+    def get_objects_by_tags(self, tags):
+        """
+        Fetch objects that have been applied with tags in tags
+        """
+        raise NotImplementedError()
+
+    def get_by_id(self, id):
+        raise NotImplementedError()
+
+    def get_objects(self, offset=0, limit=10):
         raise NotImplementedError()
 
 

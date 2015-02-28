@@ -13,11 +13,11 @@ class TagServicePostgreSQL(BaseTagService):
         if not value:
             raise ObjectCubeException('Must give value')
 
-        sql = "SELECT * FROM TAGS WHERE VALUE = '%s'" % value
+        sql = "SELECT * FROM TAGS WHERE VALUE = %s"
         try:
             with Connection() as c:
                 with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql)
+                    cursor.execute(sql, (value,))
 
                     for row in cursor.fetchall():
                         return_list.append(Tag(**row._asdict()))

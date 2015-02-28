@@ -1,5 +1,6 @@
 import unittest
 from objectcube.db import create_connection
+from objectcube.vo import Tag
 
 
 class TestDatabaseAwareTest(unittest.TestCase):
@@ -15,3 +16,23 @@ class TestDatabaseAwareTest(unittest.TestCase):
                 cursor.execute(data)
 
             connection.commit()
+
+
+class ObjectCubeTestCase(TestDatabaseAwareTest):
+    def __init__(self, *args, **kwargs):
+        super(ObjectCubeTestCase, self).__init__(*args, **kwargs)
+
+    def create_test_tag(self, value=''):
+        """
+        Helper function for creating test tags in tests.
+        :param value: Value for the tag being created
+        :return: Tag instance that can be added to data store.
+        """
+        return Tag(**{
+            'id': None,
+            'value': value,
+            'description': '',
+            'mutable': False,
+            'type': 0,
+            'plugin_id': None
+        })
