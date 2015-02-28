@@ -91,6 +91,11 @@ class TestTagService(TestDatabaseAwareTest):
         self.assertTrue(t.id)
         self.assertTrue(t.id > 0)
 
+    def test_add_tag_returns_tag(self):
+        test_tag = self._create_test_tag()
+        tag = self.tag_service.add_tag(test_tag)
+        self.assertEquals(tag, test_tag)
+
     def test_add_increases_count(self):
         self.assertEquals(self.tag_service.count(), 0)
         self.tag_service.add_tag(self._create_test_tag())

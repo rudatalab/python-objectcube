@@ -13,7 +13,8 @@ class BaseTagService(object):
         Adds new tag to data store.
         :param tag: Tag object filled with data. Note that the id field must
         be set to None when creating new tag.
-        :return: None
+        :return: Returns the newly created tag object. It is the same tag
+        object passed in by parameter, with updated id value.
         """
         raise NotImplementedError()
 

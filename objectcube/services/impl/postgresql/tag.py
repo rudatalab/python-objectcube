@@ -83,5 +83,6 @@ class TagServicePostgreSQL(BaseTagService):
                                          tag.mutable, tag.type, tag.plugin_id))
                     tag.id = cursor.fetchone()[0]
                     connection.commit()
+                    return tag
         except Exception as ex:
             raise ObjectCubeDatabaseException(ex)
