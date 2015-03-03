@@ -69,6 +69,13 @@ class BaseObjectService(object):
         self.blob_service = None
 
     def add(self, stream, name):
+        """
+        Add object to data store.
+        :param stream: Stream to data.
+        :param name: Name of the object. This can be a name that describes
+        the object being added.
+        :return: Object filled with the added object details.
+        """
         raise NotImplementedError()
 
     def count(self):

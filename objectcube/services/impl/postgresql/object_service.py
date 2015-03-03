@@ -52,7 +52,7 @@ class ObjectService(BaseObjectService):
                 cursor = connection.cursor()
                 bulk_values = []
 
-                for i, v in range(insert_values):
+                for v in insert_values:
                     bulk_values.append((v[0], v[1]))
                     if len(bulk_values) > bulk_size:
                         cursor.executemany(sql, tuple(bulk_values))
@@ -68,7 +68,29 @@ class ObjectService(BaseObjectService):
         """
         Fetch objects that have been applied with tags in tags
         """
-        raise NotImplementedError()
+        return_list = []
+        if not tags:
+            raise ObjectCubeException('Tags parameter must be set')
+
+        if isinstance(tags[0], Tag):
+            tags = [tag.id for tag in tags]
+
+        # remove duplicates in the tags array
+        tags = set(tags)
+
+        ids = ','.join([str(x) for x in tags])
+        sql = 'select o.id, o.name, o.digest from objects o join object_tag' \
+              ' t on t.object_id = o.id where t.tag_id in ({})'.format(ids)
+
+        try:
+            with Connection() as c:
+                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
+                    cursor.execute(sql)
+                    for row in cursor.fetchall():
+                        return_list.append(Object(**row._asdict()))
+            return return_list
+        except Exception as e:
+            raise ObjectCubeDatabaseException(e)
 
     def add(self, stream, name):
         file_digest = md5_for_file(stream)
@@ -79,12 +101,14 @@ class ObjectService(BaseObjectService):
                 cursor = connection.cursor()
                 cursor.execute(sql, (name, file_digest))
                 row = cursor.fetchone()
-                return int(row[0])
+                return Object(**{
+                    'id': row[0],
+                    'name': name,
+                    'digest': file_digest
+                })
 
         except Exception as ex:
             raise ObjectCubeDatabaseException(ex)
-
-        # TODO: Pass the binary to registered plugins asynchronously
 
     def get_by_id(self, _id):
         sql = "SELECT ID, NAME, DIGEST FROM OBJECTS WHERE ID=%s"

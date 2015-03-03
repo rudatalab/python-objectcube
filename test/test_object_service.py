@@ -3,6 +3,7 @@ import cStringIO
 from objectcube.factory import get_service_class
 from objectcube.exceptions import ObjectCubeDatabaseException
 from objectcube.utils import md5_for_file
+from objectcube.vo import Object
 
 from base import ObjectCubeTestCase
 
@@ -24,12 +25,12 @@ class TestObjectService(ObjectCubeTestCase):
                           msg='When no object has been added, '
                               'count should return zero')
 
-    def test_add_object_returns_int(self):
+    def test_add_object_returns_object(self):
         stream = cStringIO.StringIO('Hello world')
         stream.seek(0)
         returning_id = self.object_service.add(stream=stream, name='foo.jpg')
         self.assertTrue(
-            isinstance(returning_id, int),
+            isinstance(returning_id, Object),
             msg='The object add function should return value of type int.')
 
     def test_add_object_digest_name_uniqueness(self):
@@ -94,8 +95,47 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_add_tag_to_object(self):
         tag_service = get_service_class('TagService')
-        tag_id = tag_service.add_tag(self.create_test_tag(value='people'))
+
+        tag = tag_service.add_tag(self.create_test_tag(value='people'))
 
         object_id = self.object_service.add(
             stream=cStringIO.StringIO('hello world'),
             name='foobar.jpg')
+
+        self.object_service.add_tags_to_objects([object_id], [tag.id])
+
+    def test_fetch_object_by_tag(self):
+        tag_service = get_service_class('TagService')
+        tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
+
+        _object = self.object_service.add(
+            stream=cStringIO.StringIO('hello world'),
+            name='foobar.jpg')
+
+        self.object_service.add_tags_to_objects(_object, tag)
+        objects = self.object_service.get_objects_by_tags([tag])
+        self.assertTrue(len(objects) == 1,
+                        msg='We should get at least one object')
+        self.assertEquals(_object, objects[0])
+
+    def test_fetch_multiple_objects_with_same_tag(self):
+        tag_service = get_service_class('TagService')
+        tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
+
+        objects = []
+        for i in range(10):
+            _object = self.object_service.add(
+                stream=cStringIO.StringIO(str(i)),
+                name=str(i))
+            objects.append(_object)
+
+        for i in range(10):
+            _object = self.object_service.add(
+                stream=cStringIO.StringIO('not in'+ str(i)),
+                name='not in ' + str(i))
+
+        self.object_service.add_tags_to_objects(objects, tag)
+        _fetched_objects = self.object_service.get_objects_by_tags([tag])
+        self.assertListEqual(objects, _fetched_objects)
+
+
