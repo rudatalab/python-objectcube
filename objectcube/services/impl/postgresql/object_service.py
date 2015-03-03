@@ -68,6 +68,9 @@ class ObjectService(BaseObjectService):
         """
         Fetch objects that have been applied with tags in tags
         """
+        if isinstance(tags, Tag):
+            tags = [tags]
+
         return_list = []
         if not tags:
             raise ObjectCubeException('Tags parameter must be set')
@@ -78,6 +81,7 @@ class ObjectService(BaseObjectService):
         # remove duplicates in the tags array
         tags = set(tags)
 
+        # TODO (hlysig) we are looping way to often over this collection!
         ids = ','.join([str(x) for x in tags])
         sql = 'select o.id, o.name, o.digest from objects o join object_tag' \
               ' t on t.object_id = o.id where t.tag_id in ({})'.format(ids)
@@ -93,6 +97,12 @@ class ObjectService(BaseObjectService):
             raise ObjectCubeDatabaseException(e)
 
     def add(self, stream, name):
+        if not name:
+            raise ObjectCubeException('Name is required')
+
+        if not stream:
+            raise ObjectCubeException('Stream is broken')
+
         file_digest = md5_for_file(stream)
         sql = 'INSERT INTO OBJECTS(NAME, DIGEST) values (%s, %s) RETURNING ID'
 

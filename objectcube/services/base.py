@@ -79,6 +79,11 @@ class BaseObjectService(object):
         raise NotImplementedError()
 
     def count(self):
+        """
+        Counts the number of objects in data store. Note that this value
+        might not be accurate
+        :return: Number of objects as number
+        """
         raise NotImplementedError()
 
     def add_tags_to_objects(self, objects, tags):
@@ -94,7 +99,12 @@ class BaseObjectService(object):
         """
         raise NotImplementedError()
 
-    def get_by_id(self, id):
+    def get_by_id(self, object_id):
+        """
+        Fetch a given object by id
+        :param object_id: Number representing the value of the object.
+        :return: Object if found, None otherwise.
+        """
         raise NotImplementedError()
 
     def get_objects(self, offset=0, limit=10):

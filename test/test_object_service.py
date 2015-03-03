@@ -1,7 +1,8 @@
 import cStringIO
 
 from objectcube.factory import get_service
-from objectcube.exceptions import ObjectCubeDatabaseException
+from objectcube.exceptions import (ObjectCubeDatabaseException,
+                                   ObjectCubeException)
 from objectcube.utils import md5_for_file
 from objectcube.vo import Object
 
@@ -9,6 +10,31 @@ from base import ObjectCubeTestCase
 
 
 class TestObjectService(ObjectCubeTestCase):
+    def assert_no_objects_in_data_store(self):
+        self.assertEquals(self.object_service.count(), 0,
+                          msg='No objects should be in the data store')
+
+    def assert_has_some_objects_in_data_store(self):
+        self.assertTrue(self.object_service.count() > 0,
+                        msg='Some objects should be in the data store')
+
+    def assert_has_number_of_objects_in_data_store(self, number):
+        self.assertEquals(self.object_service.count(), number,
+                          msg='The should be {0} object in '
+                              'data store'.format(number))
+
+    def get_test_stream(self, stream_data='stream'):
+        stream = cStringIO.StringIO(stream_data)
+        stream.seek(0)
+        return stream
+
+    def create_objects(self, num_objects, name_prefix='object_'):
+        for i in range(num_objects):
+            stream = cStringIO.StringIO(str(i))
+            yield self.object_service.add(
+                stream=stream,
+                name='{0}{1}'.format(name_prefix, i))
+
     def __init__(self, *args, **kwargs):
         super(TestObjectService, self).__init__(*args, **kwargs)
         self.object_service = get_service('ObjectService')
@@ -19,11 +45,24 @@ class TestObjectService(ObjectCubeTestCase):
                         msg='The count function should return a list objects')
 
     def test_count_returns_zero_when_no_object_has_been_added(self):
-        count = self.object_service.count()
-        self.assertEquals(count,
-                          0,
-                          msg='When no object has been added, '
-                              'count should return zero')
+        self.assert_no_objects_in_data_store()
+
+    def test_count_increases_when_object_is_added(self):
+        self.create_objects(num_objects=1).next()
+        self.assert_has_some_objects_in_data_store()
+        self.assert_has_number_of_objects_in_data_store(1)
+
+    def test_add_object_raises_exception_if_name_is_missing(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(stream=self.get_test_stream(), name=None)
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(stream=self.get_test_stream(), name='')
+
+    def test_add_object_raises_exception_if_stream_is_broken(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(stream=None,
+                                    name='Some name')
 
     def test_add_object_returns_object(self):
         stream = cStringIO.StringIO('Hello world')
@@ -60,7 +99,7 @@ class TestObjectService(ObjectCubeTestCase):
             self.assertTrue(db_object.digest == md5_for_file(stream))
 
     def test_get_objects_offset_limit(self):
-        number_of_object = 20
+        number_of_object = 25
         for i in range(number_of_object):
             object_name = '{}'.format(i)
             stream = cStringIO.StringIO(str(i))
@@ -79,6 +118,9 @@ class TestObjectService(ObjectCubeTestCase):
         for i, o in enumerate(objects):
             self.assertEquals(o.name, str(i+10))
 
+        objects = self.object_service.get_objects(offset=20, limit=10)
+        self.assertEquals(len(objects), 5)
+
     def test_fetch_object_outside_offset_return_empty_list(self):
         number_of_object = 20
         for i in range(number_of_object):
@@ -93,49 +135,34 @@ class TestObjectService(ObjectCubeTestCase):
                         msg='When selected offset which is outside of the '
                             'data set, then we will get an empty list')
 
-    def test_add_tag_to_object(self):
-        tag_service = get_service('TagService')
-
-        tag = tag_service.add_tag(self.create_test_tag(value='people'))
-
-        object_id = self.object_service.add(
-            stream=cStringIO.StringIO('hello world'),
-            name='foobar.jpg')
-
-        self.object_service.add_tags_to_objects([object_id], [tag.id])
-
     def test_fetch_object_by_tag(self):
         tag_service = get_service('TagService')
         tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
 
-        _object = self.object_service.add(
-            stream=cStringIO.StringIO('hello world'),
-            name='foobar.jpg')
-
-        self.object_service.add_tags_to_objects(_object, tag)
+        test_object = self.create_objects(num_objects=1).next()
+        self.object_service.add_tags_to_objects(test_object, tag)
         objects = self.object_service.get_objects_by_tags([tag])
-        self.assertTrue(len(objects) == 1,
-                        msg='We should get at least one object')
-        self.assertEquals(_object, objects[0])
+
+        self.assertTrue(len(objects) == 1)
+        self.assertEquals(test_object, objects[0])
 
     def test_fetch_multiple_objects_with_same_tag(self):
         tag_service = get_service('TagService')
         tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
 
-        objects = []
-        for i in range(10):
-            _object = self.object_service.add(
-                stream=cStringIO.StringIO(str(i)),
-                name=str(i))
-            objects.append(_object)
+        objects_with_tag = [o for o in self.create_objects(num_objects=100,
+                                                           name_prefix='foo')]
+        object_not_with_tag = [o for o in
+                               self.create_objects(num_objects=100,
+                                                   name_prefix='bar')]
 
-        for i in range(10):
-            _object = self.object_service.add(
-                stream=cStringIO.StringIO('not in'+ str(i)),
-                name='not in ' + str(i))
+        self.object_service.add_tags_to_objects(objects_with_tag, tag)
 
-        self.object_service.add_tags_to_objects(objects, tag)
-        _fetched_objects = self.object_service.get_objects_by_tags([tag])
-        self.assertListEqual(objects, _fetched_objects)
+        _fetched_objects = self.object_service.get_objects_by_tags(tag)
+
+        self.assertListEqual(objects_with_tag, _fetched_objects)
+
+        for x in object_not_with_tag:
+            self.assertTrue(x not in _fetched_objects)
 
 
