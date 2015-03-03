@@ -45,10 +45,16 @@ class Plugin(SerializableMixin):
 
 
 class Object(SerializableMixin):
-    fields = ['id', 'name', 'resource_uri']
+    fields = ['id', 'name', 'digest']
 
     def __init__(self, **kwargs):
         super(Object, self).__init__(**kwargs)
+
+    def __eq__(self, other):
+        for k in self.fields:
+            if getattr(self, k) != getattr(other, k):
+                return False
+        return True
 
 
 class Tree(object):
