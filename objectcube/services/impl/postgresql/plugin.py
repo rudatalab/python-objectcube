@@ -1,5 +1,5 @@
 from objectcube.services.base import PluginService
-from objectcube.factory import get_service_class
+from objectcube.factory import get_service
 from objectcube.contexts import Connection
 
 
@@ -9,7 +9,7 @@ class PluginServicePostgreSQL(PluginService):
         pass
 
     def __init__(self):
-        self.tag_service = get_service_class('tagservice')
+        self.tag_service = get_service('tagservice')
 
     def get_plugin_by_name(self):
         pass

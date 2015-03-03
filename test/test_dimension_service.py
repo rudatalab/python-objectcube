@@ -1,13 +1,13 @@
 from base import TestDatabaseAwareTest
 from objectcube.vo import Tree
-from objectcube.factory import get_service_class
+from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
 
 
 class TestDimensionService(TestDatabaseAwareTest):
     def __init__(self, *args, **kwargs):
         super(TestDimensionService, self).__init__(*args, **kwargs)
-        self.dimension_service = get_service_class('DimensionService')
+        self.dimension_service = get_service('DimensionService')
 
     def _create_test_tree(self, name='foobar'):
         root = Tree(1, name=name)

@@ -62,3 +62,37 @@ use the scripts as follows.
 The server can also be started with
 
     scripts/objectcube start_postgres
+
+## API
+
+Actions are performed through stateless services. The services that are now offerred are 
+
+- TagService
+- ObjectService
+- DimensionService
+
+Service are obtained using a service factory as follows.
+
+	from objectcube.factory import get_service
+	tag_service = get_service('TagService')
+
+The class implementing the service is configured in `objectcube.settings.FACTORY_CONFIG`. Each service must implement a relevant base class in `objectcube.services.base`.
+
+### TagService
+The TagService manages tags.
+
+#### get_by_value(value)
+Fetches tags by value (name). This function returns a list of `objectcube.vo.Tag` objects.
+
+#### get_by_id(id)
+#### count()
+#### get_tags(offset=0, limit=100)
+#### add_tag(tag)
+
+### ObjectService
+Manages objects
+#### count()
+#### add_tags_to_objects(objects, tags):
+#### get_objects_by_tags(tags)
+#### get_objects(offset=0, limit=10)
+

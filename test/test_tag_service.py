@@ -2,13 +2,13 @@ from base import TestDatabaseAwareTest
 from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import Tag
 
-from objectcube.factory import get_service_class
+from objectcube.factory import get_service
 
 
 class TestTagService(TestDatabaseAwareTest):
     def __init__(self, *args, **kwargs):
         super(TestTagService, self).__init__(*args, **kwargs)
-        self.tag_service = get_service_class('TagService')
+        self.tag_service = get_service('TagService')
 
     def _create_test_tag(self, value=''):
         """

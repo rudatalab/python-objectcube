@@ -13,7 +13,7 @@ def load_class(class_path):
     return getattr(module, class_str)
 
 
-def get_service_class(service_name, *args, **kwargs):
+def get_service(service_name, *args, **kwargs):
 
     # Check if the service_name has been configured in settings
     if service_name not in FACTORY_CONFIG.keys():

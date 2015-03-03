@@ -1,6 +1,6 @@
 import cStringIO
 
-from objectcube.factory import get_service_class
+from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeDatabaseException
 from objectcube.utils import md5_for_file
 from objectcube.vo import Object
@@ -11,7 +11,7 @@ from base import ObjectCubeTestCase
 class TestObjectService(ObjectCubeTestCase):
     def __init__(self, *args, **kwargs):
         super(TestObjectService, self).__init__(*args, **kwargs)
-        self.object_service = get_service_class('ObjectService')
+        self.object_service = get_service('ObjectService')
 
     def test_count_returns_number(self):
         count = self.object_service.count()
@@ -94,7 +94,7 @@ class TestObjectService(ObjectCubeTestCase):
                             'data set, then we will get an empty list')
 
     def test_add_tag_to_object(self):
-        tag_service = get_service_class('TagService')
+        tag_service = get_service('TagService')
 
         tag = tag_service.add_tag(self.create_test_tag(value='people'))
 
@@ -105,7 +105,7 @@ class TestObjectService(ObjectCubeTestCase):
         self.object_service.add_tags_to_objects([object_id], [tag.id])
 
     def test_fetch_object_by_tag(self):
-        tag_service = get_service_class('TagService')
+        tag_service = get_service('TagService')
         tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
 
         _object = self.object_service.add(
@@ -119,7 +119,7 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertEquals(_object, objects[0])
 
     def test_fetch_multiple_objects_with_same_tag(self):
-        tag_service = get_service_class('TagService')
+        tag_service = get_service('TagService')
         tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
 
         objects = []
