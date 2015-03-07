@@ -16,7 +16,10 @@ FACTORY_CONFIG = {
                   'DimensionServicePostgreSQL',
 
     'ObjectService': 'objectcube.services.impl.postgresql.object_service.'
-                     'ObjectService'
+                     'ObjectService',
+
+    'BlobService': 'objectcube.services.impl.filesystem.'
+                   'blob_service.FileBlobServiceImpl',
 }
 
 PLUGINS = (

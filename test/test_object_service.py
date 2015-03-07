@@ -3,7 +3,7 @@ import cStringIO
 from objectcube.factory import get_service
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
-from objectcube.utils import md5_for_file
+from objectcube.utils import md5_from_stream
 from objectcube.vo import Object
 
 from base import ObjectCubeTestCase
@@ -96,7 +96,7 @@ class TestObjectService(ObjectCubeTestCase):
 
             self.assertTrue(db_object.id == i)
             self.assertTrue(db_object.name == str(i))
-            self.assertTrue(db_object.digest == md5_for_file(stream))
+            self.assertTrue(db_object.digest == md5_from_stream(stream))
 
     def test_get_objects_offset_limit(self):
         number_of_object = 25

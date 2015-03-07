@@ -1,7 +1,7 @@
 import hashlib
 
 
-def md5_for_file(f, block_size=2**20):
+def md5_from_stream(f, block_size=2**20):
     f.seek(0)
     md5 = hashlib.md5()
     while True:

@@ -153,4 +153,17 @@ class BaseDimensionService(object):
 
 
 class BaseBlobService(object):
-    pass
+    def has_blob(self, digest_id):
+        raise NotImplementedError()
+
+    def add_blob(self, fs, blob_meta, digest=None):
+        raise NotImplementedError()
+
+    def get_uri(self, digest):
+        raise NotImplementedError()
+
+    def flush(self):
+        raise NotImplementedError()
+
+    def get_blob_meta(self, digest):
+        raise NotImplementedError()
