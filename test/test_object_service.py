@@ -67,10 +67,17 @@ class TestObjectService(ObjectCubeTestCase):
     def test_add_object_returns_object(self):
         stream = cStringIO.StringIO('Hello world')
         stream.seek(0)
-        returning_id = self.object_service.add(stream=stream, name='foo.jpg')
+        value = self.object_service.add(stream=stream, name='foo.jpg')
         self.assertTrue(
-            isinstance(returning_id, Object),
+            isinstance(value, Object),
             msg='The object add function should return value of type int.')
+
+    def test_add_object_adds_object_to_blob_storage(self):
+        o = self.create_objects(num_objects=1).next()
+        blob_service = get_service('BlobService')
+        self.assertTrue(blob_service.has_blob(o.digest),
+                        msg='When object is added, it should add the blob to '
+                            'blob service and the digest should be found')
 
     def test_add_object_digest_name_uniqueness(self):
         object_name = 'name.txt'
