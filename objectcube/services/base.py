@@ -1,3 +1,6 @@
+from objectcube.factory import get_service
+
+
 class BaseTagService(object):
     def get_tags(self, offset=0, limit=10):
         """
@@ -66,7 +69,8 @@ class BasePluginService(object):
 
 class BaseObjectService(object):
     def __init__(self):
-        self.blob_service = None
+        # TODO (hlysig) inject this into creation of this service.
+        self.blob_service = get_service('BlobService')
 
     def add(self, stream, name):
         """
