@@ -38,6 +38,10 @@ class TestObjectService(ObjectCubeTestCase):
     def __init__(self, *args, **kwargs):
         super(TestObjectService, self).__init__(*args, **kwargs)
         self.object_service = get_service('ObjectService')
+        self.blob_service = get_service('BlobService')
+
+    def tearDown(self):
+        self.blob_service.flush()
 
     def test_count_returns_number(self):
         count = self.object_service.count()
@@ -74,8 +78,7 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_add_object_adds_object_to_blob_storage(self):
         o = self.create_objects(num_objects=1).next()
-        blob_service = get_service('BlobService')
-        self.assertTrue(blob_service.has_blob(o.digest),
+        self.assertTrue(self.blob_service.has_blob(o.digest),
                         msg='When object is added, it should add the blob to '
                             'blob service and the digest should be found')
 
