@@ -12,7 +12,7 @@ class Connection:
     def __exit__(self, *args, **kwargs):
         try:
             self.connection.commit()
-        except Exception as ex:
+        except Exception:
             raise
         finally:
             if self.connection:

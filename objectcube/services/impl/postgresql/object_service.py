@@ -6,11 +6,14 @@ from objectcube.services.base import BaseObjectService
 from objectcube.contexts import Connection
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
-from objectcube.utils import md5_for_file
+from objectcube.utils import md5_from_stream
 from objectcube.vo import Object, Tag
 
 
 class ObjectService(BaseObjectService):
+    def __init__(self, *args, **kwargs):
+        super(ObjectService, self).__init__()
+
     def count(self):
         sql = """SELECT COUNT(ID) FROM OBJECTS"""
         try:
@@ -103,7 +106,11 @@ class ObjectService(BaseObjectService):
         if not stream:
             raise ObjectCubeException('Stream is broken')
 
-        file_digest = md5_for_file(stream)
+        file_digest = md5_from_stream(stream)
+
+        # Add the file to blob service
+        self.blob_service.add_blob(stream, digest=file_digest)
+
         sql = 'INSERT INTO OBJECTS(NAME, DIGEST) values (%s, %s) RETURNING ID'
 
         try:

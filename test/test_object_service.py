@@ -3,7 +3,7 @@ import cStringIO
 from objectcube.factory import get_service
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
-from objectcube.utils import md5_for_file
+from objectcube.utils import md5_from_stream
 from objectcube.vo import Object
 
 from base import ObjectCubeTestCase
@@ -38,6 +38,10 @@ class TestObjectService(ObjectCubeTestCase):
     def __init__(self, *args, **kwargs):
         super(TestObjectService, self).__init__(*args, **kwargs)
         self.object_service = get_service('ObjectService')
+        self.blob_service = get_service('BlobService')
+
+    def tearDown(self):
+        self.blob_service.flush()
 
     def test_count_returns_number(self):
         count = self.object_service.count()
@@ -67,10 +71,16 @@ class TestObjectService(ObjectCubeTestCase):
     def test_add_object_returns_object(self):
         stream = cStringIO.StringIO('Hello world')
         stream.seek(0)
-        returning_id = self.object_service.add(stream=stream, name='foo.jpg')
+        value = self.object_service.add(stream=stream, name='foo.jpg')
         self.assertTrue(
-            isinstance(returning_id, Object),
+            isinstance(value, Object),
             msg='The object add function should return value of type int.')
+
+    def test_add_object_adds_object_to_blob_storage(self):
+        o = self.create_objects(num_objects=1).next()
+        self.assertTrue(self.blob_service.has_blob(o.digest),
+                        msg='When object is added, it should add the blob to '
+                            'blob service and the digest should be found')
 
     def test_add_object_digest_name_uniqueness(self):
         object_name = 'name.txt'
@@ -96,7 +106,7 @@ class TestObjectService(ObjectCubeTestCase):
 
             self.assertTrue(db_object.id == i)
             self.assertTrue(db_object.name == str(i))
-            self.assertTrue(db_object.digest == md5_for_file(stream))
+            self.assertTrue(db_object.digest == md5_from_stream(stream))
 
     def test_get_objects_offset_limit(self):
         number_of_object = 25
