@@ -27,7 +27,7 @@ EOT
 
 function cmd_schema {
   createdb
-  psql $USER < $ROOT_DIR/schema.sql
+  psql $OBJECTCUBE_DB_USER < $ROOT_DIR/schema.sql
 }
 
 function cmd_default {
