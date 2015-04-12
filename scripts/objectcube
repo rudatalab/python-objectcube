@@ -1,82 +1,52 @@
 #!/bin/bash
-
 SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
+cd $SCRIPT_DIR
+source utils.sh
+
 ROOT_DIR="$SCRIPT_DIR/.."
 VIRTUALENV_DIR_NAME=".venv"
 VIRTUALENV_DIR=$SCRIPT_DIR/../$VIRTUALENV_DIR_NAME;
-POSTGRES_DATA_DIR=$ROOT_DIR/data;
-
+POSTGRES_DATA_DIR=/tmp/data;
+PROCFILE_LOCATION=$ROOT_DIR/Procfile
 cd $ROOT_DIR
 
-function cout {
-	echo "$(tput setaf 2)$1$(tput sgr0)"; 
-}
-
-function is_postgres_running {
-  if [ -f "$POSTGRES_DATA_DIR/postmaster.pid" ];
-  then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function clean {
-  if is_postgres_running; then
-    cout "Stopping postgres"
-    stop_postgres
-    sleep 5
-  fi
-  rm -rf POSTGRES_DATA_DIR
-  rm -rf $VIRTUALENV_DIR
-  cout "Done"
-}
-
-function init_postgresql_cluster {
-  cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
-	mkdir -p $POSTGRES_DATA_DIR;
-	initdb -d $POSTGRES_DATA_DIR
-};
-
-function create_database_schema {
-	createdb
-	psql $USER < $ROOT_DIR/schema.sql
-};
-
-function create_virtualenv {
-	echo "$(tput setaf 3)Creating virtualenv in $VIRTUALENV_DIR$(tput sgr0)";
-	virtualenv $VIRTUALENV_DIR
-	source .venv/bin/activate
-	pip install -r $ROOT_DIR/requirements.txt
-};
-
-function start_postgres {
-    pg_ctl -D $POSTGRES_DATA_DIR -l $ROOT_DIR/postgres.log start
-    cout "Postgres started"
-}
-
-function stop_postgres {
-    cout "Stopping postgres in $POSTGRES_DATA_DIR"
-    pg_ctl -D $POSTGRES_DATA_DIR stop -s -m fast
-}
-
-function run_test {
-    $VIRTUALENV_DIR/bin/nosetests -v -s
-}
-
-function setup {
-    create_virtualenv
-    init_postgresql_cluster
-    start_postgres
-    sleep 5
-    create_database_schema
+function help {
+  cout "todo: implement help function"
 }
 
 function main {
-	if [ -d "$VIRTUALENV_DIR" ]; then
-		source $VIRTUALENV_DIR/bin/activate
-	fi
-	$1 $@;
+if [ -d "$VIRTUALENV_DIR" ]; then
+  source $VIRTUALENV_DIR/bin/activate
+fi
+ACTION=$1;
+
+if [ -z "$ACTION" ]; then
+  help;
+  exit 2;
+fi
+
+if [ -f "$SCRIPT_DIR/objectcube-$ACTION" ]; then
+  source $SCRIPT_DIR/objectcube-$ACTION;
+else
+  help;
+  exit 2;
+fi
+
+shift;
+COMMAND="cmd_default";
+
+if [ -n "$1" ]; then
+  COMMAND="cmd_$1";
+  shift;
+fi
+
+if isFunction $COMMAND == 1; then
+  shift;
+  $COMMAND $@;
+else
+  echo "Invalid function $COMMAND"
+  echo "use \"scripts/objectcube\" help for available commands."
+fi
 };
 
 main $@;

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+function cmd_default {
+  echo "Cleaning environment"
+  rm -rf $VIRTUALENV_DIR_NAME
+  rm -rf $POSTGRES_DATA_DIR
+  rm -rf $PROCFILE_LOCATION
+}
