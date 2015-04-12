@@ -64,3 +64,4 @@ data/
 postgres.log
 Procfile
 cov
+shared

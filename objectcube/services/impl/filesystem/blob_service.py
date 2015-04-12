@@ -4,7 +4,7 @@ import logging
 from objectcube.services.base import BaseBlobService
 from objectcube.utils import md5_from_stream
 
-FILE_BLOB_SERVICE_PATH = '/tmp/data'
+FILE_BLOB_SERVICE_PATH = 'shared/data'
 READ_CHUNK_SIZE = 512
 logger = logging.getLogger('FileBlobServiceImpl')
 
@@ -12,7 +12,7 @@ logger = logging.getLogger('FileBlobServiceImpl')
 class FileBlobServiceImpl(BaseBlobService):
     def __init__(self):
         if not os.path.exists(FILE_BLOB_SERVICE_PATH):
-            os.mkdir(FILE_BLOB_SERVICE_PATH)
+            os.makedirs(FILE_BLOB_SERVICE_PATH)
 
     def get_blob_meta(self, digest):
         pass
