@@ -1,4 +1,6 @@
 #!/bin/bash
+source utils.sh
+
 function cmd_db {
   cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
 	mkdir -p $POSTGRES_DATA_DIR;
@@ -37,12 +39,3 @@ function cmd_default {
   cmd_procfile
 }
 
-function cmd_startpostgres {
-  pg_ctl -D $POSTGRES_DATA_DIR -l $ROOT_DIR/postgres.log -w start
-  cout "Postgres started"
-}
-
-function cmd_stoppostgres {
-  cout "Stopping postgres in $POSTGRES_DATA_DIR"
-  pg_ctl -D $POSTGRES_DATA_DIR stop -s -m fast -w
-}

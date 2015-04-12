@@ -1,4 +1,14 @@
 #!/bin/bash
+source $SCRIPT_DIR/utils.sh
+
 function cmd_default {
   honcho start
+}
+
+function cmd_start_pq {
+  cmd_startpostgres
+}
+
+function cmd_stop_pq {
+  cmd_stoppostgres
 }
