@@ -66,3 +66,4 @@ Procfile
 cov
 shared
 nosetests.xml
+coverage.xml
