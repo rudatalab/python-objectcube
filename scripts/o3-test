@@ -10,5 +10,7 @@ function cmd_path {
 }
 
 function cmd_cov {
-  nosetests --cover-html-dir $ROOT_DIR/cov --with-coverage --cover-html
+  COV_DIR=$ROOT_DIR/cov
+  cout "Running all tests with coverage report in $COV_DIR" 3
+  nosetests --cover-html-dir $COV_DIR --with-coverage --cover-html --cover-erase --cover-package=objectcube
 }

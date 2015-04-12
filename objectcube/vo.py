@@ -37,6 +37,20 @@ class Tag(SerializableMixin):
         return str(self.data.get('id'))
 
 
+class Concept(SerializableMixin):
+    fields = ['id', 'title', 'description']
+
+    def __init__(self, **kwargs):
+        super(Concept, self).__init__(**kwargs)
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return '{0}({1})'.format(self.__class__.__name__,
+                                 repr(self.data))
+
+
 class Plugin(SerializableMixin):
     fields = ['id', 'name', 'module']
 
