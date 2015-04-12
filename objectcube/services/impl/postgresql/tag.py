@@ -1,5 +1,6 @@
 from psycopg2.extras import NamedTupleCursor
 
+from utils import execute_single_sql, retrieve_multiple_tags
 from objectcube.services.base import BaseTagService
 from objectcube.contexts import Connection
 from objectcube.vo import Tag
@@ -8,19 +9,8 @@ from objectcube.exceptions import (ObjectCubeDatabaseException,
 
 
 class TagServicePostgreSQL(BaseTagService):
-
-    def _retrieve_multiple_tags(self, sql, params):
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql, params)
-
-                    return_list = []
-                    for row in cursor.fetchall():
-                        return_list.append(Tag(**row._asdict()))
-                    return return_list
-        except Exception as e:
-            raise ObjectCubeDatabaseException(e)
+    def retrieve_by_plugin_id(self, plugin_id):
+        pass
 
     def retrieve_by_value(self, value, offset=0, limit=100):
         if not value:
@@ -29,7 +19,7 @@ class TagServicePostgreSQL(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE VALUE = %s OFFSET %s LIMIT %s"
         params = (value, offset, limit)
 
-        return self._retrieve_multiple_tags(sql, params)
+        return retrieve_multiple_tags(Tag, sql, params)
 
     def retrieve_by_plugin(self, plugin, offset=0, limit=100):
         if not plugin:
@@ -38,7 +28,7 @@ class TagServicePostgreSQL(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE PLUGIN_ID = %s OFFSET %s LIMIT %s"
         params = (plugin, offset, limit)
 
-        return self._retrieve_multiple_tags(sql, params)
+        return retrieve_multiple_tags(Tag, sql, params)
 
     def retrieve_by_concept(self, concept, offset=0, limit=100):
         if not concept:
@@ -47,7 +37,7 @@ class TagServicePostgreSQL(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE CONCEPT = %s OFFSET %s LIMIT %s"
         params = (concept, offset, limit)
 
-        return self._retrieve_multiple_tags(sql, params)
+        return retrieve_multiple_tags(Tag, sql, params)
 
     def retrieve_by_id(self, _id):
         if not _id or _id <= 0 or not isinstance(_id, int):
@@ -92,17 +82,6 @@ class TagServicePostgreSQL(BaseTagService):
 
         return return_list
 
-    def _get_or_create_single_tag(self, sql, params):
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql, params)
-                    row = cursor.fetchone()
-                    c.commit()
-                    return Tag(**row._asdict())
-        except Exception as ex:
-            raise ObjectCubeDatabaseException(ex)
-
     def add(self, tag):
         if tag.id:
             raise ObjectCubeException('Unable to to add tag that has id')
@@ -112,7 +91,7 @@ class TagServicePostgreSQL(BaseTagService):
         params = (tag.value, tag.description,
                   tag.mutable, tag.type, tag.plugin_id)
 
-        return self._get_or_create_single_tag(sql, params)
+        return execute_single_sql(Tag, sql, params)
 
     def update(self, tag):
         if not isinstance(tag, Tag) or not tag.id:
@@ -128,7 +107,7 @@ class TagServicePostgreSQL(BaseTagService):
         params = (tag.value, tag.description,
                   tag.mutable, tag.type, tag.plugin_id, tag.id)
 
-        return self._get_or_create_single_tag(sql, params)
+        return execute_single_sql(Tag, sql, params)
 
     def delete(self, tag):
         if not isinstance(tag, Tag) or not tag.id:
@@ -137,7 +116,7 @@ class TagServicePostgreSQL(BaseTagService):
         sql = 'DELETE FROM tags WHERE id = %s RETURNING *'
         params = (tag.id,)
 
-        self._get_or_create_single_tag(sql, params)
+        execute_single_sql(Tag, sql, params)
 
     def retrieve_or_create(self, tag):
         if not isinstance(tag, Tag) or tag.id:

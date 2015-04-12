@@ -1,8 +1,8 @@
 import logging
-from psycopg2.extras import NamedTupleCursor
 
 from objectcube.contexts import Connection
 from objectcube.vo import Concept
+from utils import execute_single_sql, retrieve_multiple_tags
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
 from objectcube.services.base import BaseConceptService
@@ -21,7 +21,7 @@ class ConceptService(BaseConceptService):
 
         sql = 'DELETE FROM CONCEPTS WHERE ID = %s RETURNING *'
         params = (concept_id,)
-        concept = self._execute_single_concept_sql(sql, params)
+        concept = execute_single_sql(Concept, sql, params)
         if not concept:
             raise ObjectCubeException('No concept found with id {}'
                                       .format(concept_id))
@@ -58,7 +58,7 @@ class ConceptService(BaseConceptService):
         sql = 'UPDATE CONCEPTS SET TITLE=%s, DESCRIPTION=%s WHERE ID=%s ' \
               'RETURNING *'
         params = (concept.title, concept.description, concept.id)
-        db_concept = self._execute_single_concept_sql(sql, params)
+        db_concept = execute_single_sql(Concept, sql, params)
 
         if not db_concept:
             raise ObjectCubeException('No concept found with id {}'
@@ -94,22 +94,7 @@ class ConceptService(BaseConceptService):
               'VALUES(%s, %s) RETURNING *'
 
         params = (concept.title, concept.description)
-        return self._execute_single_concept_sql(sql, params)
-
-    @staticmethod
-    def _execute_single_concept_sql(sql, params, commit=True):
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql, params)
-                    row = cursor.fetchone()
-                    if commit:
-                        c.commit()
-                    if row:
-                        return Concept(**row._asdict())
-        except Exception as ex:
-            logger.error(ex.message)
-            raise ObjectCubeDatabaseException(ex)
+        return execute_single_sql(Concept, sql, params)
 
     def retrieve_by_title(self, concept_title):
         if not concept_title:
@@ -119,7 +104,7 @@ class ConceptService(BaseConceptService):
 
         sql = "SELECT * FROM CONCEPTS WHERE TITLE = %s"
         params = (concept_title,)
-        return self._execute_single_concept_sql(sql, params, commit=False)
+        return execute_single_sql(Concept, sql, params, commit=False)
 
     def retrieve_by_id(self, concept_id):
         if not concept_id:
@@ -129,25 +114,11 @@ class ConceptService(BaseConceptService):
 
         sql = "SELECT * FROM CONCEPTS WHERE ID = %s"
         params = (concept_id,)
-        return self._execute_single_concept_sql(sql, params, commit=False)
-
-    @staticmethod
-    def _retrieve_multiple_tags(sql, params):
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql, params)
-
-                    return_list = []
-                    for row in cursor.fetchall():
-                        return_list.append(Concept(**row._asdict()))
-                    return return_list
-        except Exception as e:
-            raise ObjectCubeDatabaseException(e)
+        return execute_single_sql(Concept, sql, params, commit=False)
 
     def retrieve(self, offset=0, limit=100):
         # TODO (hlysig) check if limit and offsset are correct.
         sql = "SELECT * FROM CONCEPTS OFFSET %s LIMIT %s"
         params = (offset, limit)
-        return self._retrieve_multiple_tags(sql, params)
+        return retrieve_multiple_tags(Concept, sql, params)
 
