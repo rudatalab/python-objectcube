@@ -5,4 +5,5 @@ function cmd_default {
   rm -rf $VIRTUALENV_DIR_NAME
   rm -rf $POSTGRES_DATA_DIR
   rm -rf $PROCFILE_LOCATION
+  rm -rf $COV_DIR
 }

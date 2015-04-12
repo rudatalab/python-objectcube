@@ -4,11 +4,17 @@ cd $SCRIPT_DIR
 source utils.sh
 
 ROOT_DIR="$SCRIPT_DIR/.."
+COV_DIR=$ROOT_DIR/cov
 VIRTUALENV_DIR_NAME=".venv"
 VIRTUALENV_DIR=$SCRIPT_DIR/../$VIRTUALENV_DIR_NAME;
 POSTGRES_DATA_DIR="$ROOT_DIR/data";
 PROCFILE_LOCATION=$ROOT_DIR/Procfile
 cd $ROOT_DIR
+
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+  export PATH="/usr/lib/postgresql/9.3/bin:$PATH"
+fi
 
 function help {
   cout "todo: implement help function"
