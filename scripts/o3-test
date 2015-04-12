@@ -1,7 +1,7 @@
 #!/bin/bash
 function cmd_default {
   echo "Running all tests"
-  nosetests -v -s $@
+  nosetests -v -s --with-xunit $@
 }
 
 function cmd_path {

@@ -65,3 +65,4 @@ postgres.log
 Procfile
 cov
 shared
+nosetests.xml
