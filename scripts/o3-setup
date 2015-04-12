@@ -1,5 +1,5 @@
 #!/bin/bash
-source utils.sh
+source $SCRIPT_DIR/utils.sh
 
 function cmd_db {
   cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
