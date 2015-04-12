@@ -22,7 +22,7 @@ class ObjectCubeTestCase(TestDatabaseAwareTest):
     def __init__(self, *args, **kwargs):
         super(ObjectCubeTestCase, self).__init__(*args, **kwargs)
 
-    def create_test_tag(self, value=''):
+    def _create_test_tag(self, value=''):
         """
         Helper function for creating test tags in tests.
         :param value: Value for the tag being created

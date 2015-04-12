@@ -2,16 +2,17 @@ from objectcube.factory import get_service
 
 
 class BaseTagService(object):
-    def get_tags(self, offset=0, limit=10):
+
+    def retrieve(self, offset=0, limit=10):
         """
-        Fetch tags from data store.
+        Retrieves tags from data store.
         :param offset: The offset value for the result.
         :param limit: The limit value for the result.
         :return: List of Tag objects.
         """
         raise NotImplementedError()
 
-    def add_tag(self, tag):
+    def add(self, tag):
         """
         Adds new tag to data store.
         :param tag: Tag object filled with data. Note that the id field must
@@ -20,6 +21,23 @@ class BaseTagService(object):
         object passed in by parameter, with updated id value.
         """
         raise NotImplementedError()
+
+    def update(self, tag):
+        """
+        Updates existing data store tag to match given tag.
+        :param tag: Tag object to update. Note that the id field must
+        be set to valid id of existing data store tag.
+        :return: Returns the updated tag object as seen by the data store
+        after update.
+        """
+
+    def delete(self, tag):
+        """
+        Deletes existing data store tag.
+        :param tag: Tag object to delete. Note that the id field must
+        be set to valid id of existing data store tag.
+        :return: Returns nothing.
+        """
 
     def count(self):
         """
@@ -30,24 +48,50 @@ class BaseTagService(object):
         """
         raise NotImplementedError()
 
-    def get_by_id(self, _id):
+    def retrieve_by_id(self, _id):
         """
-        Fetches tag by id.
+        Retrieves tag by id.
         :param _id: Id for a given Tag.
         :return: Tag object if found, None otherwise
         """
         raise NotImplementedError()
 
-    def get_by_value(self, value):
+    def retrieve_by_value(self, value):
         """
-        Fetches tags by value.
+        Retrieves tags by value.
         :param value: Value to fetch.
         :return: List of tag objects, or empty list if none are found.
         """
         raise NotImplementedError()
 
+    def retrieve_by_plugin_id(self, plugin_id):
+        """
+        Retrieves tags by plugin id.
+        :param plugin_id: Plugin id to fetch.
+        :return: List of tag objects, or empty list if none are found.
+        """
+        raise NotImplementedError()
+
+    def retrieve_by_concept(self, concept):
+        """
+        Retrieves tags by concept.
+        :param concept: Concept to fetch.
+        :return: List of tag objects, or empty list if none are found.
+        """
+        raise NotImplementedError()
+
+    def retrieve_or_create(self, tag):
+        """
+        Retrieves tag matching value, plugin_id and concept from the data store
+        or creates a new tag if not found. If retrival is ambiguous an ObjectCubeException
+        is thrown.
+        :param tag: Tag object to retrieve or create. Note that the id field is ignored.
+        :return: A Tag from populated from data store, either existing one or a newly created one.
+        """
+
 
 class BasePluginService(object):
+
     def count(self):
         raise NotImplementedError()
 
@@ -68,6 +112,7 @@ class BasePluginService(object):
 
 
 class BaseObjectService(object):
+
     def __init__(self):
         # TODO (hlysig) inject this into creation of this service.
         self.blob_service = get_service('BlobService')
@@ -116,6 +161,7 @@ class BaseObjectService(object):
 
 
 class BaseDimensionService(object):
+
     def add_dimension(self, tree):
         """
         Insert Dimension into database as a tree.
@@ -157,6 +203,7 @@ class BaseDimensionService(object):
 
 
 class BaseBlobService(object):
+
     """
     Base class for blob services. The purpose of this service is to mange
     uploads and uri handling for blob objects in the ObjectCube model.
@@ -168,6 +215,7 @@ class BaseBlobService(object):
     Blobs are identified by MD5 checksums. This allows us to reuse objects
     without duplicating them.
     """
+
     def has_blob(self, digest_id):
         """
         Checks if a given blob digest id has been added.

@@ -6,7 +6,7 @@ source utils.sh
 ROOT_DIR="$SCRIPT_DIR/.."
 VIRTUALENV_DIR_NAME=".venv"
 VIRTUALENV_DIR=$SCRIPT_DIR/../$VIRTUALENV_DIR_NAME;
-POSTGRES_DATA_DIR=/tmp/data;
+POSTGRES_DATA_DIR="$ROOT_DIR/data";
 PROCFILE_LOCATION=$ROOT_DIR/Procfile
 cd $ROOT_DIR
 
@@ -41,7 +41,6 @@ if [ -n "$1" ]; then
 fi
 
 if isFunction $COMMAND == 1; then
-  shift;
   $COMMAND $@;
 else
   echo "Invalid function $COMMAND"

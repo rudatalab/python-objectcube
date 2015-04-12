@@ -2,4 +2,3 @@
 function cmd_default {
   honcho start
 }
-

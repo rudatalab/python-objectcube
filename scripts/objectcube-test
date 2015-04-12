@@ -1,0 +1,10 @@
+#!/bin/bash
+function cmd_default {
+  echo "Running all tests"
+  nosetests -v -s $@
+}
+
+function cmd_path {
+  echo "Running test by path $@"
+  nosetests -v -s $@
+}

@@ -10,6 +10,7 @@ from base import ObjectCubeTestCase
 
 
 class TestObjectService(ObjectCubeTestCase):
+
     def assert_no_objects_in_data_store(self):
         self.assertEquals(self.object_service.count(), 0,
                           msg='No objects should be in the data store')
@@ -126,7 +127,7 @@ class TestObjectService(ObjectCubeTestCase):
         objects = self.object_service.get_objects(offset=10, limit=10)
 
         for i, o in enumerate(objects):
-            self.assertEquals(o.name, str(i+10))
+            self.assertEquals(o.name, str(i + 10))
 
         objects = self.object_service.get_objects(offset=20, limit=10)
         self.assertEquals(len(objects), 5)
@@ -140,14 +141,14 @@ class TestObjectService(ObjectCubeTestCase):
                 stream=stream,
                 name=object_name)
 
-        objects = self.object_service.get_objects(offset=number_of_object*10)
+        objects = self.object_service.get_objects(offset=number_of_object * 10)
         self.assertTrue(len(objects) == 0,
                         msg='When selected offset which is outside of the '
                             'data set, then we will get an empty list')
 
     def test_fetch_object_by_tag(self):
         tag_service = get_service('TagService')
-        tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
+        tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
         test_object = self.create_objects(num_objects=1).next()
         self.object_service.add_tags_to_objects(test_object, tag)
@@ -158,7 +159,7 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_fetch_multiple_objects_with_same_tag(self):
         tag_service = get_service('TagService')
-        tag = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
+        tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
         objects_with_tag = [o for o in self.create_objects(num_objects=100,
                                                            name_prefix='foo')]
@@ -177,8 +178,8 @@ class TestObjectService(ObjectCubeTestCase):
 
     def assert_single_object_with_same_tag(self):
         tag_service = get_service('TagService')
-        tag1 = tag_service.add_tag(self.create_test_tag(value='test-tag-1'))
-        tag2 = tag_service.add_tag(self.create_test_tag(value='test-tag-2'))
+        tag1 = tag_service.add(self.create_test_tag(value='test-tag-1'))
+        tag2 = tag_service.add(self.create_test_tag(value='test-tag-2'))
 
         object_with_tags = self.create_objects(num_objects=1).next()
         self.object_service.add_tags_to_objects(object_with_tags, [tag1, tag2])
@@ -188,4 +189,3 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertTrue(len(result) == 1,
                         msg='We should only get the object once when he '
                             'has both tags assigned')
-
