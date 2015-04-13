@@ -1,5 +1,6 @@
 from service import Service
 
+
 class BaseDimensionService(Service):
 
     def add_dimension(self, tree):

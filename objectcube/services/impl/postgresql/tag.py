@@ -8,10 +8,7 @@ from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
 
 
-class TagServicePostgreSQL(BaseTagService):
-    def retrieve_by_plugin_id(self, plugin_id):
-        pass
-
+class TagService(BaseTagService):
     def retrieve_by_value(self, value, offset=0, limit=100):
         if not value:
             raise ObjectCubeException('Must give value')
@@ -86,8 +83,8 @@ class TagServicePostgreSQL(BaseTagService):
         if tag.id:
             raise ObjectCubeException('Unable to to add tag that has id')
 
-        sql = 'INSERT INTO TAGS(VALUE, DESCRIPTION, MUTABLE, TYPE, PLUGIN_ID) ' \
-              'VALUES(%s, %s, %s, %s, %s) RETURNING *'
+        sql = 'INSERT INTO TAGS(VALUE, DESCRIPTION, MUTABLE, TYPE, ' \
+              'PLUGIN_ID) VALUES(%s, %s, %s, %s, %s) RETURNING *'
         params = (tag.value, tag.description,
                   tag.mutable, tag.type, tag.plugin_id)
 
@@ -134,8 +131,8 @@ class TagServicePostgreSQL(BaseTagService):
             '   AND (p.plugin_id is null or p.plugin_id = t.plugin_id) ' \
             ' LIMIT 2' \
             '), i AS ( ' \
-            ' INSERT INTO tags(VALUE, DESCRIPTION, MUTABLE, TYPE, PLUGIN_ID) ' \
-            '    (SELECT * from p' \
+            ' INSERT INTO tags(VALUE, DESCRIPTION, MUTABLE, TYPE, ' \
+            'PLUGIN_ID) (SELECT * from p' \
             '     WHERE NOT EXISTS (SELECT 1 FROM s)) ' \
             ' RETURNING *' \
             ') SELECT * FROM s UNION ALL SELECT * FROM i'

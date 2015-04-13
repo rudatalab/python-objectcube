@@ -1,6 +1,5 @@
 from objectcube.services.base import PluginService
 from objectcube.factory import get_service
-from objectcube.contexts import Connection
 
 
 class PluginServicePostgreSQL(PluginService):
@@ -25,4 +24,3 @@ class PluginServicePostgreSQL(PluginService):
 
     def process(self, _object, _data):
         pass
-

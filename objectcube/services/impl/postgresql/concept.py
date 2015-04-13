@@ -69,10 +69,10 @@ class ConceptService(BaseConceptService):
         logger.debug('Calling count')
         sql = """SELECT COUNT(ID) AS count FROM CONCEPTS"""
 
-        def extractCount(count):
-	    return count
+        def extract_count(count):
+            return count
 
-        return execute_single_sql(extractCount, sql, commit=False)
+        return execute_single_sql(extract_count, sql, commit=False)
 
     def add(self, concept):
         logger.debug('Calling add')
@@ -117,4 +117,3 @@ class ConceptService(BaseConceptService):
         sql = "SELECT * FROM CONCEPTS OFFSET %s LIMIT %s"
         params = (offset, limit)
         return retrieve_multiple_tags(Concept, sql, params)
-

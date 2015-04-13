@@ -2,7 +2,6 @@ from service import Service
 
 
 class BaseTagService(Service):
-
     def retrieve(self, offset=0, limit=10):
         """
         Retrieves tags from data store.
@@ -64,11 +63,13 @@ class BaseTagService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_plugin_id(self, plugin_id):
+    def retrieve_by_plugin(self, plugin, offset=0, limit=100):
         """
-        Retrieves tags by plugin id.
-        :param plugin_id: Plugin id to fetch.
-        :return: List of tag objects, or empty list if none are found.
+        Retrieves tags by plugin.
+        :param plugin:
+        :param offset:
+        :param limit:
+        :return:
         """
         raise NotImplementedError()
 
@@ -83,9 +84,12 @@ class BaseTagService(Service):
     def retrieve_or_create(self, tag):
         """
         Retrieves tag matching value, plugin_id and concept from the data store
-        or creates a new tag if not found. If retrival is ambiguous an ObjectCubeException
+        or creates a new tag if not found. If retrieval is ambiguous an
+        ObjectCubeException
         is thrown.
-        :param tag: Tag object to retrieve or create. Note that the id field is ignored.
-        :return: A Tag from populated from data store, either existing one or a newly created one.
+        :param tag: Tag object to retrieve or create. Note that the id field is
+        ignored.
+        :return: A Tag from populated from data store, either existing one
+        or a newly created one.
         """
         raise NotImplementedError()
