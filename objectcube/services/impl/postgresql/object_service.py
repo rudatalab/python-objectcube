@@ -2,6 +2,8 @@ import itertools
 
 from psycopg2.extras import NamedTupleCursor
 
+from objectcube.factory import get_service
+
 from objectcube.services.base import BaseObjectService
 from objectcube.contexts import Connection
 from objectcube.exceptions import (ObjectCubeDatabaseException,
@@ -13,6 +15,7 @@ from objectcube.vo import Object, Tag
 class ObjectService(BaseObjectService):
     def __init__(self, *args, **kwargs):
         super(ObjectService, self).__init__()
+        self.blob_service = get_service('BlobService')
 
     def count(self):
         sql = """SELECT COUNT(ID) FROM OBJECTS"""

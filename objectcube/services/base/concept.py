@@ -1,4 +1,7 @@
-class BaseConceptService(object):
+from service import Service
+
+
+class BaseConceptService(Service):
     def count(self):
         """
         Returns approximation of number of concepts in data store.

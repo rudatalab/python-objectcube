@@ -1,4 +1,6 @@
-class BasePluginService(object):
+from service import Service
+
+class BasePluginService(Service):
 
     def count(self):
         raise NotImplementedError()

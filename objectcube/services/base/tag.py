@@ -1,4 +1,6 @@
-class BaseTagService(object):
+from service import Service
+
+class BaseTagService(Service):
 
     def retrieve(self, offset=0, limit=10):
         """

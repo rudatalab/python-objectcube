@@ -1,12 +1,7 @@
-from objectcube.factory import get_service
+from service import Service
 
 
-class BaseObjectService(object):
-
-    def __init__(self):
-        # TODO (hlysig) inject this into creation of this service.
-        self.blob_service = get_service('BlobService')
-
+class BaseObjectService(Service):
     def add(self, stream, name):
         """
         Add object to data store.
