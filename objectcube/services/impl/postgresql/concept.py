@@ -67,16 +67,12 @@ class ConceptService(BaseConceptService):
 
     def count(self):
         logger.debug('Calling count')
-        sql = """SELECT COUNT(ID) FROM CONCEPTS"""
-        try:
-            with Connection() as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(sql)
-                    row = cursor.fetchone()
-                    return int(row[0])
-        except Exception as ex:
-            logger.error(ex.message)
-            raise ObjectCubeDatabaseException(ex)
+        sql = """SELECT COUNT(ID) AS count FROM CONCEPTS"""
+
+        def extractCount(count):
+	    return count
+
+        return execute_single_sql(extractCount, sql, commit=False)
 
     def add(self, concept):
         logger.debug('Calling add')

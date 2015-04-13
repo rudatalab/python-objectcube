@@ -7,7 +7,7 @@ from objectcube.exceptions import ObjectCubeDatabaseException
 logger = logging.getLogger('db-utils')
 
 
-def execute_single_sql(value_object_class, sql, params, commit=True):
+def execute_single_sql(value_object_class, sql, params=(), commit=True):
     try:
         with Connection() as c:
             with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
