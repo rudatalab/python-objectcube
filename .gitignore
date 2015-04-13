@@ -67,3 +67,4 @@ cov
 shared
 nosetests.xml
 coverage.xml
+pep8.txt
