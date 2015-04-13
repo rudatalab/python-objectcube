@@ -4,7 +4,7 @@ source $SCRIPT_DIR/utils.sh
 function cmd_db {
   cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
 	mkdir -p $POSTGRES_DATA_DIR;
-	initdb -d $POSTGRES_DATA_DIR
+	initdb -d $POSTGRES_DATA_DIR --locale C
 }
 
 function cmd_virtualenv {
