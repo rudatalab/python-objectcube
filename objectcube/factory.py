@@ -1,7 +1,11 @@
 import importlib
+import logging
 
+from objectcube.services.base.service import Service
 from objectcube.settings import FACTORY_CONFIG
 from objectcube.exceptions import ObjectCubeException
+
+logger = logging.getLogger('factory')
 
 
 def load_class(class_path):
@@ -9,8 +13,16 @@ def load_class(class_path):
     module_path = ".".join(class_data[:-1])
     class_str = class_data[-1]
 
-    module = importlib.import_module(module_path)
-    return getattr(module, class_str)
+    try:
+        module = importlib.import_module(module_path)
+        klass = getattr(module, class_str)
+        return klass
+
+    except Exception as ex:
+        message = 'Unable to fetch class by classpath {0}. Error {1}'\
+            .format(class_path, ex.message)
+        logger.error(message)
+        raise ObjectCubeException(message, ex)
 
 
 def get_service(service_name, *args, **kwargs):
@@ -20,5 +32,11 @@ def get_service(service_name, *args, **kwargs):
         raise ObjectCubeException('Service class {} has not been '
                                   'configured'.format(service_name))
 
-    class_ = load_class(FACTORY_CONFIG.get(service_name))
-    return class_(*args, **kwargs)
+    klass_path = FACTORY_CONFIG.get(service_name)
+    klass = load_class(klass_path)
+
+    if not issubclass(klass, Service):
+        raise ObjectCubeException('{} is not subclass of Service'
+                                  .format(klass_path))
+
+    return klass(*args, **kwargs)

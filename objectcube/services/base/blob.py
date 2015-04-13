@@ -1,5 +1,7 @@
-class BaseBlobService(object):
+from service import Service
 
+
+class BaseBlobService(Service):
     """
     Base class for blob services. The purpose of this service is to mange
     uploads and uri handling for blob objects in the ObjectCube model.
