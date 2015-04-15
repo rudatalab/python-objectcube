@@ -7,14 +7,12 @@ from objectcube.exceptions import ObjectCubeDatabaseException
 logger = logging.getLogger('db-utils')
 
 
-def execute_single_sql(value_object_class, sql, params=(), commit=True):
+def execute_single_sql(value_object_class, sql, params=()):
     try:
         with Connection() as c:
             with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
                 cursor.execute(sql, params)
                 row = cursor.fetchone()
-                if commit:
-                    c.commit()
                 if row:
                     return value_object_class(**row._asdict())
     except Exception as ex:

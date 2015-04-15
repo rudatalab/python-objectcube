@@ -16,8 +16,6 @@ class TestDatabaseAwareTest(unittest.TestCase):
             with connection.cursor() as cursor:
                 cursor.execute(data)
 
-            connection.commit()
-
 
 class ObjectCubeTestCase(TestDatabaseAwareTest):
 

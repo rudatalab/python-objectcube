@@ -72,7 +72,7 @@ class ConceptService(BaseConceptService):
         def extract_count(count):
             return count
 
-        return execute_single_sql(extract_count, sql, commit=False)
+        return execute_single_sql(extract_count, sql)
 
     def add(self, concept):
         logger.debug('Calling add')
@@ -100,7 +100,7 @@ class ConceptService(BaseConceptService):
 
         sql = "SELECT * FROM CONCEPTS WHERE TITLE = %s"
         params = (concept_title,)
-        return execute_single_sql(Concept, sql, params, commit=False)
+        return execute_single_sql(Concept, sql, params)
 
     def retrieve_by_id(self, concept_id):
         if not concept_id:
@@ -110,7 +110,7 @@ class ConceptService(BaseConceptService):
 
         sql = "SELECT * FROM CONCEPTS WHERE ID = %s"
         params = (concept_id,)
-        return execute_single_sql(Concept, sql, params, commit=False)
+        return execute_single_sql(Concept, sql, params)
 
     def retrieve(self, offset=0, limit=100):
         # TODO (hlysig) check if limit and offsset are correct.
