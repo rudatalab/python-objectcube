@@ -1,9 +1,10 @@
 import unittest
 from objectcube.db import create_connection
-from objectcube.vo import Tag
+from objectcube.vo import Concept, Plugin, Tag
 
 
 class TestDatabaseAwareTest(unittest.TestCase):
+
     def __init__(self, *args, **kwargs):
         super(TestDatabaseAwareTest, self).__init__(*args, **kwargs)
 
@@ -19,10 +20,11 @@ class TestDatabaseAwareTest(unittest.TestCase):
 
 
 class ObjectCubeTestCase(TestDatabaseAwareTest):
+
     def __init__(self, *args, **kwargs):
         super(ObjectCubeTestCase, self).__init__(*args, **kwargs)
 
-    def _create_test_tag(self, value=''):
+    def _create_test_tag(self, value='', plugin=Plugin(), concept=Concept()):
         """
         Helper function for creating test tags in tests.
         :param value: Value for the tag being created
@@ -34,5 +36,6 @@ class ObjectCubeTestCase(TestDatabaseAwareTest):
             'description': '',
             'mutable': False,
             'type': 0,
-            'plugin_id': None
+            'concept_id': concept.id,
+            'plugin_id': plugin.id,
         })

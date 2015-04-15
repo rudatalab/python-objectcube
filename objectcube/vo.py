@@ -25,7 +25,7 @@ class SerializableMixin(object):
 
 
 class Tag(SerializableMixin):
-    fields = ['id', 'value', 'description', 'mutable', 'type', 'plugin_id']
+    fields = ['id', 'value', 'description', 'mutable', 'type', 'concept_id', 'plugin_id']
 
     def __init__(self, **kwargs):
         super(Tag, self).__init__(**kwargs)
