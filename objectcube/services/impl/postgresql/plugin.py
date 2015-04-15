@@ -1,20 +1,25 @@
-from objectcube.services.base import PluginService
-from objectcube.factory import get_service
+from utils import execute_single_sql
+from objectcube.services.base import BasePluginService
+from objectcube.vo import Plugin
 
 
-class PluginServicePostgreSQL(PluginService):
+class PluginService(BasePluginService):
 
     def count(self):
         pass
 
-    def __init__(self):
-        self.tag_service = get_service('tagservice')
-
     def get_plugin_by_name(self):
         pass
 
-    def add_plugin(self, plugin):
-        pass
+    def add(self, plugin):
+        if plugin.id:
+            raise ObjectCubeException('Unable to to add plugin that has id')
+
+        sql = 'INSERT INTO PLUGINS(NAME, MODULE) ' \
+              'VALUES(%s, %s) RETURNING *'
+        params = (plugin.name, plugin.module)
+
+        return execute_single_sql(Plugin, sql, params)
 
     def get_plugin_by_id(self):
         pass

@@ -24,6 +24,9 @@ FACTORY_CONFIG = {
 
     'ConceptService': 'objectcube.services.impl.postgresql.concept.'
                   'ConceptService',
+
+    'PluginService': 'objectcube.services.impl.postgresql.plugin.'
+                  'PluginService',
 }
 
 PLUGINS = (
