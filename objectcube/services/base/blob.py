@@ -60,4 +60,3 @@ class BaseBlobService(Service):
         :return:
         """
         raise NotImplementedError()
-

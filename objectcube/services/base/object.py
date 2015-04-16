@@ -31,6 +31,5 @@ class BaseObjectService(Service):
     def retrieve(self, offset=0, limit=10):
         raise NotImplementedError()
 
-
     def retrieve_by_tag(self, tag, offset=0, limit=10):
         raise NotImplementedError()
