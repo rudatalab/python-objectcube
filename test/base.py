@@ -1,5 +1,5 @@
 import unittest
-from objectcube.db import create_connection
+from objectcube.contexts import Connection
 from objectcube.vo import Concept, Plugin, Tag
 
 
@@ -12,8 +12,8 @@ class TestDatabaseAwareTest(unittest.TestCase):
         with open('schema.sql') as fd:
             data = ''.join(fd.readlines())
 
-        with create_connection() as connection:
-            with connection.cursor() as cursor:
+        with Connection() as c:
+            with c.cursor() as cursor:
                 cursor.execute(data)
 
 
