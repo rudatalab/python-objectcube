@@ -13,48 +13,51 @@ class BaseBlobService(Service):
     Blobs are identified by MD5 checksums. This allows us to reuse objects
     without duplicating them.
     """
-
-    def has_blob(self, digest_id):
+    def add(self, stream, meta=None, digest=None):
         """
-        Checks if a given blob digest id has been added.
-        :param digest_id: Digest sum for a content of a given file.
-        :return: True if blob has been added, false otherwise.
-        """
-        raise NotImplementedError()
-
-    def add_blob(self, fs, blob_meta, digest=None):
-        """
-        Adds a give blob.
-        :param fs: Stream to file, or memory.
-        :param blob_meta: Dictionary of meta-data that should be stored
-        with the blob (size, content-type, etc)
-        :param digest: Digest of the sum. This field is optional. If not
-        provided then md5 will be calculated on the fs.
-        :return: None
+        :param stream:
+        :param meta:
+        :param digest:
+        :return: digest
         """
         raise NotImplementedError()
 
-    def get_uri(self, digest):
+    def has(self, digest):
         """
-        Returns URI to the blob. This can vary by implementations. For
-        filesystem implementation this could we the path to the file or for
-        Swift, this can be a temporary URL to the blob.
-        :param digest: Digest of blob that has been added.
-        :return: URI string if blob has been added, None otherwise.
+
+        :param digest:
+        :return:
+        """
+        raise NotImplementedError()
+
+    def retrieve_uri(self, digest):
+        """
+
+        :param digest:
+        :return:
+        """
+        raise NotImplementedError()
+
+    def retrieve_meta(self, digest):
+        """
+
+        :param digest:
+        :return:
+        """
+        raise NotImplementedError()
+
+    def get_data(self, digest):
+        """
+
+        :param digest:
+        :return:
         """
         raise NotImplementedError()
 
     def flush(self):
         """
-        Flushes all blobs that have been added.
-        :return: None
+
+        :return:
         """
         raise NotImplementedError()
 
-    def get_blob_meta(self, digest):
-        """
-        Fetch blob meta data, if added, for a given blob.
-        :param digest: Digest for a blob that has been added.
-        :return: Dictionary with meta-data if found, None otherwise.
-        """
-        raise NotImplementedError()

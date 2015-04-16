@@ -20,7 +20,7 @@ FACTORY_CONFIG = {
                      'ObjectService',
 
     'BlobService': 'objectcube.services.impl.filesystem.'
-                   'blob_service.FileBlobServiceImpl',
+                   'blob_service.FileBlobService',
 
     'ConceptService': 'objectcube.services.impl.postgresql.concept.'
                   'ConceptService',
