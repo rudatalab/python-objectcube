@@ -2,7 +2,7 @@ import logging
 
 from objectcube.contexts import Connection
 from objectcube.vo import Concept
-from utils import execute_single_sql, retrieve_multiple_tags
+from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
 from objectcube.services.base import BaseConceptService
@@ -21,7 +21,7 @@ class ConceptService(BaseConceptService):
 
         sql = 'DELETE FROM CONCEPTS WHERE ID = %s RETURNING *'
         params = (concept_id,)
-        concept = execute_single_sql(Concept, sql, params)
+        concept = execute_sql_fetch_single(Concept, sql, params)
         if not concept:
             raise ObjectCubeException('No concept found with id {}'
                                       .format(concept_id))
@@ -58,7 +58,7 @@ class ConceptService(BaseConceptService):
         sql = 'UPDATE CONCEPTS SET TITLE=%s, DESCRIPTION=%s WHERE ID=%s ' \
               'RETURNING *'
         params = (concept.title, concept.description, concept.id)
-        db_concept = execute_single_sql(Concept, sql, params)
+        db_concept = execute_sql_fetch_single(Concept, sql, params)
 
         if not db_concept:
             raise ObjectCubeException('No concept found with id {}'
@@ -72,7 +72,7 @@ class ConceptService(BaseConceptService):
         def extract_count(count):
             return count
 
-        return execute_single_sql(extract_count, sql)
+        return execute_sql_fetch_single(extract_count, sql)
 
     def add(self, concept):
         logger.debug('Calling add')
@@ -90,7 +90,7 @@ class ConceptService(BaseConceptService):
               'VALUES(%s, %s) RETURNING *'
 
         params = (concept.title, concept.description)
-        return execute_single_sql(Concept, sql, params)
+        return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve_by_title(self, concept_title):
         if not concept_title:
@@ -100,7 +100,7 @@ class ConceptService(BaseConceptService):
 
         sql = "SELECT * FROM CONCEPTS WHERE TITLE = %s"
         params = (concept_title,)
-        return execute_single_sql(Concept, sql, params)
+        return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve_by_id(self, concept_id):
         if not concept_id:
@@ -110,10 +110,10 @@ class ConceptService(BaseConceptService):
 
         sql = "SELECT * FROM CONCEPTS WHERE ID = %s"
         params = (concept_id,)
-        return execute_single_sql(Concept, sql, params)
+        return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve(self, offset=0, limit=100):
         # TODO (hlysig) check if limit and offsset are correct.
         sql = "SELECT * FROM CONCEPTS OFFSET %s LIMIT %s"
         params = (offset, limit)
-        return retrieve_multiple_tags(Concept, sql, params)
+        return execute_sql_fetch_multiple(Concept, sql, params)

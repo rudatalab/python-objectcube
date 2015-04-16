@@ -1,11 +1,9 @@
 from psycopg2.extras import NamedTupleCursor
 
-from utils import execute_single_sql, retrieve_multiple_tags
+from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.services.base import BaseTagService
-from objectcube.contexts import Connection
 from objectcube.vo import Concept, Plugin, Tag
-from objectcube.exceptions import (ObjectCubeDatabaseException,
-                                   ObjectCubeException)
+from objectcube.exceptions import ObjectCubeException
 
 
 class TagService(BaseTagService):
@@ -17,7 +15,7 @@ class TagService(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE VALUE = %s OFFSET %s LIMIT %s"
         params = (value, offset, limit)
 
-        return retrieve_multiple_tags(Tag, sql, params)
+        return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_plugin(self, plugin, offset=0, limit=100):
         if not isinstance(plugin, Plugin) or not plugin.id:
@@ -26,7 +24,7 @@ class TagService(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE PLUGIN_ID = %s OFFSET %s LIMIT %s"
         params = (plugin.id, offset, limit)
 
-        return retrieve_multiple_tags(Tag, sql, params)
+        return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_concept(self, concept, offset=0, limit=100):
         if not isinstance(concept, Concept) or not concept.id:
@@ -35,7 +33,7 @@ class TagService(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE CONCEPT_ID = %s OFFSET %s LIMIT %s"
         params = (concept.id, offset, limit)
 
-        return retrieve_multiple_tags(Tag, sql, params)
+        return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_id(self, _id):
         if not _id or _id <= 0 or not isinstance(_id, int):
@@ -44,7 +42,7 @@ class TagService(BaseTagService):
         sql = "SELECT * FROM TAGS WHERE ID = %s"
         params = (_id,)
 
-        return execute_single_sql(Tag, sql, params)
+        return execute_sql_fetch_single(Tag, sql, params)
 
     def count(self):
         sql = """SELECT COUNT(1) AS count FROM TAGS"""
@@ -52,7 +50,7 @@ class TagService(BaseTagService):
         def extract_count(count):
             return count
 
-        return execute_single_sql(extract_count, sql)
+        return execute_sql_fetch_single(extract_count, sql)
 
     def retrieve(self, offset=0, limit=100):
         return_list = []
@@ -60,7 +58,7 @@ class TagService(BaseTagService):
         sql = 'SELECT * FROM TAGS LIMIT %s OFFSET %s'
         params = (limit, offset)
 
-        return retrieve_multiple_tags(Tag, sql, params)
+        return execute_sql_fetch_multiple(Tag, sql, params)
 
     def add(self, tag):
         if tag.id:
@@ -72,7 +70,7 @@ class TagService(BaseTagService):
         params = (tag.value, tag.description,
                   tag.mutable, tag.type, tag.concept_id, tag.plugin_id)
 
-        return execute_single_sql(Tag, sql, params)
+        return execute_sql_fetch_single(Tag, sql, params)
 
     def update(self, tag):
         if not isinstance(tag, Tag) or not tag.id:
@@ -89,7 +87,7 @@ class TagService(BaseTagService):
         params = (tag.value, tag.description, tag.mutable, tag.type,
                   tag.concept_id, tag.plugin_id, tag.id)
 
-        return execute_single_sql(Tag, sql, params)
+        return execute_sql_fetch_single(Tag, sql, params)
 
     def delete(self, tag):
         if not isinstance(tag, Tag) or not tag.id:
@@ -98,7 +96,7 @@ class TagService(BaseTagService):
         sql = 'DELETE FROM tags WHERE id = %s RETURNING *'
         params = (tag.id,)
 
-        execute_single_sql(Tag, sql, params)
+        execute_sql_fetch_single(Tag, sql, params)
 
     def retrieve_or_create(self, tag):
         if not isinstance(tag, Tag) or tag.id:
@@ -126,7 +124,7 @@ class TagService(BaseTagService):
         params = (tag.value, tag.description,
                   tag.mutable, tag.type, tag.concept_id, tag.plugin_id)
 
-        tags = retrieve_multiple_tags(Tag, sql, params)
+        tags = execute_sql_fetch_multiple(Tag, sql, params)
         if len(tags) != 1:
             raise ObjectCubeException(
                 "Ambiguous retrieve. Multiple candidates.")

@@ -1,4 +1,4 @@
-from utils import execute_single_sql
+from utils import execute_sql_fetch_single
 from objectcube.services.base import BasePluginService
 from objectcube.vo import Plugin
 
@@ -19,7 +19,7 @@ class PluginService(BasePluginService):
               'VALUES(%s, %s) RETURNING *'
         params = (plugin.name, plugin.module)
 
-        return execute_single_sql(Plugin, sql, params)
+        return execute_sql_fetch_single(Plugin, sql, params)
 
     def get_plugin_by_id(self):
         pass

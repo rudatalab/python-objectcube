@@ -10,7 +10,7 @@ class SerializableMixin(object):
     def __getattr__(self, key):
         if key not in self.data:
             raise Exception('Class {} does not have a field with name {}'
-                            .format(self.__class__.__str__(), key))
+                            .format(self.__class__, key))
         return self.data.get(key)
 
     def __setattr__(self, key, value):
@@ -40,10 +40,10 @@ class Tagging(SerializableMixin):
     fields = ['id', 'tag_id', 'object_id', 'meta', 'plugin_id', 'plugin_set_id']
 
     def __init__(self, **kwargs):
-        super(Tag, self).__init__(**kwargs)
+        super(Tagging, self).__init__(**kwargs)
 
     def __str__(self):
-        return self.value
+        return self.id
 
     def __repr__(self):
         return str(self.data.get('id'))
@@ -55,7 +55,7 @@ class Concept(SerializableMixin):
         super(Concept, self).__init__(**kwargs)
 
     def __str__(self):
-        return self.value
+        return self.id
 
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,

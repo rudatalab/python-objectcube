@@ -7,7 +7,7 @@ from objectcube.exceptions import ObjectCubeDatabaseException
 logger = logging.getLogger('db-utils')
 
 
-def execute_single_sql(value_object_class, sql, params=()):
+def execute_sql_fetch_single(value_object_class, sql, params=()):
     try:
         with Connection() as c:
             with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
@@ -20,7 +20,7 @@ def execute_single_sql(value_object_class, sql, params=()):
         raise ObjectCubeDatabaseException(ex)
 
 
-def retrieve_multiple_tags(value_object_class, sql, params):
+def execute_sql_fetch_multiple(value_object_class, sql, params):
     try:
         with Connection() as c:
             with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
