@@ -4,3 +4,4 @@ from dimension import BaseDimensionService
 from object import BaseObjectService
 from plugin import BasePluginService
 from tag import BaseTagService
+from tagging import BaseTaggingService

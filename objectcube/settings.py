@@ -27,6 +27,9 @@ FACTORY_CONFIG = {
 
     'PluginService': 'objectcube.services.impl.postgresql.plugin.'
                   'PluginService',
+
+    'TaggingService': 'objectcube.services.impl.postgresql.tagging.'
+                  'TaggingService',
 }
 
 PLUGINS = (
