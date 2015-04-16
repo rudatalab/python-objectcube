@@ -15,7 +15,7 @@ class BasePluginService(Service):
     def get_plugin_by_id(self):
         raise NotImplementedError()
 
-    def add_plugin(self, plugin):
+    def add(self, plugin):
         raise NotImplementedError()
 
     def process(self, _object, _data):

@@ -1,11 +1,9 @@
 from base import ObjectCubeTestCase
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import Tag
+from objectcube.vo import Concept, Plugin, Tag
 
 from objectcube.factory import get_service
 from random import shuffle
-from nose.tools import nottest
-
 
 class TestTagService(ObjectCubeTestCase):
 
@@ -37,8 +35,8 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_count_returns_number(self):
         val = self.tag_service.count()
-        self.assertTrue(isinstance(val, int),
-                        msg='The count function should return a list objects')
+        self.assertTrue(isinstance(val, (int, long)),
+                        msg='The count function should return a integer')
 
     def test_count_return_zero_when_database_is_empty(self):
         self.assertTrue(self.tag_service.count() == 0,
@@ -154,26 +152,89 @@ class TestTagService(ObjectCubeTestCase):
         self.assertEquals(0, len(outofrange))
 
     def test_retrieve_by_plugin(self):
-        # FIXME: need to add plugin or relax db constraints to be able
-        # to test properly
-        retrieved_before = self.tag_service.retrieve_by_plugin('42')
+        plugin_service = get_service('PluginService')
+        db_plugin = plugin_service.add(
+            Plugin(name='test_plugin', module='dummy_plugin'))
+
+        db_tags = self._add_test_tags(['41', '42', '42', '43'])
+
+        retrieved_before = self.tag_service.retrieve_by_plugin(db_plugin)
         self.assertEquals(len(retrieved_before), 0)
 
-        self._add_test_tags(['41', '42', '42', '43'])
+        # add tag with plugin or/and assign plugin to some of the tags
+        tag_ids_with_plugin = set()
+        # using add..
+        new_tag = self._create_test_tag('new_plugin_tag', plugin=db_plugin)
+        tag_ids_with_plugin.add(self.tag_service.add(new_tag).id)
 
-        retrieve_after = self.tag_service.retrieve_by_plugin('42')
-        self.assertEquals(len(retrieve_after), 0)
+        # using update..
+        # FIXME: the value object probably requires some prettified
+        # plugin set/assignment for the Tag value object
+        db_tags[0].plugin_id = db_plugin.id
+        tag_ids_with_plugin.add(self.tag_service.update(db_tags[0]).id)
 
-    @nottest
+        # by creating with retive_or_create..
+        add_or_create_tag = self._create_test_tag(
+            'non_existing_plugin_tag', plugin=db_plugin)
+        tag_ids_with_plugin.add(
+            self.tag_service.retrieve_or_create(add_or_create_tag).id)
+
+        retrieve_after = self.tag_service.retrieve_by_plugin(db_plugin)
+        self.assertEquals(
+            self._tags_to_id_set(retrieve_after), tag_ids_with_plugin)
+
+    def test_retrieve_by_plugin_raises_on_invalid_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin(None)
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin(Plugin())
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin(Concept(id=1))
+
     def test_retrieve_by_concept(self):
-        # FIXME: need to update schema to be able to test
-        retrieved_before = self.tag_service.retrieve_by_concept('42')
+        concept_service = get_service('ConceptService')
+        db_concept = concept_service.add(
+            Concept(title='test_concept', description='test concept'))
+
+        db_tags = self._add_test_tags(['41', '42', '42', '43'])
+
+        retrieved_before = self.tag_service.retrieve_by_concept(db_concept)
         self.assertEquals(len(retrieved_before), 0)
 
-        self._add_test_tags(['41', '42', '42', '43'])
+        # add tag with concept or/and assign concept to some of the tags
+        tag_ids_with_concept = set()
+        # using add..
+        new_tag = self._create_test_tag('new_concept_tag')
+        new_tag.concept_id = db_concept.id
+        tag_ids_with_concept.add(self.tag_service.add(new_tag).id)
 
-        retrieve_after = self.tag_service.retrieve_by_concept('42')
-        self.assertEquals(len(retrieve_after), 0)
+        # using update..
+        # FIXME: the value object probably requires some prettified
+        # concept set/assignment for the Tag value object
+        db_tags[0].concept_id = db_concept.id
+        tag_ids_with_concept.add(self.tag_service.update(db_tags[0]).id)
+
+        # by creating with retive_or_create..
+        add_or_create_tag = self._create_test_tag('non_existing_concept_tag')
+        add_or_create_tag.concept_id = db_concept.id
+        tag_ids_with_concept.add(
+            self.tag_service.retrieve_or_create(add_or_create_tag).id)
+
+        retrieve_after = self.tag_service.retrieve_by_concept(db_concept)
+        self.assertEquals(
+            self._tags_to_id_set(retrieve_after), tag_ids_with_concept)
+
+    def test_retrieve_by_concept_raises_on_invalid_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept(None)
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept(Concept())
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept(Plugin(id=1))
 
     def test_retrieve_by_value_raises_on_invalid_arguments(self):
         with self.assertRaises(ObjectCubeException):
@@ -202,6 +263,13 @@ class TestTagService(ObjectCubeTestCase):
         db_tags.sort(lambda a, b: a.id - b.id)
         self.assertEquals(db_tags, db_tags2)
 
+    def test_update_raises_on_invalid_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.update(None)
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.update(Tag())
+
     def test_delete(self):
         db_tags = self._add_test_tags(['a', 'b', 'c'])
 
@@ -213,6 +281,13 @@ class TestTagService(ObjectCubeTestCase):
         db_tags2.sort(lambda a, b: a.id - b.id)
         db_tags.sort(lambda a, b: a.id - b.id)
         self.assertEquals(db_tags, db_tags2)
+
+    def test_delete_raises_on_invalid_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.delete(None)
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.delete(Tag())
 
     def test_retrieve_or_create(self):
         db_tags = self._add_test_tags(['a', 'b', 'c'])
@@ -227,6 +302,13 @@ class TestTagService(ObjectCubeTestCase):
 
         db_tag_d2 = self.tag_service.retrieve_by_id(db_tag_d.id)
         self.assertEquals(db_tag_d, db_tag_d2)
+
+    def test_retrieve_or_create_raises_on_invalid_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_or_create(None)
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_or_create(Tag(id=1))
 
     def test_retrieve_or_create_ambiguous_retrieval(self):
         db_tags = self._add_test_tags(['a', 'b', 'b', 'c'])

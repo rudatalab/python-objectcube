@@ -2,7 +2,7 @@ from service import Service
 
 
 class BaseObjectService(Service):
-    def add(self, stream, name):
+    def add(self, object):
         """
         Add object to data store.
         :param stream: Stream to data.
@@ -20,26 +20,17 @@ class BaseObjectService(Service):
         """
         raise NotImplementedError()
 
-    def add_tags_to_objects(self, objects, tags):
+    def retrieve_by_id(self, object_id):
         """
-        Add tags to objects. All tags in the tags parameter
-        will be applied to all objects in the objects parameter.
-        """
-        raise NotImplementedError()
-
-    def get_objects_by_tags(self, tags):
-        """
-        Fetch objects that have been applied with tags in tags
-        """
-        raise NotImplementedError()
-
-    def get_by_id(self, object_id):
-        """
-        Fetch a given object by id
+        Retrieves a given object by id
         :param object_id: Number representing the value of the object.
         :return: Object if found, None otherwise.
         """
         raise NotImplementedError()
 
-    def get_objects(self, offset=0, limit=10):
+    def retrieve(self, offset=0, limit=10):
+        raise NotImplementedError()
+
+
+    def retrieve_by_tag(self, tag, offset=0, limit=10):
         raise NotImplementedError()
