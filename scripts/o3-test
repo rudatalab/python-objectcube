@@ -16,5 +16,5 @@ function cmd_cov {
 }
 
 function cmd_pep8 {
-    pep8 objectcube > pep8.txt
+    pep8 objectcube
 }

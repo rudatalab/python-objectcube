@@ -56,4 +56,3 @@ class ObjectService(BaseObjectService):
         params = (tag.id, offset, limit)
 
         return execute_sql_fetch_multiple(Object, sql, params)
-

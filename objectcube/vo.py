@@ -25,7 +25,8 @@ class SerializableMixin(object):
 
 
 class Tag(SerializableMixin):
-    fields = ['id', 'value', 'description', 'mutable', 'type', 'concept_id', 'plugin_id']
+    fields = ['id', 'value', 'description', 'mutable', 'type',
+              'concept_id', 'plugin_id']
 
     def __init__(self, **kwargs):
         super(Tag, self).__init__(**kwargs)
@@ -36,8 +37,10 @@ class Tag(SerializableMixin):
     def __repr__(self):
         return str(self.data.get('id'))
 
+
 class Tagging(SerializableMixin):
-    fields = ['id', 'tag_id', 'object_id', 'meta', 'plugin_id', 'plugin_set_id']
+    fields = ['id', 'tag_id', 'object_id', 'meta', 'plugin_id',
+              'plugin_set_id']
 
     def __init__(self, **kwargs):
         super(Tagging, self).__init__(**kwargs)
@@ -47,6 +50,7 @@ class Tagging(SerializableMixin):
 
     def __repr__(self):
         return str(self.data.get('id'))
+
 
 class Concept(SerializableMixin):
     fields = ['id', 'title', 'description']

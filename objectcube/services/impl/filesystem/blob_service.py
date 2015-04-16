@@ -1,55 +1,91 @@
 import os
-import shutil
 import logging
+import cStringIO
+import json
+import shutil
+
 from objectcube.services.base import BaseBlobService
+from objectcube.exceptions import ObjectCubeException
 from objectcube.utils import md5_from_stream
 
-FILE_BLOB_SERVICE_PATH = 'shared/data'
+logger = logging.getLogger('FileBlobService')
+
 READ_CHUNK_SIZE = 512
-logger = logging.getLogger('FileBlobServiceImpl')
 
 
-class FileBlobServiceImpl(BaseBlobService):
-    def __init__(self):
-        if not os.path.exists(FILE_BLOB_SERVICE_PATH):
-            os.makedirs(FILE_BLOB_SERVICE_PATH)
-
-    def get_blob_meta(self, digest):
-        pass
-
+class FileBlobService(BaseBlobService):
     def flush(self):
-        if os.path.exists(FILE_BLOB_SERVICE_PATH):
-            shutil.rmtree(FILE_BLOB_SERVICE_PATH)
-            os.mkdir(FILE_BLOB_SERVICE_PATH)
+        logging.debug('Calling flush')
+        if os.path.exists(os.path.join(self.blob_disk_location)):
+            shutil.rmtree(self.blob_disk_location)
+        os.makedirs(self.blob_disk_location)
 
-    def get_uri(self, digest):
-        if os.path.exists(os.path.join(FILE_BLOB_SERVICE_PATH, digest)):
-            return os.path.join(FILE_BLOB_SERVICE_PATH, digest)
+    def __init__(self, *args, **kwargs):
+        self.blob_disk_location = os.environ.get('FILESYSTEM_BLOB_DIR',
+                                                 'blobs')
+        self.flush()
 
-    def add_blob(self, fs, blob_meta=None, digest=None):
-        fs.seek(0)
+    def _get_blob_path(self, digest):
+        return os.path.join(self.blob_disk_location, digest)
 
-        if not blob_meta:
-            blob_meta = {}
+    def _get_meta_location(self, digest):
+        return os.path.join(self.blob_disk_location, '{0}.{1}'
+                            .format(digest, 'meta'))
 
-        if not digest or not blob_meta.get('digest'):
-            logger.debug('No digest added as parameter. '
-                         'Calculating digest from the stream')
-            digest = md5_from_stream(fs)
+    def retrieve_uri(self, digest):
+        logging.debug('Calling retrieve_uri')
+        if self.has(digest):
+            return 'file://{}'.format(self._get_blob_path(digest))
 
-        blob_path = os.path.join(FILE_BLOB_SERVICE_PATH, digest)
+        logging.error('No blob with digest found {}'.format(digest))
+        raise ObjectCubeException('No blob found by digest {}'.format(digest))
 
-        # If the file already exists, we don't need to create it again.
-        if os.path.exists(blob_path):
-            logger.debug('File {} already exist, not creating'
-                         .format(blob_path))
-            return
+    def retrieve_meta(self, digest):
+        if not self.has(digest):
+            raise ObjectCubeException('No blob found by digest {}'
+                                      .format(digest))
 
-        with open(os.path.join(blob_path), 'w+b') as file_fs:
-            data = fs.read(READ_CHUNK_SIZE)
+        # Check if we have meta file on disk
+        meta_filepath = self._get_meta_location(digest)
+
+        # If not meta has been added, we return empty dict
+        if not os.path.exists(meta_filepath):
+            return dict()
+        with open(meta_filepath, 'r') as fs:
+            data = fs.read().strip()
+            d = json.loads(data)
+            return d
+
+    def get_data(self, digest):
+        if not self.has(digest):
+            raise ObjectCubeException('waaa')
+
+        blob_path = self._get_blob_path(digest)
+
+        with open(blob_path, "rb") as f:
+            data = cStringIO.StringIO(f.read())
+            return data
+
+    def add(self, stream, digest=None, meta=None):
+        if not digest:
+            digest = md5_from_stream(stream)
+
+        if self.has(digest):
+            return digest
+
+        blob_path = os.path.join(self.blob_disk_location, digest)
+
+        with open(os.path.join(blob_path), 'wb') as file_fs:
+            data = stream.read(READ_CHUNK_SIZE)
             while data:
-                data = fs.read(READ_CHUNK_SIZE)
                 file_fs.write(data)
+                data = stream.read(READ_CHUNK_SIZE)
 
-    def has_blob(self, digest_id):
-        return os.path.exists(os.path.join(FILE_BLOB_SERVICE_PATH, digest_id))
+        if meta:
+            meta_filepath = self._get_meta_location(digest)
+            with open(meta_filepath, 'w') as fs:
+                fs.write(json.dumps(meta))
+        return digest
+
+    def has(self, digest):
+        return os.path.exists(os.path.join(self.blob_disk_location, digest))

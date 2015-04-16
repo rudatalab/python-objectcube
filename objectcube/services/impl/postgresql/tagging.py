@@ -9,7 +9,7 @@ from objectcube.exceptions import ObjectCubeException
 
 class TaggingService(BaseTaggingService):
 
-    def add(self,object, tag, meta, plugin=Plugin(), plugin_set_id=None):
+    def add(self, object, tag, meta, plugin=Plugin(), plugin_set_id=None):
         if not isinstance(object, Object) or not object.id:
             raise ObjectCubeException('Must give object with valid id')
         if not isinstance(tag, Tag) or not tag.id:
@@ -17,19 +17,20 @@ class TaggingService(BaseTaggingService):
         if not isinstance(plugin, Plugin):
             raise ObjectCubeException('Must give plugin')
 
-        sql = 'INSERT INTO OBJECT_TAG(OBJECT_ID, TAG_ID) values (%s, %s) RETURNING *'
+        sql = 'INSERT INTO OBJECT_TAG(OBJECT_ID, TAG_ID) ' \
+              'values (%s, %s) RETURNING *'
         params = (object.id, tag.id)
 
         return execute_sql_fetch_single(Tagging, sql, params)
 
-    def delete_by_set_id(self,plugin_set_id):
+    def delete_by_set_id(self, plugin_set_id):
         raise NotImplementedError()
 
-    def resolve(self,object, tag, meta, plugin=Plugin(), plugin_set_id=None):
+    def resolve(self, object, tag, meta, plugin=Plugin(), plugin_set_id=None):
         raise NotImplementedError()
 
-    def delete(self,tagging):
+    def delete(self, tagging):
         raise NotImplementedError()
 
-    def update(self,tagging):
+    def update(self, tagging):
         raise NotImplementedError()
