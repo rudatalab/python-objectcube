@@ -112,7 +112,7 @@ class ObjectService(BaseObjectService):
         file_digest = md5_from_stream(stream)
 
         # Add the file to blob service
-        self.blob_service.add_blob(stream, digest=file_digest)
+        self.blob_service.add(stream, digest=file_digest)
 
         sql = 'INSERT INTO OBJECTS(NAME, DIGEST) values (%s, %s) RETURNING ID'
 

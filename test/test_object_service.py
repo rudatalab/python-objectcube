@@ -79,7 +79,7 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_add_object_adds_object_to_blob_storage(self):
         o = self.create_objects(num_objects=1).next()
-        self.assertTrue(self.blob_service.has_blob(o.digest),
+        self.assertTrue(self.blob_service.has(o.digest),
                         msg='When object is added, it should add the blob to '
                             'blob service and the digest should be found')
 
