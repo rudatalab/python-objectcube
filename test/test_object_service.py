@@ -1,17 +1,10 @@
 
 from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import Object, Tagging
+from objectcube.utils import md5_from_value
+from objectcube.vo import Object
 
 from base import ObjectCubeTestCase
-
-from hashlib import md5
-
-
-def md5_hexdigest(input):
-    h = md5()
-    h.update(str(input))
-    return h.hexdigest()
 
 
 class TestObjectService(ObjectCubeTestCase):
@@ -34,7 +27,7 @@ class TestObjectService(ObjectCubeTestCase):
         for i in range(num_objects):
             objects.append(self.object_service.add(
                 Object(
-                    digest=md5_hexdigest(i),
+                    digest=md5_from_value(i),
                     name='{0}{1}'.format(name_prefix, i)
                 )
             ))
@@ -73,7 +66,7 @@ class TestObjectService(ObjectCubeTestCase):
             self.object_service.add(Object(digest='', name='x'))
 
     def test_add_object_returns_object(self):
-        in_object = Object(digest=md5_hexdigest('x'), name='foo.jpg')
+        in_object = Object(digest=md5_from_value('x'), name='foo.jpg')
         db_object = self.object_service.add(in_object)
         self.assertTrue(
             isinstance(db_object, Object),
@@ -85,7 +78,7 @@ class TestObjectService(ObjectCubeTestCase):
         for i in range(1, num_objects):
             object_name = '{}'.format(i)
             db_object = self.object_service.add(Object(
-                digest=md5_hexdigest(object_name),
+                digest=md5_from_value(object_name),
                 name=object_name
             ))
             db_object2 = self.object_service.retrieve_by_id(i)
@@ -162,16 +155,52 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertEqual(
             len(fetched_id_set.intersection(unexpected_id_set)), 0)
 
-    def assert_single_object_with_same_tag(self):
-        tag_service = get_service('TagService')
-        tag1 = tag_service.add(self.create_test_tag(value='test-tag-1'))
-        tag2 = tag_service.add(self.create_test_tag(value='test-tag-2'))
+    def test_delete_raises_if_object_is_not_vo_object(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.delete('something')
 
-        object_with_tags = self.create_objects(num_objects=1).next()
-        self.object_service.add_tags_to_objects(object_with_tags, [tag1, tag2])
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.delete(1)
 
-        result = self.object_service.retrieve_by_tags(tags=[tag1, tag2])
+    def test_delete_raises_if_object_has_no_id(self):
+        with self.assertRaises(ObjectCubeException):
+            o = Object(name='test.jpg', digest='12345')
+            self.object_service.delete(o)
 
-        self.assertTrue(len(result) == 1,
-                        msg='We should only get the object once when he '
-                            'has both tags assigned')
+    def test_delete_returns_false_if_deleted_object_does_not_exist(self):
+        o = Object(name='test.jpg', digest='12345', id=1337)
+        delete_return_value = self.object_service.delete(o)
+        self.assertFalse(delete_return_value)
+
+    def test_delete_returns_true_if_deleted_object_does_exist(self):
+        o = self.object_service.add(Object(name='test.jpg', digest='12345'))
+        delete_return_value = self.object_service.delete(o)
+        self.assertTrue(delete_return_value)
+
+    def test_update_raises_if_not_object(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update('test')
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(1234)
+
+    def test_update_raises_if_object_with_no_id(self):
+        with self.assertRaises(ObjectCubeException):
+            o = Object(name='test.jpg', digest='12345')
+            self.object_service.update(o)
+
+    def test_update_raises_if_update_object_that_does_not_exist(self):
+        with self.assertRaises(ObjectCubeException):
+            o = Object(name='test.jpg', digest='12345', id=234)
+            self.object_service.update(o)
+
+    def test_update_updates_object_name(self):
+        before_change_title = 'test-title'
+        after_change_title = 'updated-title'
+        o = self.object_service.add(Object(name=before_change_title,
+                                           digest='12345'))
+
+        o.name = after_change_title
+        self.object_service.update(o)
+        fresh_db = self.object_service.retrieve_by_id(o.id)
+        self.assertEqual(o.name, after_change_title)
