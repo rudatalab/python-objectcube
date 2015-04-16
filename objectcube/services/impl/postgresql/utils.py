@@ -17,7 +17,7 @@ def execute_sql_fetch_single(value_object_class, sql, params=()):
                     return value_object_class(**row._asdict())
     except Exception as ex:
         logger.error(ex.message)
-        raise ObjectCubeDatabaseException(ex)
+        raise ObjectCubeDatabaseException(ex.message)
 
 
 def execute_sql_fetch_multiple(value_object_class, sql, params):
@@ -30,5 +30,5 @@ def execute_sql_fetch_multiple(value_object_class, sql, params):
                 for row in cursor.fetchall():
                     return_list.append(value_object_class(**row._asdict()))
                 return return_list
-    except Exception as e:
-        raise ObjectCubeDatabaseException(e)
+    except Exception as ex:
+        raise ObjectCubeDatabaseException(ex.message)

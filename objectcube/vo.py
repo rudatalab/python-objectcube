@@ -1,3 +1,6 @@
+import json
+
+
 class SerializableMixin(object):
     def __init__(self, **kwargs):
         self.data = {}
@@ -64,6 +67,12 @@ class Concept(SerializableMixin):
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,
                                  repr(self.data))
+
+    def to_dict(self):
+        return {
+            'title': self.title, 'description':
+            self.description, 'id': self.id
+        }
 
 
 class Plugin(SerializableMixin):
