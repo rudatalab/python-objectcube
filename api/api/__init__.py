@@ -9,7 +9,7 @@ api = restful.Api(app)
 api.add_resource(ConceptsResourceList, '/api/concepts')
 
 
-@app.route('/')
+@app.route('/api')
 def index():
     return render_template('index.html')
 

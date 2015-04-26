@@ -17,9 +17,28 @@ class ConceptsResourceList(restful.Resource):
     def decription(self):
         return {
             'endpoint': self.ep_name,
+            'title': 'Concepts',
+            'description': 'Something',
             'methods': {
-                'get': {},
-                'post': {},
+                'get': {
+                    'params': {
+                        'limit': {
+                            'type': 'number',
+                            'required': False,
+                            'min': 0,
+                            'default': 20,
+                            'description': 'Some human description'
+
+                        },
+                        'page': {
+                            'type': 'number',
+                            'required': False,
+                            'min': 0,
+                            'default': 0,
+                            'description': 'Some human description'
+                        }
+                    }
+                },
             }
         }
 
