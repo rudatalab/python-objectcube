@@ -8,6 +8,7 @@ function cmd_db {
 
   # Check if OBJECTCUBE_DB_PORT is, set if so we add the port to postgresql config
   if [ -z "$OBJECTCUBE_DB_PORT" ]; then
+    export OBJECTCUBE_DB_PORT=5432
     echo "PORT=5432" >> $POSTGRES_DATA_DIR/postgresql.conf
   else
     echo "PORT=$OBJECTCUBE_DB_PORT" >> $POSTGRES_DATA_DIR/postgresql.conf
@@ -34,8 +35,8 @@ EOT
 }
 
 function cmd_schema {
-  createdb
-  psql $OBJECTCUBE_DB_USER < $ROOT_DIR/schema.sql
+  createdb -p $OBJECTCUBE_DB_PORT
+  psql -p $OBJECTCUBE_DB_PORT $OBJECTCUBE_DB_USER < $ROOT_DIR/schema.sql
 }
 
 function cmd_default {
