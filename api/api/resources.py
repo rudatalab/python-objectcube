@@ -51,7 +51,6 @@ class ConceptsResourceList(restful.Resource):
                         'type': 'string',
                         'required': True,
                         'min': 0,
-                        'default': 20,
                         'description': 'Title of the concept'
                     },
                     {
@@ -60,7 +59,6 @@ class ConceptsResourceList(restful.Resource):
                         'type': 'string',
                         'required': False,
                         'min': 0,
-                        'default': 0,
                         'description': 'Description of the concept'
                     },
                 ]
