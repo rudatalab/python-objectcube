@@ -12,15 +12,11 @@
 <body>
 
 <div class="api-controller" />
-
 <script>
-
   var createInputField = function(param) {
     var inputField = $('<input />')
     .attr('type', 'text')
     .attr('placeholder', param.name);
-
-    console.log(param)
 
     if (param.hasOwnProperty('default')) {
       console.log('we got default')
@@ -107,5 +103,4 @@
 
 </script>
 </body>
-
 </html>
