@@ -16,7 +16,8 @@ class ConceptsResourceList(restful.Resource):
 
     def get(self):
         limit = long(request.args.get('limit', 100))
-        offset = long(request.args.get('offset', 0))
+
+        offset = long(request.args.get('offset', 0)) + limit
         a = datetime.datetime.now()
         concept_count = self.concept_service.count()
         concepts = [t.to_dict() for
