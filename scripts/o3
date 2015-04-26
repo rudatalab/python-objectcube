@@ -1,12 +1,13 @@
 #!/bin/bash
+
 SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
-cd $SCRIPT_DIR
-source utils.sh
+source $SCRIPT_DIR/utils.sh
 
 ROOT_DIR="$SCRIPT_DIR/.."
-COV_DIR=$ROOT_DIR/cov
 VIRTUALENV_DIR_NAME=".venv"
 VIRTUALENV_DIR=$SCRIPT_DIR/../$VIRTUALENV_DIR_NAME;
+COV_DIR=$ROOT_DIR/cov
+PEP8_OUTPUT_FILE="$ROOT_DIR/pep8.txt"
 POSTGRES_DATA_DIR="$ROOT_DIR/data";
 FILESYSTEM_BLOB_DIR="$ROOT_DIR/blobs"
 PROCFILE_LOCATION=$ROOT_DIR/Procfile
@@ -22,37 +23,38 @@ function help {
 }
 
 function main {
-if [ -d "$VIRTUALENV_DIR" ]; then
-  source $VIRTUALENV_DIR/bin/activate
-fi
-ACTION=$1;
+  if [ -d "$VIRTUALENV_DIR" ]; then
+    source $VIRTUALENV_DIR/bin/activate
+  fi
 
-if [ -z "$ACTION" ]; then
-  help;
-  exit 2;
-fi
+  ACTION=$1;
 
-if [ -f "$SCRIPT_DIR/o3-$ACTION" ]; then
-  source $SCRIPT_DIR/o3-$ACTION;
-else
-  help;
-  exit 2;
-fi
+  if [ -z "$ACTION" ]; then
+    help;
+    exit 2;
+  fi
 
-shift;
-COMMAND="cmd_default";
+  if [ -f "$SCRIPT_DIR/o3-$ACTION" ]; then
+    source $SCRIPT_DIR/o3-$ACTION;
+  else
+    help;
+    exit 2;
+  fi
 
-if [ -n "$1" ]; then
-  COMMAND="cmd_$1";
   shift;
-fi
+  COMMAND="cmd_default";
 
-if isFunction $COMMAND == 1; then
-  $COMMAND $@;
-else
-  echo "Invalid function $COMMAND"
-  echo "use \"scripts/objectcube\" help for available commands."
-fi
+  if [ -n "$1" ]; then
+    COMMAND="cmd_$1";
+    shift;
+  fi
+
+  if isFunction $COMMAND == 1; then
+    $COMMAND $@;
+  else
+    echo "Invalid function $COMMAND"
+    echo "use \"scripts/objectcube\" help for available commands."
+  fi
 };
 
 main $@;
