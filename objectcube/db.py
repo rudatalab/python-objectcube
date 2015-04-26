@@ -1,6 +1,5 @@
-import psycopg2
-import settings
 from psycopg2.pool import ThreadedConnectionPool
+import settings
 
 
 def create_connection_string(**kwargs):
@@ -8,7 +7,8 @@ def create_connection_string(**kwargs):
         'dbname': kwargs.get('dbname', ''),
         'user': kwargs.get('user', ''),
         'host': kwargs.get('host', ''),
-        'password': kwargs.get('password', '')
+        'password': kwargs.get('password', ''),
+        'port': kwargs.get('port', '')
     }
     return ' '.join(['{0}={1}'.format(k, v) for (k, v) in data.items()])
 
@@ -22,13 +22,16 @@ def get_pool():
             'dbname': settings.DB_DBNAME,
             'user': settings.DB_USER,
             'host': settings.DB_HOST,
-            'password': settings.DB_PASSWORD
+            'password': settings.DB_PASSWORD,
+            'port': settings.DB_PORT
         }
-        minConnections = 1
-        maxConnections = 2
+
+        min_connections = 1
+        max_connections = 2
+
         connection_string = create_connection_string(**db_config)
         pool = ThreadedConnectionPool(
-            minConnections, maxConnections, connection_string)
+            min_connections, max_connections, connection_string)
     return pool
 
 

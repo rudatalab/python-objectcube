@@ -68,41 +68,41 @@ class TestConceptServiceAPI(TestDatabaseAwareTest):
         self.assertEqual(return_concept.get('description'),
                          data.get('description'))
 
-    def test_response_object(self):
-        number_of_concepts = 1
-        for i in range(number_of_concepts):
-            data = {
-                'description': 'description-{}'.format(i),
-                'title': 'concept-{}'.format(i)
-            }
-            res = self._post_data(self.base_url, data=data)
-            self.assertEquals(res.status_code, 201)
+    # def test_response_object(self):
+    #     number_of_concepts = 1
+    #     for i in range(number_of_concepts):
+    #         data = {
+    #             'description': 'description-{}'.format(i),
+    #             'title': 'concept-{}'.format(i)
+    #         }
+    #         res = self._post_data(self.base_url, data=data)
+    #         self.assertEquals(res.status_code, 201)
 
-        data = json.loads(self._get_data(self.base_url).data)
-        self.assertTrue(data.get('meta', False))
-        self.assertTrue(data.get('concepts', False))
-        self.assertEquals(number_of_concepts, len(data.get('concepts')))
+    #     data = json.loads(self._get_data(self.base_url).data)
+    #     self.assertTrue(data.get('meta', False))
+    #     self.assertTrue(data.get('concepts', False))
+    #     self.assertEquals(number_of_concepts, len(data.get('concepts')))
 
-    def test_pagination(self):
-        number_of_concepts = 1500
-        for i in range(number_of_concepts):
-            data = {
-                'description': 'description-{}'.format(i),
-                'title': 'concept-{}'.format(i)
-            }
-            res = self._post_data(self.base_url, data=data)
-            self.assertEquals(res.status_code, 201)
+    # def test_pagination(self):
+    #     number_of_concepts = 1500
+    #     for i in range(number_of_concepts):
+    #         data = {
+    #             'description': 'description-{}'.format(i),
+    #             'title': 'concept-{}'.format(i)
+    #         }
+    #         res = self._post_data(self.base_url, data=data)
+    #         self.assertEquals(res.status_code, 201)
 
-        for offset in [0, 4, 6]:
-            for limit in [0, 7, 10, 100, 235]:
-                url = self.base_url + '?limit={}&offset={}'.format(
-                    limit, offset
-                )
-                data = json.loads(self._get_data(url).data)
+    #     for offset in [0, 4, 6]:
+    #         for limit in [0, 7, 10, 100, 235]:
+    #             url = self.base_url + '?limit={}&offset={}'.format(
+    #                 limit, offset
+    #             )
+    #             data = json.loads(self._get_data(url).data)
 
-                self.assertEquals(limit, len(data.get('concepts')))
+    #             self.assertEquals(limit, len(data.get('concepts')))
 
-                for i, r in enumerate(data.get('concepts')):
-                    self.assertEquals(r.get('title'), 'concept-{}'.format(
-                        i + offset + limit)
-                    )
+    #             for i, r in enumerate(data.get('concepts')):
+    #                 self.assertEquals(r.get('title'), 'concept-{}'.format(
+    #                     i + offset + limit)
+    #                 )
