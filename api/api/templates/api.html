@@ -11,32 +11,43 @@
 
 <body>
 
-<div class="api-controller">
-</div>
+<div class="api-controller" />
 
 <script>
-  var create_components = function(name, description) {
+
+  var createInputField = function(param) {
+    var inputField = $('<input />')
+    .attr('type', 'text')
+    .attr('placeholder', param.name);
+
+    console.log(param)
+
+    if (param.hasOwnProperty('default')) {
+      console.log('we got default')
+      console.log(param.default)
+      inputField.val(param.default)
+    }
+
+    return inputField;
+  };
+
+  var createEndpointClient = function(name, endproint) {
     var control = $('<div class="control"></div>');
     control.append($('<h2 class="control-title"/>').text(name));
-    control.append($('<p class="control-description" />').text(description.description));
+    control.append($('<p class="control-endproint" />').text(endproint.description));
 
-    Object.keys(description.methods).forEach(function(method) {
-      var params = description.methods[method].params;
+    Object.keys(endproint.methods).forEach(function(method) {
+      var params = endproint.methods[method].params;
       var action = $('<div class="action" data-type="' + method + '"/>');
-      var actionResult = $('<div class="action-result"/>').hide();
+      var actionResult = $('<pre class="action-result"/>').hide();
       action.append($('<h3 class="action-method"/>').text(method));
 
-      if (method === "get") {
-        params.forEach(function(param) {
-          var formRow = $('<div class="form-row"/>');
-          formRow.append($('<input type="text" placeholder="' + param.name + '"/>'));
-          action.append(formRow);
-        });
-      } else {
-          var formRow = $('<div class="form-row"/>');
-          formRow.append($('<textarea></textarea>'));
-          action.append(formRow);
-      }
+      params.forEach(function(param) {
+        var formRow = $('<div class="form-row"/>');
+        formRow.append($('<label />').text(param.label));
+        formRow.append(createInputField(param));
+        action.append(formRow);
+      });
 
       var button = $('<div class="form-row"><input type="button" value="send" /></div>');
 
@@ -45,21 +56,37 @@
         var data = {};
         var attritubes = [];
         var inputs = action.find('input[type=text]');
-        var textarea = action.find('textarea');
 
-        inputs.each(function(i, el) {
-          attritubes.push(el.placeholder + '=' + $(el).val());
-        });
-
-        if (textarea) {
-          data = textarea.val();
+        if (method === "get") {
+          inputs.each(function(i, el) {
+            attritubes.push(el.placeholder + '=' + $(el).val());
+          });
+          $.get(name + '?' + attritubes.join('&'), function(data) {
+            actionResult.text('fetching..');
+            actionResult.text(JSON.stringify(data, null, '  '));
+            actionResult.slideDown('fast');
+          });
         }
-
-        $[method](name + '?' + attritubes.join('&'), data, function(data) {
-          actionResult.text('fetching..');
-          actionResult.text(JSON.stringify(data));
-          actionResult.fadeIn('slow');
-        });
+        else {
+        inputs.each(function(i, el) {
+            data[el.placeholder] = $(el).val();
+          });
+          $.ajax({
+              type: "POST",
+              url: name,
+              data: JSON.stringify(data),
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              success: function(data) {
+                actionResult.text(JSON.stringify(data));
+                actionResult.fadeIn('slow');
+              },
+              failure: function(errMsg) {
+                  alert(errMsg);
+                  actionResult.text(errMsg);
+              }
+          });
+        }
       });
 
       action.append(button);
@@ -71,9 +98,9 @@
   }
 
   $(document).ready(function() {
-    $.get('/api/description', function(data) {
-      Object.keys(data).forEach(function(k) {
-        $('.api-controller').append(create_components(k, data[k]))
+    $.get('/api/description', function(enpoint) {
+      Object.keys(enpoint).forEach(function(k) {
+        $('.api-controller').append(createEndpointClient(k, enpoint[k]))
       });
     });
   });

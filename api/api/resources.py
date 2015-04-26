@@ -1,12 +1,9 @@
 import json
 import datetime
-
 from flask.ext import restful
 from flask import request
-
 from objectcube.vo import Concept
 from objectcube.factory import get_service
-
 from meta import add_meta
 
 
@@ -28,14 +25,16 @@ class ConceptsResourceList(restful.Resource):
                 'params': [
                     {
                         'name': 'limit',
+                        'label': 'Limit',
                         'type': 'number',
                         'required': False,
                         'min': 0,
                         'default': 20,
-                        'description': 'Some human description'
+                        'description': 'Some human description',
                     },
                     {
                         'name': 'page',
+                        'label': 'Page',
                         'type': 'number',
                         'required': False,
                         'min': 0,
@@ -47,20 +46,22 @@ class ConceptsResourceList(restful.Resource):
             'post': {
                 'params': [
                     {
-                        'name': 'limit',
-                        'type': 'number',
-                        'required': False,
+                        'name': 'title',
+                        'label': 'Title',
+                        'type': 'string',
+                        'required': True,
                         'min': 0,
                         'default': 20,
-                        'description': 'Some human description'
+                        'description': 'Title of the concept'
                     },
                     {
-                        'name': 'page',
-                        'type': 'number',
+                        'name': 'description',
+                        'label': 'Description',
+                        'type': 'string',
                         'required': False,
                         'min': 0,
                         'default': 0,
-                        'description': 'Some human description'
+                        'description': 'Description of the concept'
                     },
                 ]
             },
