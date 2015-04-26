@@ -6,7 +6,7 @@ from resources import ConceptsResourceList
 app = Flask(__name__)
 api = restful.Api(app)
 
-api.add_resource(ConceptsResourceList, '/concepts')
+api.add_resource(ConceptsResourceList, '/api/concepts')
 
 
 @app.route('/')

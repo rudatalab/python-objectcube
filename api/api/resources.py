@@ -12,25 +12,37 @@ class ConceptsResourceList(restful.Resource):
     def __init__(self, *args, **kwargs):
         super(ConceptsResourceList, self).__init__(*args, **kwargs)
         self.concept_service = get_service('ConceptService')
-        self.ep_name = 'concepts'
+        self.ep_name = 'api/concepts'
+
+    def decription(self):
+        return {
+            'endpoint': self.ep_name,
+            'methods': {
+                'get': {},
+                'post': {},
+            }
+        }
 
     def get(self):
-        limit = long(request.args.get('limit', 100))
+        if 'description' in request.args:
+            return self.decription()
 
-        offset = long(request.args.get('offset', 0)) + limit
+        page = long(request.args.get('page', 0))
+        limit = long(request.args.get('limit', 20))
+
         a = datetime.datetime.now()
         concept_count = self.concept_service.count()
         concepts = [t.to_dict() for
                     t in self.concept_service.retrieve(
-                        limit=limit, offset=offset)]
+                        limit=limit, offset=page * limit)]
         b = datetime.datetime.now()
 
         response_object = {
             'meta': {
                 'time': (b - a).microseconds / 1000.0,
                 'count': concept_count,
-                'next': self.ep_name + '?limit={}&offset={}'
-                .format(limit, offset + 1)
+                'next': self.ep_name + '?page={}&limit={}'
+                .format(page + 1, limit)
             },
             'concepts': concepts,
         }
