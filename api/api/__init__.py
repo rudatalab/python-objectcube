@@ -18,7 +18,7 @@ def api_client():
     return jsonify(**f)
 
 
-@app.route('/')
+@app.route('/api')
 def index():
     return render_template('api.html')
 
