@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/static/css/reset.css">
+  <link rel="stylesheet" href="/static/css/api.css">
+  <script src="/static/js/jquery.js"></script>
+</head>
+
+<body>
+
+<div class="api-controller">
+</div>
+
+<script>
+  var create_components = function(name, description) {
+    var control = $('<div class="control"></div>');
+    control.append($('<h2 class="control-title"/>').text(name));
+    control.append($('<p class="control-description" />').text(description.description));
+
+    Object.keys(description.methods).forEach(function(method) {
+      var params = description.methods[method].params;
+      var action = $('<div class="action" data-type="' + method + '"/>');
+      var actionResult = $('<div class="action-result"/>').hide();
+      action.append($('<h3 class="action-method"/>').text(method));
+
+      if (method === "get") {
+        params.forEach(function(param) {
+          var formRow = $('<div class="form-row"/>');
+          formRow.append($('<input type="text" placeholder="' + param.name + '"/>'));
+          action.append(formRow);
+        });
+      } else {
+          var formRow = $('<div class="form-row"/>');
+          formRow.append($('<textarea></textarea>'));
+          action.append(formRow);
+      }
+
+      var button = $('<div class="form-row"><input type="button" value="send" /></div>');
+
+      // Click event when we push the button.
+      button.on('click', function() {
+        var data = {};
+        var attritubes = [];
+        var inputs = action.find('input[type=text]');
+        var textarea = action.find('textarea');
+
+        inputs.each(function(i, el) {
+          attritubes.push(el.placeholder + '=' + $(el).val());
+        });
+
+        if (textarea) {
+          data = textarea.val();
+        }
+
+        $[method](name + '?' + attritubes.join('&'), data, function(data) {
+          actionResult.text('fetching..');
+          actionResult.text(JSON.stringify(data));
+          actionResult.fadeIn('slow');
+        });
+      });
+
+      action.append(button);
+      action.append(actionResult);
+      control.append(action);
+    });
+
+    return control;
+  }
+
+  $(document).ready(function() {
+    $.get('/api/description', function(data) {
+      Object.keys(data).forEach(function(k) {
+        $('.api-controller').append(create_components(k, data[k]))
+      });
+    });
+  });
+
+</script>
+</body>
+
+</html>

@@ -7,40 +7,69 @@ from flask import request
 from objectcube.vo import Concept
 from objectcube.factory import get_service
 
+from meta import add_meta
 
+
+def api_metable(orginal_class):
+    add_meta(orginal_class.ep_name, orginal_class.description)
+    return orginal_class
+
+
+@api_metable
 class ConceptsResourceList(restful.Resource):
+    ep_name = 'api/concepts'
+
+    description = {
+        'endpoint': ep_name,
+        'title': 'Concepts',
+        'description': 'Endpoint for fetching and creating concepts',
+        'methods': {
+            'get': {
+                'params': [
+                    {
+                        'name': 'limit',
+                        'type': 'number',
+                        'required': False,
+                        'min': 0,
+                        'default': 20,
+                        'description': 'Some human description'
+                    },
+                    {
+                        'name': 'page',
+                        'type': 'number',
+                        'required': False,
+                        'min': 0,
+                        'default': 0,
+                        'description': 'Some human description'
+                    },
+                ]
+            },
+            'post': {
+                'params': [
+                    {
+                        'name': 'limit',
+                        'type': 'number',
+                        'required': False,
+                        'min': 0,
+                        'default': 20,
+                        'description': 'Some human description'
+                    },
+                    {
+                        'name': 'page',
+                        'type': 'number',
+                        'required': False,
+                        'min': 0,
+                        'default': 0,
+                        'description': 'Some human description'
+                    },
+                ]
+            },
+        }
+    }
+
     def __init__(self, *args, **kwargs):
         super(ConceptsResourceList, self).__init__(*args, **kwargs)
         self.concept_service = get_service('ConceptService')
-        self.ep_name = 'api/concepts'
-
-    def decription(self):
-        return {
-            'endpoint': self.ep_name,
-            'title': 'Concepts',
-            'description': 'Something',
-            'methods': {
-                'get': {
-                    'params': {
-                        'limit': {
-                            'type': 'number',
-                            'required': False,
-                            'min': 0,
-                            'default': 20,
-                            'description': 'Some human description'
-
-                        },
-                        'page': {
-                            'type': 'number',
-                            'required': False,
-                            'min': 0,
-                            'default': 0,
-                            'description': 'Some human description'
-                        }
-                    }
-                },
-            }
-        }
 
     def get(self):
         if 'description' in request.args:

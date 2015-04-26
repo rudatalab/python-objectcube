@@ -1,0 +1,52 @@
+body {
+  padding: 30px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 100;
+}
+.api-controller {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid #E4E4E4;
+  padding: 10px;
+  background: #FCFCFC;
+  box-shadow: 2px 2px 2px #EFEFEF;
+  border-radius: 4px;
+}
+
+.control {
+  border: 1px solid #DADADA;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.control-title {
+  font-size: 30px;
+}
+
+.action {
+  border: 1px solid #eee;
+  padding: 4px;
+  margin: 10px;
+  padding: 10px;
+}
+
+.action-result {
+  border: 1px solid #E7E7E7;
+  background: #FCFCFC;
+  padding: 10px;
+  font-size: 12px;
+  font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
+}
+
+.action-method {
+  border: 1px solid rgb(232, 232, 232);
+  background: #F9F9F9;
+  padding: 3px;
+}
+
+.form-row {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
