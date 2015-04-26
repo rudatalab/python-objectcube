@@ -7,7 +7,7 @@ function cmd_db {
 	initdb -d $POSTGRES_DATA_DIR --locale C 2<&1 | grep -v '^DEBUG:' || exit 1
 
   # Check if OBJECTCUBE_DB_PORT is, set if so we add the port to postgresql config
-  if [ -z "$OBJECTCUBE_DB_PORT "]; then
+  if [ -z "$OBJECTCUBE_DB_PORT" ]; then
     echo "PORT=5432" >> $POSTGRES_DATA_DIR/postgresql.conf
   else
     echo "PORT=$OBJECTCUBE_DB_PORT" >> $POSTGRES_DATA_DIR/postgresql.conf
