@@ -92,7 +92,7 @@ class TestConceptServiceAPI(TestDatabaseAwareTest):
             }
             res = self._post_data(self.base_url, data=data)
             self.assertEquals(res.status_code, 201)
-        import pdb; pdb.set_trace()
+
         for offset in [0, 4, 6]:
             for limit in [0, 7, 10, 100, 235]:
                 url = self.base_url + '?limit={}&offset={}'.format(
