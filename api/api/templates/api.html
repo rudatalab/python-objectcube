@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/static/css/reset.css">
+  <link rel="stylesheet" href="/static/css/api.css">
+  <script src="/static/js/jquery.js"></script>
+</head>
+
+<body>
+
+<div class="api-controller" />
+<script>
+  var createInputField = function(param) {
+    var inputField = $('<input />')
+    .attr('type', 'text')
+    .attr('placeholder', param.name);
+
+    if (param.hasOwnProperty('default')) {
+      console.log('we got default')
+      console.log(param.default)
+      inputField.val(param.default)
+    }
+
+    return inputField;
+  };
+
+  var createEndpointClient = function(name, endproint) {
+    var control = $('<div class="control"></div>');
+    control.append($('<h2 class="control-title"/>').text(name));
+    control.append($('<p class="control-endproint" />').text(endproint.description));
+
+    Object.keys(endproint.methods).forEach(function(method) {
+      var params = endproint.methods[method].params;
+      var action = $('<div class="action" data-type="' + method + '"/>');
+      var actionResult = $('<pre class="action-result"/>').hide();
+      action.append($('<h3 class="action-method"/>').text(method));
+
+      params.forEach(function(param) {
+        var formRow = $('<div class="form-row"/>');
+        formRow.append($('<label />').text(param.label));
+        formRow.append(createInputField(param));
+        action.append(formRow);
+      });
+
+      var button = $('<div class="form-row"><input type="button" value="send" /></div>');
+
+      // Click event when we push the button.
+      button.on('click', function() {
+        var data = {};
+        var attritubes = [];
+        var inputs = action.find('input[type=text]');
+
+        if (method === "get") {
+          inputs.each(function(i, el) {
+            attritubes.push(el.placeholder + '=' + $(el).val());
+          });
+          $.get(name + '?' + attritubes.join('&'), function(data) {
+            actionResult.text('fetching..');
+            actionResult.text(JSON.stringify(data, null, '  '));
+            actionResult.slideDown('fast');
+          });
+        }
+        else {
+        inputs.each(function(i, el) {
+            data[el.placeholder] = $(el).val();
+          });
+          $.ajax({
+              type: "POST",
+              url: name,
+              data: JSON.stringify(data),
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              success: function(data) {
+                actionResult.text(JSON.stringify(data));
+                actionResult.fadeIn('slow');
+              },
+              failure: function(errMsg) {
+                  alert(errMsg);
+                  actionResult.text(errMsg);
+              }
+          });
+        }
+      });
+
+      action.append(button);
+      action.append(actionResult);
+      control.append(action);
+    });
+
+    return control;
+  }
+
+  $(document).ready(function() {
+    $.get('/api/description', function(enpoint) {
+      Object.keys(enpoint).forEach(function(k) {
+        $('.api-controller').append(createEndpointClient(k, enpoint[k]))
+      });
+    });
+  });
+
+</script>
+</body>
+</html>
