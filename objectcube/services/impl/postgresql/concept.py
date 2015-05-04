@@ -36,6 +36,11 @@ class ConceptService(BaseConceptService):
         self.delete_by_id(concept.id)
 
     def retrieve_or_create(self, concept):
+        if type(concept) != Concept:
+            message = 'retrieve_or_create accepts only Concept objects'
+            logger.error(message)
+            raise ObjectCubeException(message)
+
         db_concept = self.retrieve_by_title(concept.title)
         if db_concept:
             return db_concept

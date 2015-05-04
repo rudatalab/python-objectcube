@@ -16,6 +16,10 @@ class TestDimensionService(TestDatabaseAwareTest):
         first_child.add_child(Tree(4))
         return root
 
+    def _create_empty_test_tree(self, name='foobar'):
+        root = Tree(1, name=name)
+        return root
+
     def test_add_dimension_should_return_id(self):
         dim = self._create_test_tree('foo')
         self.dimension_service.add_dimension(dim)
@@ -70,6 +74,14 @@ class TestDimensionService(TestDatabaseAwareTest):
         self.assertEquals(dim.serialize(), dim_get.serialize(),
                           msg='Fetching an object by its name should return '
                           'the correct object')
+
+    def test_get_by_name_should_return_correct_object_with_empty_tree(self):
+        dim = self._create_empty_test_tree('foobar')
+        self.dimension_service.add_dimension(dim)
+        dim_get = self.dimension_service.get_by_name('foobar')
+        self.assertEquals(dim.serialize(), dim_get.serialize(),
+                          msg='Fetching an object by its name should return '
+                          'the correct object -- evern for empty trees')
 
     def test_update_dimension_bogus_input_throws(self):
         tree = self._create_test_tree('foo')
