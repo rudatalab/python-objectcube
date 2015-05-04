@@ -3,41 +3,17 @@ from service import Service
 
 class BaseDimensionService(Service):
 
-    def add_dimension(self, tree):
-        """
-        Insert Dimension into database as a tree.
-        :param tree: The tree object that should be added.
-        :return: Returns nothing.
-        """
+    def add_dimension(self, tag):
+        '''Returns root node'''
         raise NotImplementedError()
 
-    def get_dimensions(self):
-        """
-        Retrieve all Dimension objects from database.
-        :return: List of dimensions
-        """
+    def add_node(self, parent_node, tag):
+        ''' tag is a child tag '''
         raise NotImplementedError()
 
-    def get_by_id(self, _id):
-        """
-        Fetches dimension by id.
-        :param _id: ID for the Dimension to retrieve.
-        :return: Dimension object if found, None otherwise
-        """
+    def delete(self, subtree_root_node):
         raise NotImplementedError()
 
-    def get_by_name(self, name):
-        """
-        Fetches Dimension by name.
-        :param name: Name of the Dimension to retrieve.
-        :return: Dimension object matching the name.
-        """
+    def retrieve_dimension(self, tag):
         raise NotImplementedError()
 
-    def update_dimension(self, name, new_dimension):
-        """
-        Update a dimension.
-        :param name: Name of the dimension to modify.
-        :return: Returns nothing.
-        """
-        raise NotImplementedError()
