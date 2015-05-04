@@ -1,26 +1,34 @@
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
+from types import IntType
 from objectcube.services.base import BaseDimensionService
-from objectcube.vo import DimensionNode
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
-from objectcube.vo import Tag
+from objectcube.vo import (Tag, DimensionNode)
 
 
 class DimensionService(BaseDimensionService):
 
+    def count(self):
+        sql = """SELECT COUNT(DISTINCT root_tag_id) AS count FROM DIMENSIONS"""
+
+        def extract_count(count):
+            return count
+
+        return execute_sql_fetch_single(extract_count, sql)
+
     def _calculate_borders(self, root_node, counter=None):
         if not counter:
-            counter = [1];
+            counter = [1]
 
         root_node.left_border = counter[0]
-        counter[0] = counter[0] + 1
+        counter[0] += 1
 
         if root_node.child_nodes:
             for node in root_node.child_nodes:
                 self._calculate_borders(node, counter)
 
         root_node.right_border = counter[0]
-        counter[0] = counter[0] + 1
+        counter[0] += 1
 
 
     def delete(self, subtree_root_node):
@@ -54,7 +62,7 @@ class DimensionService(BaseDimensionService):
                 'FROM Dimensions D JOIN Tags T ON D.node_tag_id = T.id' \
                 'WHERE D.root_tag_id = %s ORDER BY D.left_border ASC'
         params = (root_node.root_tag_id)
-        return _construct_tree(execute_sql_fetch_multiple(DimensionNode, sql, params))
+        return self._construct_tree(execute_sql_fetch_multiple(DimensionNode, sql, params))
 
     def _construct_tree(self, dimension_node_array, parent_node=None, counter=None):
         if not counter:
@@ -68,7 +76,7 @@ class DimensionService(BaseDimensionService):
             return parent_node
 
         current_node = dimension_node_array[counter[0]]
-        counter[0] = counter[0] + 1
+        counter[0] += 1
 
         loop_switch = 1
         while loop_switch == 1:
@@ -78,7 +86,7 @@ class DimensionService(BaseDimensionService):
 
     def _find_node(self, root_node, tag_id):
         if root_node.node_tag_id == tag_id:
-            return root_node;
+            return root_node
         if not root_node.child_nodes:
             raise ObjectCubeDatabaseException('Tag was not found')
         for node in root_node.child_nodes:
