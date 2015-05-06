@@ -27,17 +27,19 @@ class DimensionService(BaseDimensionService):
 
         if not parent_node:
             parent_node = dimension_node_array[counter[0]]
+            parent_node.child_nodes = []
             counter[0] += 1
 
         if counter >= len(dimension_node_array):
             return parent_node
 
         current_node = dimension_node_array[counter[0]]
+        current_node.child_nodes = []
         counter[0] += 1
 
         while True:
-            if counter[0] >= len(dimension_node_array) or \
-                            dimension_node_array[counter[0]].right_border > parent_node.right_border:
+            if counter[0] >= len(dimension_node_array) \
+                    or dimension_node_array[counter[0]].right_border > parent_node.right_border:
                 return current_node
             parent_node.child_nodes.append(self._construct_tree(dimension_node_array, current_node, counter))
 
@@ -50,9 +52,10 @@ class DimensionService(BaseDimensionService):
             self._find_node(node, tag_id)
 
     def _insert_node(self, node):
-        sql = 'INSERT INTO DIMENSIONS( ROOT_TAG_ID, NODE_TAG_ID, LEFT_BORDER, RIGHT_BORDER) VALUES( %s, %s, %s, %s)'
+        sql = 'INSERT INTO DIMENSIONS( ROOT_TAG_ID, NODE_TAG_ID, LEFT_BORDER, RIGHT_BORDER) ' \
+              'VALUES( %s, %s, %s, %s) RETURNING *'
         params = (node.root_tag_id, node.node_tag_id, node.left_border, node.right_border)
-        execute_sql_fetch_single(DimensionNode, sql, params)
+        return execute_sql_fetch_single(DimensionNode, sql, params)
 
     def _write_nodes(self, root_node):
         self._insert_node(root_node)
@@ -84,7 +87,8 @@ class DimensionService(BaseDimensionService):
             raise ObjectCubeException(
                 'Must give DimensionNode with valid root_tag_id')
 
-        root_node = DimensionNode(root_tag_id=tag.id, node_tag_id=tag.id, node_tag_value=tag.value, left_border=0, right_border=0, child_nodes=[]);
+        root_node = DimensionNode(root_tag_id=tag.id, node_tag_id=tag.id, node_tag_value=tag.value,
+                                  left_border=0, right_border=0, child_nodes=[]);
         self._calculate_borders(root_node)
 
         sql = 'INSERT INTO DIMENSIONS(root_tag_id, node_tag_id, left_border, right_border) ' \
@@ -107,19 +111,23 @@ class DimensionService(BaseDimensionService):
         params = (root_node.root_tag_id,)
         return self._construct_tree(execute_sql_fetch_multiple(DimensionNode, sql, params))
 
-    def add_node(self, root_node, parent_tag, child_tag):
+    def add_node_tag(self, root_node, parent_tag, child_tag):
         if not isinstance(root_node, DimensionNode) or \
                 not isinstance(parent_tag, Tag) or \
                 not isinstance(child_tag, Tag):
             raise ObjectCubeDatabaseException('Input not of correct types')
 
         parent_node = self._find_node(root_node, parent_tag.id)
-        child_node = DimensionNode(child_tag)
+        child_node = DimensionNode(root_tag_id=root_node.root_tag_id,
+                                   node_tag_id=child_tag.id,
+                                   node_tag_value=child_tag.value,
+                                   child_nodes=[])
+        #import pdb; pdb.set_trace()
         parent_node.child_nodes.append(child_node)
         self._calculate_borders(root_node)
         self._delete(root_node)
         self._write_nodes(root_node)
-        return child_node
+        return root_node
 
     def add_node(self, parent_node, tag):
         if not isinstance(parent_node, DimensionNode) or not isinstance(tag, Tag):

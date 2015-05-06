@@ -1,7 +1,7 @@
 from base import TestDatabaseAwareTest
 from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import Tag, DimensionNode
+from objectcube.vo import Tag, DimensionNode, Concept
 from random import shuffle
 
 class TestDimensionService(TestDatabaseAwareTest):
@@ -9,17 +9,22 @@ class TestDimensionService(TestDatabaseAwareTest):
         super(TestDimensionService, self).__init__(*args, **kwargs)
         self.dimension_service = get_service('DimensionService')
         self.tag_service = get_service('TagService')
+        self.concept_service = get_service('ConceptService')
+
+    def _create_test_concept(self):
+        concept = Concept(title='People', description='All people in the world')
+        concept = self.concept_service.add(concept)
+        self.assertIsNotNone(concept)
 
     def _create_test_tag(self, _value=''):
-        print 'creating TAG'
         return Tag(
-            id = None,
-            value = _value,
-            description = '',
-            mutable = False,
-            type = 0,
-            concept_id = 0,
-            plugin_id = 0)
+            id=None,
+            value=_value,
+            description='',
+            mutable=False,
+            type=0,
+            concept_id=1,
+            plugin_id=None)
 
     def _add_test_tags(self, values=None):
         """
@@ -31,7 +36,6 @@ class TestDimensionService(TestDatabaseAwareTest):
         #shuffle(values)
         for value in values:
             tag = self._create_test_tag(value)
-            print tag.value
             tags.append(self.tag_service.add(tag))
         self.assertEquals(len(values), len(tags))
         return tags
@@ -59,45 +63,50 @@ class TestDimensionService(TestDatabaseAwareTest):
                 return False
         return True
 
+    def test_dimension_many_tags(self):
+        self._create_test_concept()
+        tags = self._add_test_tags(['People', 'Classmates', 'RU', 'Jack', 'Jill', 'MH', 'Bob', 'Alice', 'John'])
+        print len(tags)
+
+        root_node = self.dimension_service.add_dimension(tags[0])
+        self.dimension_service.add_node_tag(root_node, tags[0], tags[1])
+        self.assertEquals(self._count_nodes(root_node), 2,
+                          msg='Not enough nodes in hierarchy')
+
+    
     def test_dimensions_initial_count_zero(self):
         self.assertEquals(self.dimension_service.count(), 0,
                           msg='No dimensions should be in the data store')
 
     def test_dimensions_count_correct(self):
-        #import pdb; pdb.set_trace()
-        tag = self.tag_service.add(self._create_test_tag(value='Test'))
+        self._create_test_concept()
+        tag = self.tag_service.add(self._create_test_tag(_value='Test'))
         db_node = self.dimension_service.add_dimension(tag)
 
         self.assertEquals(self._count_nodes(db_node), 1,
                           msg='Dimension should have one node')
 
     def test_dimensions_equal_correct(self):
-        tag = self.tag_service.add(self._create_test_tag(value='Test'))
+        self._create_test_concept()
+        tag = self.tag_service.add(self._create_test_tag(_value='Test'))
         db_node = self.dimension_service.add_dimension(tag)
-        #import pdb; pdb.set_trace()
         root1 = self.dimension_service.retrieve_dimension_by_root(db_node)
         root2 = self.dimension_service.retrieve_dimension_by_root(db_node)
         self.assertTrue(self._test_dimension_equal(root1, root2),
                           msg='Dimension equality is not correct')
 
     def test_dimensions_add_dimension(self):
-        tag = self.tag_service.add(self._create_test_tag(value='Test'))
+        self._create_test_concept()
+        tag = self.tag_service.add(self._create_test_tag('Test'))
         db_node = self.dimension_service.add_dimension(tag)
         self.assertEquals(self.dimension_service.count(), 1,
                           msg='Dimension has not been added')
 
     def test_dimensions_delete_dimension(self):
-        tag = self.tag_service.add(self._create_test_tag(value='Test'))
+        self._create_test_concept()
+        tag = self.tag_service.add(self._create_test_tag('Test'))
         db_node = self.dimension_service.add_dimension(tag)
         self.dimension_service.delete(db_node)
         self.assertEquals(self.dimension_service.count(), 0,
                           msg='Dimension has not been deleted')
-
-    def test_dimension_many_tags(self):
-        import pdb; pdb.set_trace()
-        tags = self._add_test_tags(['People', 'Classmates', 'RU', 'Jack', 'Jill', 'MH', 'Bob', 'Alice', 'John'])
-        root_node = self.dimension_service.add_dimension(tags[0])
-        self.dimension_service.add_node(root_node, tags[0], tags[1])
-        self.assertEquals(self._count_nodes(root_node), 2,
-                          msg='Not enough nodes in hierarchy')
 
