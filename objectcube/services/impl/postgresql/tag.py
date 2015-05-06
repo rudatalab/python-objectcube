@@ -64,13 +64,15 @@ class TagService(BaseTagService):
         if tag.id:
             raise ObjectCubeException('Unable to to add tag that has id')
 
+        import pdb; pdb.set_trace()
+
         sql = 'INSERT INTO TAGS(VALUE, DESCRIPTION, MUTABLE, TYPE, ' \
-              'CONCEPT_ID, PLUGIN_ID) VALUES(%s, %s, %s, %s, %s, %s) ' \
-              'RETURNING *'
+              'CONCEPT_ID, PLUGIN_ID) VALUES(%s, %s, %s, %s, %s, %s) '
         params = (tag.value, tag.description,
                   tag.mutable, tag.type, tag.concept_id, tag.plugin_id)
 
-        return execute_sql_fetch_single(Tag, sql, params)
+        execute_sql_fetch_single(Tag, sql, params)
+        return tag
 
     def update(self, tag):
         if not isinstance(tag, Tag) or not tag.id:
