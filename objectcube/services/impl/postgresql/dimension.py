@@ -1,5 +1,5 @@
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
-from types import IntType
+from types import IntType, StringType
 from objectcube.services.base import BaseDimensionService
 from objectcube.exceptions import (ObjectCubeDatabaseException,
                                    ObjectCubeException)
@@ -81,7 +81,10 @@ class DimensionService(BaseDimensionService):
                '        FROM Dimensions D JOIN Tags T ON D.node_tag_id = T.id '
                '        WHERE D.root_tag_id = %s ORDER BY D.left_border ASC')
         params = (root_node.root_tag_id,)
-        return self._construct_tree(execute_sql_fetch_multiple(DimensionNode, sql, params))
+        nodes=execute_sql_fetch_multiple(DimensionNode, sql, params)
+        if len(nodes) == 0:
+            return None
+        return self._construct_tree(nodes)
 
     def _read_roots(self, tag=None):
         # Input: An optional tag
@@ -111,6 +114,15 @@ class DimensionService(BaseDimensionService):
         execute_sql_fetch_single(DimensionNode, sql, params)
         return None
 
+    def _delete_all(self, subtree_root_node):
+        # Input: The root node of a valid sub-tree structure
+        # Side effect: The sub-tree has been deleted from the database
+        # Output: None
+        sql = 'DELETE FROM DIMENSIONS WHERE root_tag_id = %s RETURNING *'
+        params = (subtree_root_node.root_tag_id, )
+        execute_sql_fetch_single(DimensionNode, sql, params)
+        return None
+
     def count(self):
         # Input: None
         # Output: The count of valid dimensions in the database
@@ -122,17 +134,18 @@ class DimensionService(BaseDimensionService):
         return execute_sql_fetch_single(extract_count, sql)
 
     def add_dimension(self, tag):
-        # Input: A tag that is not already a root
+        # Input: A tag that is not already a root (only the id need be valid)
         # Side effect: A new dimension has been created in the database
         # Output: The root node of the valid dimension tree
-        if not isinstance(tag, Tag) or not tag.id:
+        if not tag or not isinstance(tag, Tag) or \
+                not tag.id or not isinstance(tag.id, IntType):
             raise ObjectCubeException(
-                'Must give DimensionNode with valid root_tag_id')
+                'Must give a valid tag for root')
 
         # Create the root node
         root_node = DimensionNode(root_tag_id=tag.id,
                                   node_tag_id=tag.id,
-                                  node_tag_value=tag.value,
+                                  node_tag_value='',
                                   left_border=0,
                                   right_border=0,
                                   child_nodes=[]);
@@ -150,8 +163,11 @@ class DimensionService(BaseDimensionService):
         # Output: The root node of the resulting valid dimension tree
         if not isinstance(root_node, DimensionNode) or \
                 not isinstance(parent_tag, Tag) or \
-                not isinstance(child_tag, Tag):
-            raise ObjectCubeDatabaseException('Input not of correct types')
+                not isinstance(child_tag, Tag) or \
+                not root_node.root_tag_id or not isinstance(root_node.root_tag_id, IntType) or \
+                not parent_tag.id or not isinstance(parent_tag.id, IntType) or \
+                not child_tag.id or not isinstance(child_tag.id, IntType):
+            raise ObjectCubeException('Input not of correct types')
 
         # Create the child
         child_node = DimensionNode(root_tag_id=root_node.root_tag_id,
@@ -176,8 +192,9 @@ class DimensionService(BaseDimensionService):
         return self._read_roots()
 
     def retrieve_dimension_roots_by_tag(self, tag):
-        if not isinstance(tag, Tag):
-            raise ObjectCubeDatabaseException('Invalid tag')
+        if not tag or not isinstance(tag, Tag) or \
+                not tag.id or not isinstance(tag.id, IntType):
+            raise ObjectCubeException('Invalid tag')
 
         return self._read_roots(tag)
 
@@ -185,10 +202,8 @@ class DimensionService(BaseDimensionService):
         # Input: A valid root node
         # Output: The root node of the corresponding valid dimension tree
         if not isinstance(root_node, DimensionNode) or \
-                not root_node.root_tag_id or \
-                not root_node.node_tag_id or \
-                not root_node.root_tag_id == root_node.node_tag_id:
-            raise ObjectCubeDatabaseException('Invalid root node')
+                not root_node.root_tag_id or not isinstance(root_node.root_tag_id, IntType):
+            raise ObjectCubeException('Invalid root node')
 
         return self._read_nodes(root_node)
 
@@ -196,97 +211,42 @@ class DimensionService(BaseDimensionService):
         # Input: The root node of a valid sub-tree structure
         # Side effect: The sub-tree has been deleted from the database
         # Output: None
-        if not isinstance(subtree_root_node, DimensionNode) or not subtree_root_node.root_tag_id or \
-                not subtree_root_node.node_tag_id or not subtree_root_node.left_border or not subtree_root_node.right_border:
+        if not isinstance(subtree_root_node, DimensionNode) or \
+                not subtree_root_node.root_tag_id or not isinstance(subtree_root_node.root_tag_id, IntType) or \
+                not subtree_root_node.node_tag_id or not isinstance(subtree_root_node.node_tag_id, IntType):
             raise ObjectCubeException(
-                'Must give DimensionNode with valid root_tag_id, node_tag_id, left_border and right_border')
-        self._delete(subtree_root_node)
+                'Must give DimensionNode with valid root_tag_id and node_tag_id')
 
-    def print_tree(self, root_node, indent=''):
-        # Input: A root node of a valid tree structure, an initial indentation
-        # Side effect: A representation of the tree has been printed to the screen
-        # Output: None
-        print indent, 'root=', root_node.root_tag_id, 'node=', root_node.node_tag_id, 'L=', root_node.left_border, ' R=', root_node.right_border
-        for node in root_node.child_nodes:
-            self.print_tree(node, indent + '  ')
-        return None
+        root = self.retrieve_dimension_by_root(subtree_root_node)
+        if root is None:
+            raise ObjectCubeException('Must give DimensionNode which is has a root')
 
-'''
-class DimensionServicePostgreSQL(BaseDimensionService):
-    def get_dimensions(self, offset=0, limit=100):
-        return_list = []
+        node = self._find_node(root, subtree_root_node.node_tag_id)
+        if node is None:
+            raise ObjectCubeException('Must give DimensionNode which is in the tree of the root')
 
-        sql = 'SELECT TREE FROM DIMENSIONS LIMIT %s OFFSET %s'
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql, (limit, offset))
+        # Node must be in the tree, so find it and delete it
+        self._delete(node)
 
-                    for tree_string in cursor.fetchall():
-                        des = Tree.deserialize_tree(loads(*tree_string))
-                        return_list.append(des)
-        except Exception as ex:
-            raise ObjectCubeDatabaseException(ex)
+        # Read the tree from disk, with modifications
+        root = self.retrieve_dimension_by_root(root)
+        if root is None:
+            return None
 
-        return return_list
+        # repair the tree, first in memory, then on disk (delete and write)
+        self._calculate_borders(root)
+        self._delete_all(root)
+        self._write_nodes(root)
 
-    def get_by_id(self, _id):
-        if not _id or _id <= 0 or not isinstance(_id, int):
-            raise ObjectCubeException('ID must be a positive integer')
+        # return the tree root node
+        return self.retrieve_dimension_by_root(root)
 
-        sql = "SELECT TREE FROM DIMENSIONS WHERE ID = {}".format(_id)
+    # def print_tree(self, root_node, indent=''):
+    #     # Input: A root node of a valid tree structure, an initial indentation
+    #     # Side effect: A representation of the tree has been printed to the screen
+    #     # Output: None
+    #     print indent, 'root=', root_node.root_tag_id, 'node=', root_node.node_tag_id, 'L=', root_node.left_border, ' R=', root_node.right_border
+    #     for node in root_node.child_nodes:
+    #         self.print_tree(node, indent + '  ')
+    #     return None
 
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql)
-                    tree_string = cursor.fetchone()
-                    if tree_string:
-                        return Tree.deserialize_tree(loads(*tree_string))
-        except Exception as e:
-            raise ObjectCubeDatabaseException(e)
-
-    def get_by_name(self, name):
-        # TODO: Get confirmation if names of dimensions have to be unique
-        # Otherwise possibly implement get_by_value
-        if not name or name == '' or not isinstance(name, basestring):
-            raise ObjectCubeException('NAME must be a nonempty string')
-
-        sql = "SELECT TREE FROM DIMENSIONS WHERE NAME = '{0}'".format(name)
-
-        try:
-            with Connection() as c:
-                with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
-                    cursor.execute(sql)
-                    tree_string = cursor.fetchone()
-                    if tree_string:
-                        return Tree.deserialize_tree(loads(*tree_string))
-        except Exception as e:
-            raise ObjectCubeDatabaseException(e)
-
-    def add_dimension(self, tree):
-        sql = 'INSERT INTO DIMENSIONS(NAME, TREE) VALUES(%s, %s) RETURNING ID'
-
-        try:
-            with Connection() as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(sql, (tree.name, dumps(tree.serialize())))
-                    tree.id = cursor.fetchone()[0]
-                    connection.commit()
-        except Exception as ex:
-            raise ObjectCubeDatabaseException(ex)
-
-    def update_dimension(self, name, new_tree):
-        if not name or name == '' or not isinstance(new_tree, Tree):
-            raise ObjectCubeException('Updating requires a non empty name '
-                                      'and a replacement tree')
-
-        sql = "UPDATE DIMENSIONS SET TREE=%s WHERE NAME=%s"
-
-        try:
-            with Connection() as c:
-                with c.cursor() as cursor:
-                    cursor.execute(sql, (dumps(new_tree.serialize()), name))
-        except Exception as ex:
-            raise ObjectCubeDatabaseException(ex)
-'''
