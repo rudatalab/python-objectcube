@@ -273,3 +273,13 @@ class TestConceptService(ObjectCubeTestCase):
         self.assertIsNotNone(self.concept_service.retrieve_by_id(concept.id))
         db_concept = self.concept_service.retrieve_or_create(concept)
         self.assertEqual(db_concept, concept)
+
+    def test_retrieve_or_create_requires_concept_type(self):
+        concept_test_title = 'test-concept'
+        before_count = self.concept_service.count()
+
+        with self.assertRaises(Exception):
+            fresh_concept = self.concept_service.retrieve_or_create(concept_test_title)
+
+        self.assertEqual(self.concept_service.count(), before_count)
+
