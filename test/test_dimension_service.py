@@ -392,7 +392,6 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_large_dimension()
 
         roots = self.dimension_service.retrieve_dimension_roots()
-        print len(roots)
         roots[0].node_tag_id += 200
         roots[1].root_tag_id += 200
 
@@ -401,6 +400,26 @@ class TestDimensionService(TestDatabaseAwareTest):
 
         with self.assertRaises(ObjectCubeException):
             self.dimension_service.delete(roots[1])
+
+    def test_dimension_delete_root_removes_entire_tree(self):
+        self._create_test_concepts()
+        self._setup_small_dimension()
+        self._setup_large_dimension()
+
+        # Find the larger dimension
+        roots = self.dimension_service.retrieve_dimension_roots()
+        root = self.dimension_service.retrieve_dimension_by_root(roots[1])
+        size = self._count_nodes(root)
+
+        # Find a particular node in the dimension and delete it
+        root = self.dimension_service.delete(root)
+
+        #import pdb; pdb.set_trace()
+        self.assertIsNone(root, msg='Tree should disappear entirely')
+
+        # Check that the tree is gone
+        roots = self.dimension_service.retrieve_dimension_roots()
+        self.assertEquals(len(roots), 1, msg='Tree is still existing after delete')
 
     def test_dimension_delete_subtree_removes_only_subtree(self):
         self._create_test_concepts()

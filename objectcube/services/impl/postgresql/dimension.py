@@ -217,21 +217,23 @@ class DimensionService(BaseDimensionService):
             raise ObjectCubeException(
                 'Must give DimensionNode with valid root_tag_id and node_tag_id')
 
+        if subtree_root_node.root_tag_id == subtree_root_node.node_tag_id:
+            # Deleting entire tree
+            self._delete_all(subtree_root_node)
+            return None
+
         root = self.retrieve_dimension_by_root(subtree_root_node)
         if root is None:
             raise ObjectCubeException('Must give DimensionNode which is has a root')
 
+        # Node must be in the tree, so find it and delete it
         node = self._find_node(root, subtree_root_node.node_tag_id)
         if node is None:
             raise ObjectCubeException('Must give DimensionNode which is in the tree of the root')
-
-        # Node must be in the tree, so find it and delete it
         self._delete(node)
 
         # Read the tree from disk, with modifications
         root = self.retrieve_dimension_by_root(root)
-        if root is None:
-            return None
 
         # repair the tree, first in memory, then on disk (delete and write)
         self._calculate_borders(root)
