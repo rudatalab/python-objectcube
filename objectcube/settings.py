@@ -14,7 +14,7 @@ FACTORY_CONFIG = {
                   'TagService',
 
     'DimensionService': 'objectcube.services.impl.postgresql.dimension.'
-                  'DimensionServicePostgreSQL',
+                  'DimensionService',
 
     'ObjectService': 'objectcube.services.impl.postgresql.object_service.'
                      'ObjectService',
