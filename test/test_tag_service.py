@@ -40,7 +40,7 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_count_return_zero_when_database_is_empty(self):
         self.assertTrue(self.tag_service.count() == 0,
-                        msg='When now tags have been added to data storage, '
+                        msg='When no tags have been added to data storage, '
                             'then the count function should '
                             'return the value zero.')
 
@@ -113,9 +113,28 @@ class TestTagService(ObjectCubeTestCase):
         self.tag_service.add(self._create_test_tag())
         self.assertEquals(self.tag_service.count(), 1)
 
+    def test_add_duplicate_increases_count(self):
+        self.assertEquals(self.tag_service.count(), 0)
+        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.assertEquals(self.tag_service.count(), 1)
+        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.assertEquals(self.tag_service.count(), 2)
+
+    def test_retrieve_duplicate_returns_both(self):
+        self.assertEquals(self.tag_service.count(), 0)
+        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.assertEquals(self.tag_service.count(), 1)
+        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.assertEquals(self.tag_service.count(), 2)
+        retrieved = self.tag_service.retrieve_by_value('Bjorn')
+        self.assertEquals(len(retrieved), 2)
+
     def test_retrieve_by_id_raises_exception_with_illegal_id_arguments(self):
         with self.assertRaises(ObjectCubeException):
             self.tag_service.retrieve_by_id('1')
+
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_id('Bjorn')
 
         with self.assertRaises(ObjectCubeException):
             self.tag_service.retrieve_by_id(-1)
@@ -145,11 +164,11 @@ class TestTagService(ObjectCubeTestCase):
 
         low = self.tag_service.retrieve_by_value('42', 0, 1)
         high = self.tag_service.retrieve_by_value('42', 1, 1)
-        outofrange = self.tag_service.retrieve_by_value('42', 2, 1)
+        out_of_range = self.tag_service.retrieve_by_value('42', 2, 1)
         self.assertEquals(self._tags_to_id_set(relevant_tags),
                           self._tags_to_id_set(low) |
                           self._tags_to_id_set(high))
-        self.assertEquals(0, len(outofrange))
+        self.assertEquals(0, len(out_of_range))
 
     def test_retrieve_by_plugin(self):
         plugin_service = get_service('PluginService')
