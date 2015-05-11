@@ -1,39 +1,11 @@
-import unittest
 import json
-from objectcube.contexts import Connection
 from api import app
+from test_base import APITest
 
 
-class TestDatabaseAwareTest(unittest.TestCase):
+class TestAPIConceptResource(APITest):
     def __init__(self, *args, **kwargs):
-        super(TestDatabaseAwareTest, self).__init__(*args, **kwargs)
-
-    def setUp(self):
-        with open('schema.sql') as fd:
-            data = ''.join(fd.readlines())
-
-        with Connection() as c:
-            with c.cursor() as cursor:
-                cursor.execute(data)
-
-
-class APITest(TestDatabaseAwareTest):
-    def __init__(self, *args, **kwargs):
-        super(APITest, self).__init__(*args, **kwargs)
-
-    def post(self, url, data):
-        headers = [('Content-Type', 'application/json')]
-        json_data = json.dumps(data)
-        headers.append(('Content-Length', json_data))
-        return self.app.post(url, headers=headers, data=json_data)
-
-    def get(self, url):
-        return self.app.get(url)
-
-
-class TestConceptServiceAPI(APITest):
-    def __init__(self, *args, **kwargs):
-        super(TestConceptServiceAPI, self).__init__(*args, **kwargs)
+        super(TestAPIConceptResource, self).__init__(*args, **kwargs)
         self.base_url = '/api/concepts'
         self.app = app.test_client()
 
@@ -117,3 +89,19 @@ class TestConceptServiceAPI(APITest):
                     self.assertEquals(r.get('title'), 'concept-{}'.format(
                         i + (page * limit))
                     )
+
+    def test_get_description_query_parameter_returns_description(self):
+        res = self.get(self.base_url + '?description')
+        data = json.loads(res.data)
+        self.assertTrue(data.get('endpoint') == 'api/concepts')
+
+    def test_post_with_no_data_returns_400(self):
+        res = self.post(self.base_url, data=None)
+        self.assertTrue(res.status_code == 400)
+
+    def test_create_concept_title_already_in_use_throws_database_error(self):
+        data = {'description': 'test desc', 'title': 'title1'}
+        res = self.post(self.base_url, data=data)
+        self.assertTrue(res.status_code == 201)
+        data2 = {'description': 'test desc2', 'title': 'title1'}
+        self.assertRaises(self.post(self.base_url, data=data2))

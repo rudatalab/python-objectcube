@@ -1,6 +1,3 @@
-import json
-
-
 class SerializableMixin(object):
     def __init__(self, **kwargs):
         self.data = {}
@@ -25,6 +22,12 @@ class SerializableMixin(object):
             if getattr(self, f) != getattr(other, f):
                 return False
         return True
+
+    def to_dict(self):
+        obj = {}
+        for f in self.fields:
+            obj[f] = self.data[f]
+        return obj
 
 
 class Tag(SerializableMixin):
@@ -65,14 +68,7 @@ class Concept(SerializableMixin):
         return self.id
 
     def __repr__(self):
-        return '{0}({1})'.format(self.__class__.__name__,
-                                 repr(self.data))
-
-    def to_dict(self):
-        return {
-            'title': self.title, 'description':
-            self.description, 'id': self.id
-        }
+        return '{0}({1})'.format(self.__class__.__name__, repr(self.data))
 
 
 class Plugin(SerializableMixin):
@@ -94,11 +90,20 @@ class Object(SerializableMixin):
                 return False
         return True
 
+
 class DimensionNode(SerializableMixin):
-    fields = ['root_tag_id','node_tag_id','node_tag_value','left_border','right_border','child_nodes']
+    fields = [
+        'root_tag_id',
+        'node_tag_id',
+        'node_tag_value',
+        'left_border',
+        'right_border',
+        'child_nodes'
+    ]
 
     def __init__(self, **kwargs):
         super(DimensionNode, self).__init__(**kwargs)
+
 
 class Tree(object):
     def __init__(self, tag_id, name=None):
