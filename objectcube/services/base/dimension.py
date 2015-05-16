@@ -16,4 +16,3 @@ class BaseDimensionService(Service):
 
     def retrieve_dimension(self, tag):
         raise NotImplementedError()
-
