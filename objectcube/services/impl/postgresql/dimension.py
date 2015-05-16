@@ -65,13 +65,20 @@ class DimensionService(BaseDimensionService):
         params = (node.root_tag_id, node.node_tag_id, node.left_border, node.right_border)
         return execute_sql_fetch_single(DimensionNode, sql, params)
 
-    def _write_nodes(self, root_node):
+    def _write_nodes(self, root_node, root_tag_id=None):
         # Input: The root node of a valid tree structure
         # Side effect: The tree has been written to the database
         # Output: The root node
+        if not root_tag_id:
+            root_tag_id=root_node.root_tag_id
+
+        # Ensure the correct root node, then write
+        root_node.root_tag_id = root_tag_id
         self._insert_node(root_node)
+
+        # Write all children, and return
         for child in root_node.child_nodes:
-            self._write_nodes(child)
+            self._write_nodes(child, root_tag_id)
         return root_node
 
     def _read_nodes(self, root_node):
@@ -210,7 +217,7 @@ class DimensionService(BaseDimensionService):
     def delete(self, subtree_root_node):
         # Input: The root node of a valid sub-tree structure
         # Side effect: The sub-tree has been deleted from the database
-        # Output: None
+        # Output: The remaining tree, or None if the entire tree was deleted
         if not isinstance(subtree_root_node, DimensionNode) or \
                 not subtree_root_node.root_tag_id or not isinstance(subtree_root_node.root_tag_id, IntType) or \
                 not subtree_root_node.node_tag_id or not isinstance(subtree_root_node.node_tag_id, IntType):
@@ -242,6 +249,28 @@ class DimensionService(BaseDimensionService):
 
         # return the tree root node
         return self.retrieve_dimension_by_root(root)
+
+    def replace_or_create_dimension(self, root_node):
+        # Input: The root node of a valid tree structure
+        # Side effect: If the dimension existed, it has been replaced. If it did not exist, it has been created.
+        # Output: The resulting tree
+        if not isinstance(root_node, DimensionNode) or \
+                not root_node.root_tag_id or not isinstance(root_node.root_tag_id, IntType):
+            raise ObjectCubeException(
+                'Must give DimensionNode with valid root_tag_id')
+
+        # If the tree exists, then we must delete it
+        if not self.retrieve_dimension_by_root(root_node) is None:
+            self._delete_all(root_node)
+
+        # Make the tree correct, and then write it
+        self._calculate_borders(root_node)
+        self._write_nodes(root_node)
+
+        # Return the result
+        return self.retrieve_dimension_by_root(root_node)
+
+
 
     # def print_tree(self, root_node, indent=''):
     #     # Input: A root node of a valid tree structure, an initial indentation
