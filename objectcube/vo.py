@@ -94,11 +94,20 @@ class Object(SerializableMixin):
                 return False
         return True
 
+
 class DimensionNode(SerializableMixin):
-    fields = ['root_tag_id','node_tag_id','node_tag_value','left_border','right_border','child_nodes']
+    fields = [
+        'root_tag_id',
+        'node_tag_id',
+        'node_tag_value',
+        'left_border',
+        'right_border',
+        'child_nodes'
+    ]
 
     def __init__(self, **kwargs):
         super(DimensionNode, self).__init__(**kwargs)
+
 
 class Tree(object):
     def __init__(self, tag_id, name=None):
