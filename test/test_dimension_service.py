@@ -19,15 +19,6 @@ class TestDimensionService(TestDatabaseAwareTest):
         return self.concept_service.add(Concept(title=_title,
                                                 description=_description))
 
-    def _create_test_concepts(self):
-        """
-        Helper function for creating concepts in tests.
-        :param: values for tag properties
-        :return: A tag that has not been added to data store.
-        """
-        self._create_test_concept(_title='People', _description='All people in the world')
-        self._create_test_concept(_title='Object', _description='All objects in the world')
-
     def _create_test_tag(self, _value='', _description='', _concept_id=1):
         """
         Helper function for creating db tags in tests.
@@ -208,8 +199,13 @@ class TestDimensionService(TestDatabaseAwareTest):
         with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_dimension(None)
 
-        with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(description='Bjorn'))
+    def test_get_by_name_should_return_correct_object(self):
+        dim = self._create_test_tree('foobar')
+        self.dimension_service.add_dimension(dim)
+        dim_get = self.dimension_service.get_by_name('foobar')
+        self.assertEquals(dim.serialize(), dim_get.serialize(),
+                          msg='Fetching an object by its name should return '
+                          'the correct object')
 
         with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_dimension(Tag(value='Bjorn'))
