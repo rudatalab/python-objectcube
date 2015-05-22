@@ -11,7 +11,8 @@ from types import IntType, StringType
 class TaggingService(BaseTaggingService):
 
     def count(self):
-        sql = 'SELECT COUNT(1) AS count FROM TAGGING'
+        sql = 'SELECT COUNT(1) AS count ' \
+              'FROM TAGGING'
 
         def extract_count(count):
             return count
@@ -63,7 +64,10 @@ class TaggingService(BaseTaggingService):
         if plugin_set_id is None or not isinstance(plugin_set_id, IntType):
             raise ObjectCubeException('Must give valid plugin_set_id')
 
-        sql = 'DELETE FROM TAGGING WHERE plugin_set_id = %s RETURNING *'
+        sql = 'DELETE ' \
+              'FROM TAGGING ' \
+              'WHERE PLUGIN_SET_ID = %s ' \
+              'RETURNING *'
         params = (plugin_set_id, )
         execute_sql_fetch_single(Tagging, sql, params)
         return None
@@ -72,18 +76,15 @@ class TaggingService(BaseTaggingService):
         if plugin_set_id is None or not isinstance(plugin_set_id, IntType):
             raise ObjectCubeException('Must give valid plugin_set_id to merge')
 
-        try:
-            # Delete all existing tags without committing the transaction
-            # NOTE : THE TRANSACTION DOES NOT CURRENTLY WORK!
-            self.delete_by_set_id(plugin_set_id)
-
-            # Add the resolved tag, thus committing the transaction
-            # NOTE : THE TRANSACTION DOES NOT CURRENTLY WORK!
-            return self.add(tag, object, meta, plugin, plugin_set_id)
-
-        except Exception as ex:
-            execute_sql_rollback_trans()
-            raise ObjectCubeDatabaseException(ex.message)
+        tagging = self.add(tag, object, meta, plugin, plugin_set_id)
+        sql = 'DELETE ' \
+              'FROM TAGGING ' \
+              'WHERE PLUGIN_SET_ID = %s ' \
+              '  AND NOT ID = %s ' \
+              'RETURNING *'
+        params = (plugin_set_id, tagging.id)
+        execute_sql_fetch_single(Tagging, sql, params)
+        return tag
 
     def delete(self, tagging):
         if tagging is None or not isinstance(tagging, Tagging) or \
@@ -91,7 +92,7 @@ class TaggingService(BaseTaggingService):
             raise ObjectCubeException('Must give tagging with valid id')
 
         sql = 'DELETE FROM TAGGING ' \
-              'WHERE id = %s' \
+              'WHERE ID = %s' \
               'RETURNING *'
         params = (tagging.id, )
         execute_sql_fetch_single(Tagging, sql, params)
@@ -101,7 +102,9 @@ class TaggingService(BaseTaggingService):
         if tagging_id is None or tagging_id <= 0 or not isinstance(tagging_id, IntType):
             raise ObjectCubeException('Id value must be a positive number')
 
-        sql = 'SELECT * FROM TAGGING WHERE ID = %s'
+        sql = 'SELECT * ' \
+              'FROM TAGGING ' \
+              'WHERE ID = %s'
         params = (tagging_id,)
         return execute_sql_fetch_single(Tagging, sql, params)
 
@@ -109,7 +112,10 @@ class TaggingService(BaseTaggingService):
         if tag_id is None or not isinstance(tag_id, IntType):
             raise ObjectCubeException('Must give valid tag id')
 
-        sql = "SELECT * FROM TAGGING WHERE TAG_ID = %s OFFSET %s LIMIT %s"
+        sql = "SELECT * " \
+              "FROM TAGGING " \
+              "WHERE TAG_ID = %s " \
+              "OFFSET %s LIMIT %s"
         params = (tag_id, offset, limit)
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
@@ -117,7 +123,10 @@ class TaggingService(BaseTaggingService):
         if object_id is None or not isinstance(object_id, IntType):
             raise ObjectCubeException('Must give valid object id')
 
-        sql = "SELECT * FROM TAGGING WHERE OBJECT_ID = %s OFFSET %s LIMIT %s"
+        sql = "SELECT * " \
+              "FROM TAGGING " \
+              "WHERE OBJECT_ID = %s " \
+              "OFFSET %s LIMIT %s"
         params = (object_id, offset, limit)
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
@@ -125,7 +134,10 @@ class TaggingService(BaseTaggingService):
         if not plugin_set_id or not isinstance(plugin_set_id, IntType):
             raise ObjectCubeException('Must give valid plugin set id')
 
-        sql = "SELECT * FROM TAGGING WHERE PLUGIN_SET_ID = %s OFFSET %s LIMIT %s"
+        sql = "SELECT * " \
+              "FROM TAGGING " \
+              "WHERE PLUGIN_SET_ID = %s " \
+              "OFFSET %s LIMIT %s"
         params = (plugin_set_id, offset, limit)
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
@@ -138,9 +150,15 @@ class TaggingService(BaseTaggingService):
             raise ObjectCubeException('If given, meta must be valid string')
 
         if tagging.meta is None:
-            sql = 'UPDATE TAGGING SET META = NULL WHERE ID = %s RETURNING *'
+            sql = 'UPDATE TAGGING ' \
+                  'SET META = NULL ' \
+                  'WHERE ID = %s ' \
+                  'RETURNING *'
             params = (tagging.id,)
         else:
-            sql = 'UPDATE TAGGING SET META = %s WHERE ID = %s RETURNING *'
+            sql = 'UPDATE TAGGING ' \
+                  'SET META = %s ' \
+                  'WHERE ID = %s ' \
+                  'RETURNING *'
             params = (tagging.meta, tagging.id)
         return execute_sql_fetch_single(Tagging, sql, params)
