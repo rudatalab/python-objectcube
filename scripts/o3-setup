@@ -4,7 +4,8 @@ source $SCRIPT_DIR/utils.sh
 function cmd_db {
   cout "Initalizing postgresql cluster in $POSTGRES_DATA_DIR"
 	mkdir -p $POSTGRES_DATA_DIR;
-	initdb -d $POSTGRES_DATA_DIR --locale C 2<&1 | grep -v '^DEBUG:' || exit 1
+	#initdb -d $POSTGRES_DATA_DIR --locale C 2<&1 | grep -v '^DEBUG:' || exit 1
+	initdb -d $POSTGRES_DATA_DIR 
 
   # Check if OBJECTCUBE_DB_PORT is, set if so we add the port to postgresql config
   if [ -z "$OBJECTCUBE_DB_PORT" ]; then
