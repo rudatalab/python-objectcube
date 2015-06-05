@@ -2,7 +2,7 @@ from random import shuffle
 
 from base import ObjectCubeTestCase
 from objectcube.vo import Object, Tag, Tagging, Plugin
-from objectcube.exceptions import ObjectCubeException, ObjectCubeDatabaseException
+from objectcube.exceptions import ObjectCubeException, ObjectCubeException
 from objectcube.factory import get_service
 
 
@@ -123,7 +123,7 @@ class TestTaggingService(ObjectCubeTestCase):
             self.tagging_service.add(Tag(name='ID'), db_objects[0], meta=None)
 
         # Test with non-existent tags
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.tagging_service.add(Tag(id=db_tags[0].id+10000), db_objects[0], meta=None)
 
         # Test objects with illegal ID
@@ -137,7 +137,7 @@ class TestTaggingService(ObjectCubeTestCase):
             self.tagging_service.add(db_tags[0], Object(name='ID'), meta=None)
 
         # Test with non-existent objects
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.tagging_service.add(db_tags[0], Object(id=db_objects[0].id+10000), meta=None)
 
         # Test objects with illegal meta
@@ -163,7 +163,7 @@ class TestTaggingService(ObjectCubeTestCase):
             self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=Plugin())
 
         # Test with non-existent plugin
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.tagging_service.add(db_tags[0], Object(id=db_objects[0].id), meta=None,
                                      plugin=Plugin(id=db_plugin.id+1000))
 
@@ -747,7 +747,7 @@ class TestTaggingService(ObjectCubeTestCase):
         self.assertEquals(number_of_taggings, self.tagging_service.count()-count)
 
         # Resolve all the tags to a non-existing tag, should fail
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.tagging_service.resolve(tag=Tag(id=20000),
                                          object=db_objects[0],
                                          meta='NEW TAGGING',

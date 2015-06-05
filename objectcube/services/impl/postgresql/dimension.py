@@ -1,8 +1,7 @@
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from types import IntType, StringType
 from objectcube.services.base import BaseDimensionService
-from objectcube.exceptions import (ObjectCubeDatabaseException,
-                                   ObjectCubeException)
+from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import (Tag, DimensionNode)
 
 

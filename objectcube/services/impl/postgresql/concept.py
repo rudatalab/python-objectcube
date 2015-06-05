@@ -3,8 +3,7 @@ import logging
 from objectcube.contexts import Connection
 from objectcube.vo import Concept
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
-from objectcube.exceptions import (ObjectCubeDatabaseException,
-                                   ObjectCubeException)
+from objectcube.exceptions import ObjectCubeException
 from objectcube.services.base import BaseConceptService
 
 logger = logging.getLogger('PostgreSQL:ConceptService')

@@ -1,48 +1,48 @@
 from base import TestDatabaseAwareTest
 from objectcube.factory import get_service
-from objectcube.exceptions import ObjectCubeException, ObjectCubeDatabaseException
+from objectcube.exceptions import ObjectCubeException, ObjectCubeException
 from objectcube.vo import Tag, DimensionNode, Concept
 
 class TestDimensionService(TestDatabaseAwareTest):
-    def _create_test_concepts(self):
-        """
-        Helper function for creating concepts in tests.
-        :param: values for tag properties
-        :return: A tag that has not been added to data store.
-        """
-        self._create_test_concept(_title='People', _description='All people in the world')
-        self._create_test_concept(_title='Object', _description='All objects in the world')
-
     def __init__(self, *args, **kwargs):
         super(TestDimensionService, self).__init__(*args, **kwargs)
         self.dimension_service = get_service('DimensionService')
         self.tag_service = get_service('TagService')
         self.concept_service = get_service('ConceptService')
 
-    def _create_test_concept(self, _title='', _description=''):
+    def _create_test_concept(self, title='', description=''):
         """
         Helper function for creating concepts in tests.
         :param: values for concept properties
         :return: A concept that has not been added to data store.
         """
-        return self.concept_service.add(Concept(title=_title,
-                                                description=_description))
+        return self.concept_service.add(Concept(title=title,
+                                                description=description))
 
-    def _create_test_tag(self, _value='', _description='', _concept_id=1):
+    def _create_test_concepts(self):
+        """
+        Helper function for creating concepts in tests.
+        :param: values for tag properties
+        :return: A tag that has not been added to data store.
+        """
+        self._create_test_concept(title='People', description='All people in the world')
+        self._create_test_concept(title='Object', description='All objects in the world')
+
+    def _create_test_tag(self, value='', description='DESC', concept_id=1):
         """
         Helper function for creating db tags in tests.
         :param: values for tag properties
         :return: A tag that has already been added to data store.
         """
         return self.tag_service.add(Tag(id=None,
-                                        value=_value,
-                                        description=_description,
+                                        value=value,
+                                        description=description,
                                         mutable=False,
                                         type=0,
-                                        concept_id=_concept_id,
+                                        concept_id=concept_id,
                                         plugin_id=None))
 
-    def _create_test_tags(self, values=None, _concept_id=None):
+    def _create_test_tags(self, values=None, concept_id=None):
         """
         Helper function for creating db tags in tests.
         :param values: Values for the tags to be created.
@@ -50,7 +50,7 @@ class TestDimensionService(TestDatabaseAwareTest):
         """
         tags = []
         for value in values:
-            tags.append(self._create_test_tag(value, _concept_id))
+            tags.append(self._create_test_tag(value=value, concept_id=concept_id))
 
         self.assertEquals(len(values), len(tags))
         return tags
@@ -86,7 +86,7 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def _setup_large_dimension(self):
         tags = self._create_test_tags(['People', 'Classmates', 'RU', 'Jack', 'Jill', 'MH', 'Bob', 'Alice', 'John'],
-                                      _concept_id=1)
+                                      concept_id=1)
 
         root_node = self.dimension_service.add_dimension(tags[0])
         root_node = self.dimension_service.add_node(root_node, tags[0], tags[1])
@@ -103,7 +103,7 @@ class TestDimensionService(TestDatabaseAwareTest):
                           msg='Node count methods disagree')
 
     def _setup_small_dimension(self):
-        tags = self._create_test_tags(['Bill', 'RU'], _concept_id=2)
+        tags = self._create_test_tags(['Bill', 'RU'], concept_id=2)
 
         root_node = self.dimension_service.add_dimension(tags[1])
         root_node = self.dimension_service.add_node(root_node, tags[1], tags[0])
@@ -164,7 +164,7 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def test_dimensions_count_correct(self):
         self._create_test_concepts()
-        tag = self._create_test_tag(_value='Test')
+        tag = self._create_test_tag(value='Test')
         db_node = self.dimension_service.add_dimension(tag)
 
         self.assertEquals(self._count_nodes(db_node), 1,
@@ -172,7 +172,7 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def test_dimensions_equal_correct(self):
         self._create_test_concepts()
-        tag = self._create_test_tag(_value='Test')
+        tag = self._create_test_tag(value='Test')
         db_node = self.dimension_service.add_dimension(tag)
         root1 = self.dimension_service.retrieve_dimension_by_root(db_node)
         root2 = self.dimension_service.retrieve_dimension_by_root(db_node)
@@ -213,13 +213,13 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_small_dimension()
         self._setup_large_dimension()
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_dimension(Tag(id=-1))
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_dimension(Tag(id=42))
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_dimension(Tag(id=30, value='Bjorn', description='Bjorn in his might'))
 
     def test_dimension_add_node_raises_exception_with_illegal_tags(self):
@@ -258,13 +258,13 @@ class TestDimensionService(TestDatabaseAwareTest):
         self.assertEquals(len(roots), 2,
             msg='Wrong number of roots')
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(id=-1))
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(id=42))
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id),
                                             Tag(id=30, value='Bjorn', description='Bjorn in his might'))
 
@@ -450,10 +450,10 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_small_dimension()
         self._setup_large_dimension()
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.replace_or_create_dimension(DimensionNode(root_tag_id=-1))
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.replace_or_create_dimension(DimensionNode(root_tag_id=42))
 
     def test_dimension_replace_or_create_raises_exception_if_node_not_in_dimension(self):
@@ -465,10 +465,10 @@ class TestDimensionService(TestDatabaseAwareTest):
         roots[0].node_tag_id += 200
         roots[1].root_tag_id += 200
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.replace_or_create_dimension(roots[0])
 
-        with self.assertRaises(ObjectCubeDatabaseException):
+        with self.assertRaises(ObjectCubeException):
             self.dimension_service.replace_or_create_dimension(roots[1])
 
     def test_dimension_replace_or_create_raises_exception_with_illegal_roots(self):
