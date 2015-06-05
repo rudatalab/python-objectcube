@@ -51,7 +51,7 @@ class ObjectService(BaseObjectService):
             raise ObjectCubeException('Must give tag with valid id')
 
         sql = 'SELECT o.* FROM objects o WHERE EXISTS ' \
-              '(SELECT 1 FROM tags t JOIN tagging ot on '\
+              '(SELECT 1 FROM tags t JOIN taggings ot on '\
               't.id = ot.tag_id WHERE ot.object_id = o.id AND t.id = %s) ' \
               'OFFSET %s LIMIT %s'
         params = (tag.id, offset, limit)
