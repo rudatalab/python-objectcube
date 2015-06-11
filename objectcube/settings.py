@@ -16,7 +16,7 @@ FACTORY_CONFIG = {
     'DimensionService': 'objectcube.services.impl.postgresql.dimension.'
                   'DimensionService',
 
-    'ObjectService': 'objectcube.services.impl.postgresql.object_service.'
+    'ObjectService': 'objectcube.services.impl.postgresql.object.'
                      'ObjectService',
 
     'BlobService': 'objectcube.services.impl.filesystem.'
