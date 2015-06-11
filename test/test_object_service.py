@@ -167,15 +167,15 @@ class TestObjectService(ObjectCubeTestCase):
             o = Object(name='test.jpg', digest='12345')
             self.object_service.delete(o)
 
-    def test_delete_returns_false_if_deleted_object_does_not_exist(self):
+    def test_delete_raises_if_deleted_object_does_not_exist(self):
         o = Object(name='test.jpg', digest='12345', id=1337)
-        delete_return_value = self.object_service.delete(o)
-        self.assertFalse(delete_return_value)
+        with self.assertRaises(ObjectCubeException):
+            delete_return_value = self.object_service.delete(o)
 
-    def test_delete_returns_true_if_deleted_object_does_exist(self):
+    def test_delete_returns_none_if_deleted_object_does_exist(self):
         o = self.object_service.add(Object(name='test.jpg', digest='12345'))
         delete_return_value = self.object_service.delete(o)
-        self.assertTrue(delete_return_value)
+        self.assertEquals(delete_return_value, None)
 
     def test_update_raises_if_not_object(self):
         with self.assertRaises(ObjectCubeException):
