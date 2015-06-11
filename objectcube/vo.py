@@ -52,8 +52,8 @@ class Tagging(SerializableMixin):
         return self.id
 
     def __repr__(self):
-        return str(self.data.get('id'))
-
+        return '{0}({1})'.format(self.__class__.__name__,
+                                 repr(self.data))
 
 class Concept(SerializableMixin):
     fields = ['id', 'title', 'description']
