@@ -1,90 +1,115 @@
-
-import logging
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
-
 from objectcube.services.base import BaseObjectService
 from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import Object, Tag
+from types import StringType, IntType
 
+import logging
 logger = logging.getLogger('postgreSQL: ObjectService')
-
 
 class ObjectService(BaseObjectService):
     def __init__(self):
         super(ObjectService, self).__init__()
 
     def count(self):
-        sql = """SELECT COUNT(1) AS count FROM OBJECTS"""
+        logger.debug('Count')
+        sql = 'SELECT COUNT(1) AS count ' \
+              'FROM OBJECTS'
+        return execute_sql_fetch_single(lambda count: count, sql)
 
-        def extract_count(count):
-            return count
+    def add(self, object):
+        logger.debug('Add: ' + repr(object))
 
-        return execute_sql_fetch_single(extract_count, sql)
+        if object is None or not isinstance(object, Object):
+            raise ObjectCubeException('Must give valid object')
+        if object.name is None or not isinstance(object.name, StringType) or object.name == '':
+            raise ObjectCubeException('Must give object with valid name')
+        if object.digest is None or not isinstance(object.digest, StringType) or object.digest == '':
+            raise ObjectCubeException('Must give object with valid digest')
+        if not object.id is None:
+            raise ObjectCubeException('Must give object without valid id')
 
-    def add(self, _object):
-        if not isinstance(_object, Object) or not _object.name or \
-                not _object.digest or _object.id:
-            raise ObjectCubeException(
-                'Must give object with valid name, digest and without id')
-
-        sql = 'INSERT INTO OBJECTS(NAME, DIGEST) values (%s, %s) RETURNING *'
-        params = (_object.name, _object.digest)
-
+        sql = 'INSERT ' \
+              'INTO OBJECTS (NAME, DIGEST) ' \
+              'VALUES (%s, %s) ' \
+              'RETURNING *'
+        params = (object.name, object.digest)
         return execute_sql_fetch_single(Object, sql, params)
 
-    def retrieve_by_id(self, _id):
-        sql = "SELECT * FROM OBJECTS WHERE ID=%s"
-        params = (_id,)
+    def retrieve_by_id(self, id):
+        logger.debug('Retrieve_by_id: ' + repr(id))
 
+        if id is None or not isinstance(id, IntType):
+            raise ObjectCubeException('Must give valid object id')
+
+        sql = "SELECT * " \
+              "FROM OBJECTS " \
+              "WHERE ID = %s"
+        params = (id,)
         return execute_sql_fetch_single(Object, sql, params)
 
     def retrieve(self, offset=0, limit=10):
-        return_list = []
+        logger.debug('Retrieve ')
 
-        sql = 'SELECT ID, NAME, DIGEST FROM OBJECTS OFFSET %s LIMIT %s'
+        sql = 'SELECT ID, NAME, DIGEST ' \
+              'FROM OBJECTS ' \
+              'OFFSET %s LIMIT %s'
         params = (offset, limit)
-
         return execute_sql_fetch_multiple(Object, sql, params)
 
     def retrieve_by_tag(self, tag, offset=0, limit=10):
-        if not isinstance(tag, Tag) or not tag.id:
+        logger.debug('Retrieve_by_tag: ' + repr(tag))
+
+        if tag is None or not isinstance(tag, Tag):
+            raise ObjectCubeException('Must give valid tag')
+        if tag.id is None or not isinstance(tag.id, IntType):
             raise ObjectCubeException('Must give tag with valid id')
 
-        sql = 'SELECT o.* FROM objects o WHERE EXISTS ' \
-              '(SELECT 1 FROM tags t JOIN taggings ot on '\
-              't.id = ot.tag_id WHERE ot.object_id = o.id AND t.id = %s) ' \
+        sql = 'SELECT O.ID, O.NAME, O.DIGEST ' \
+              'FROM OBJECTS O JOIN TAGGINGS T ON O.ID = T.OBJECT_ID ' \
+              'WHERE T.TAG_ID = %s ' \
               'OFFSET %s LIMIT %s'
         params = (tag.id, offset, limit)
-
         return execute_sql_fetch_multiple(Object, sql, params)
 
-    def update(self, _object):
-        logger.debug('Calling update')
+    def update(self, object):
+        logger.debug('Update: ' + repr(object))
 
-        if not isinstance(_object, Object):
-            message = 'Parameter must be of type {}'.format(Object.__name__)
-            logger.error(message)
-            raise ObjectCubeException(message)
+        if object is None or not isinstance(object, Object):
+            raise ObjectCubeException('Unable to update invalid Object')
+        if object.id is None or not isinstance(object.id, IntType):
+            raise ObjectCubeException('Unable to update Object without id')
+        if not object.name or not isinstance(object.name, StringType):
+            raise ObjectCubeException('Unable to update Object without a valid name')
+        if not object.digest or not isinstance(object.digest, StringType):
+            raise ObjectCubeException('Unable to update Object without a valid digest')
 
-        if not _object.id:
-            message = 'Must give object with valid id'
-            logger.error(message)
-            raise ObjectCubeException(message)
+        sql = 'UPDATE OBJECTS ' \
+              'SET NAME = %s, DIGEST = %s ' \
+              'WHERE ID = %s ' \
+              'RETURNING *'
+        params = (object.name, object.digest, object.id)
+        db_object = execute_sql_fetch_single(Object, sql, params)
 
-        if not self.retrieve_by_id(_object.id):
-            raise ObjectCubeException(
-                'No object found with id {}'.format(_object.id))
+        if db_object is None:
+            raise ObjectCubeException('No Object found with id {}'.format(object.id))
+        return db_object
 
-        sql = 'UPDATE OBJECTS SET NAME=%s RETURNING *'
-        params = (_object.name,)
+    def delete(self, object):
+        logger.debug('Delete: ' + repr(object))
 
-        return execute_sql_fetch_single(Object, sql, params)
+        if object is None or not isinstance(object, Object):
+            raise ObjectCubeException('Delete accepts only Object objects')
+        if object.id is None or not isinstance(object.id, IntType):
+            raise ObjectCubeException('Delete accepts only Object objects with valid ID')
 
-    def delete(self, _object):
-        if not isinstance(_object, Object) or not _object.id:
-            raise ObjectCubeException('Must give object with valid id')
+        sql = 'DELETE ' \
+              'FROM OBJECTS ' \
+              'WHERE ID = %s ' \
+              'RETURNING *'
+        params = (object.id, )
+        db_object = execute_sql_fetch_single(Object, sql, params)
 
-        sql = 'DELETE FROM OBJECTS WHERE ID=%s RETURNING *'
-        params = (_object.id, )
-
-        return bool(execute_sql_fetch_single(Object, sql, params))
+        if db_object is None:
+            raise ObjectCubeException('No Object found with id {}'.format(object.id))
+        return None

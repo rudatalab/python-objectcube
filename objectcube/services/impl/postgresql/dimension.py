@@ -148,12 +148,8 @@ class DimensionService(BaseDimensionService):
     def count(self):
         # Input: None
         # Output: The count of valid dimensions in the database
-        sql = """SELECT COUNT(DISTINCT root_tag_id) AS count FROM DIMENSIONS"""
-
-        def extract_count(count):
-            return count
-
-        return execute_sql_fetch_single(extract_count, sql)
+        sql = 'SELECT COUNT(DISTINCT root_tag_id) AS count FROM DIMENSIONS'
+        return execute_sql_fetch_single(lambda count: count, sql)
 
     def add_dimension(self, tag):
         # Input: A tag that is not already a root (only the id need be valid)
@@ -161,8 +157,7 @@ class DimensionService(BaseDimensionService):
         # Output: The root node of the valid dimension tree
         if not tag or not isinstance(tag, Tag) or \
                 not tag.id or not isinstance(tag.id, IntType):
-            raise ObjectCubeException(
-                'Must give a valid tag for root')
+            raise ObjectCubeException('Must give a valid tag for root')
 
         # Create the root node
         root_node = DimensionNode(root_tag_id=tag.id,

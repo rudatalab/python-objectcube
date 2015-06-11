@@ -10,12 +10,9 @@ from types import IntType, StringType, BooleanType
 class TagService(BaseTagService):
 
     def count(self):
-        sql = 'SELECT COUNT(1) AS count FROM TAGS'
-
-        def extract_count(count):
-            return count
-
-        return execute_sql_fetch_single(extract_count, sql)
+        sql = 'SELECT COUNT(1) AS count ' \
+              'FROM TAGS'
+        return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, tag):
         # Need to give a tag, but it cannot have an ID
