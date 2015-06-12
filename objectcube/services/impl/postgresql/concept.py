@@ -11,12 +11,12 @@ logger = logging.getLogger('PostgreSQL:ConceptService')
 
 class ConceptService(BaseConceptService):
     def count(self):
-        logger.debug('Calling count')
+        logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count FROM CONCEPTS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, concept):
-        logger.debug('Adding concept' + repr(concept))
+        logger.debug('add(): %s', repr(concept))
 
         if concept is None or not isinstance(concept, Concept):
             raise ObjectCubeException('Add requires a valid concept')
@@ -39,12 +39,10 @@ class ConceptService(BaseConceptService):
         return db_concept
 
     def delete_by_id(self, concept_id):
-        if concept_id is None or not isinstance(concept_id, IntType):
-            message = 'Unable to find concept to delete without id'
-            logger.error(message)
-            raise ObjectCubeException(message)
+        logger.debug('delete_by_id(): %s', repr(concept_id))
 
-        logger.debug("Calling delete_by_id on concept {}".format(concept_id))
+        if concept_id is None or not isinstance(concept_id, IntType):
+            raise ObjectCubeException('Unable to find concept to delete without id')
 
         sql = 'DELETE ' \
               'FROM CONCEPTS ' \
@@ -58,23 +56,20 @@ class ConceptService(BaseConceptService):
         return None
 
     def delete(self, concept):
-        if concept is None or not isinstance(concept, Concept):
-            message = 'Delete accepts only Concept objects'
-            logger.error(message)
-            raise ObjectCubeException(message)
-        if concept.id is None or not isinstance(concept.id, IntType):
-            message = 'Delete accepts only Concept objects with valid ID'
-            logger.error(message)
-            raise ObjectCubeException(message)
+        logger.debug('delete(): %s', repr(concept))
 
-        logger.debug('Calling delete on concept {}'.format(repr(concept)))
+        if concept is None or not isinstance(concept, Concept):
+            raise ObjectCubeException('Delete accepts only Concept objects')
+        if concept.id is None or not isinstance(concept.id, IntType):
+            raise ObjectCubeException('Delete accepts only Concept objects with valid ID')
+
         self.delete_by_id(concept.id)
 
     def retrieve_or_create(self, concept):
+        logger.debug('retrieve_or_create(): %s', repr(concept))
+
         if type(concept) != Concept:
-            message = 'retrieve_or_create accepts only Concept objects'
-            logger.error(message)
-            raise ObjectCubeException(message)
+            raise ObjectCubeException('retrieve_or_create accepts only Concept objects')
 
         db_concept = self.retrieve_by_title(concept.title)
         if db_concept:
@@ -83,7 +78,7 @@ class ConceptService(BaseConceptService):
         return self.add(concept)
 
     def update(self, concept):
-        logger.debug('Updating concept' + repr(concept))
+        logger.debug('update(): %s', repr(concept))
 
         if concept is None or not isinstance(concept, Concept):
             raise ObjectCubeException('Unable to update concept without id')
@@ -106,10 +101,10 @@ class ConceptService(BaseConceptService):
         return db_concept
 
     def retrieve_by_title(self, concept_title):
+        logger.debug('retrieve_or_create(): %s', repr(concept_title))
+
         if not concept_title or not isinstance(concept_title, StringType):
-            message = 'Unable to add concept without a valid title'
-            logger.error(message)
-            raise ObjectCubeException(message)
+            raise ObjectCubeException('Unable to add concept without a valid title')
 
         sql = "SELECT * " \
               "FROM CONCEPTS " \
@@ -118,16 +113,20 @@ class ConceptService(BaseConceptService):
         return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve_by_id(self, concept_id):
-        if not concept_id or not isinstance(concept_id, IntType):
-            message = 'Missing concept_id'
-            logger.error(message)
-            raise ObjectCubeException(message)
+        logger.debug('retrieve_by_id(): %s', repr(concept_id))
 
-        sql = "SELECT * FROM CONCEPTS WHERE ID = %s"
+        if not concept_id or not isinstance(concept_id, IntType):
+            raise ObjectCubeException('Must provide concept_id')
+
+        sql = "SELECT * " \
+              "FROM CONCEPTS " \
+              "WHERE ID = %s"
         params = (concept_id,)
         return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve(self, offset=0, limit=10):
+        logger.debug('retrieve()')
+
         sql = "SELECT * " \
               "FROM CONCEPTS " \
               "OFFSET %s LIMIT %s"

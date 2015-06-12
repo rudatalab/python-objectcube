@@ -10,13 +10,14 @@ logger = logging.getLogger('postgreSQL: TaggingService')
 class TaggingService(BaseTaggingService):
 
     def count(self):
-        logger.debug('Count')
+        logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count ' \
               'FROM TAGGINGS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, tag, object, meta, plugin=None, plugin_set_id=None):
-        logger.debug('Add: Tag ' + repr(tag) + ' Object ' + repr(object))
+        logger.debug('add(): %s / %s / %s / %s / %s',
+                     repr(tag), repr(object), repr(meta), repr(plugin), repr(plugin_set_id))
 
         if tag is None or not isinstance(tag, Tag):
             raise ObjectCubeException('Must give valid tag')
@@ -61,7 +62,7 @@ class TaggingService(BaseTaggingService):
         return execute_sql_fetch_single(Tagging, sql, params)
 
     def delete_by_set_id(self, plugin_set_id):
-        logger.debug('Delete_by_set_id: ' + repr(plugin_set_id))
+        logger.debug('delete_by_set_id(): %s', repr(plugin_set_id))
 
         if plugin_set_id is None or not isinstance(plugin_set_id, IntType):
             raise ObjectCubeException('Must give valid plugin_set_id')
@@ -75,7 +76,8 @@ class TaggingService(BaseTaggingService):
         return None
 
     def resolve(self, tag, object, meta, plugin, plugin_set_id):
-        logger.debug('Resolve: ' + repr(plugin_set_id))
+        logger.debug('resolve(): %s / %s / %s / %s / %s',
+                     repr(tag), repr(object), repr(meta), repr(plugin), repr(plugin_set_id))
 
         if plugin_set_id is None or not isinstance(plugin_set_id, IntType):
             raise ObjectCubeException('Must give valid plugin_set_id to merge')
@@ -91,7 +93,7 @@ class TaggingService(BaseTaggingService):
         return tag
 
     def delete(self, tagging):
-        logger.debug('Delete: ' + repr(tagging))
+        logger.debug('delete(): %s', repr(tagging))
 
         if tagging is None or not isinstance(tagging, Tagging) or \
                 tagging.id is None or not isinstance(tagging.id, IntType):
@@ -105,7 +107,7 @@ class TaggingService(BaseTaggingService):
         return None
 
     def retrieve_by_id(self, tagging_id):
-        logger.debug('Retrieve_by_id: ' + repr(tagging_id))
+        logger.debug('retrieve_by_id(): %s', repr(tagging_id))
 
         if tagging_id is None or tagging_id <= 0 or not isinstance(tagging_id, IntType):
             raise ObjectCubeException('Id value must be a positive number')
@@ -117,7 +119,7 @@ class TaggingService(BaseTaggingService):
         return execute_sql_fetch_single(Tagging, sql, params)
 
     def retrieve_by_tag_id(self, tag_id, offset=0, limit=10):
-        logger.debug('Retrieve_by_tag_id: ' + repr(tag_id))
+        logger.debug('retrieve_by_tag_id(): %s', repr(tag_id))
 
         if tag_id is None or not isinstance(tag_id, IntType):
             raise ObjectCubeException('Must give valid tag id')
@@ -130,7 +132,7 @@ class TaggingService(BaseTaggingService):
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
     def retrieve_by_object_id(self, object_id, offset=0, limit=10):
-        logger.debug('Retrieve_by_object_id: ' + repr(object_id))
+        logger.debug('retrieve_by_object_id(): %s', repr(object_id))
 
         if object_id is None or not isinstance(object_id, IntType):
             raise ObjectCubeException('Must give valid object id')
@@ -143,6 +145,8 @@ class TaggingService(BaseTaggingService):
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
     def retrieve_by_set_id(self, plugin_set_id, offset=0, limit=10):
+        logger.debug('retrieve_by_set_id(): %s', repr(plugin_set_id))
+
         if not plugin_set_id or not isinstance(plugin_set_id, IntType):
             raise ObjectCubeException('Must give valid plugin set id')
 
@@ -154,7 +158,7 @@ class TaggingService(BaseTaggingService):
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
     def update(self, tagging):
-        logger.debug('Update: ' + repr(tagging))
+        logger.debug('update(): %s', repr(tagging))
 
         if tagging is None or not isinstance(tagging, Tagging):
             raise ObjectCubeException('Must give valid tagging')

@@ -4,6 +4,8 @@ from objectcube.services.base import BaseDimensionService
 from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import (Tag, DimensionNode)
 
+import logging
+logger = logging.getLogger('postgreSQL: DimensionService')
 
 class DimensionService(BaseDimensionService):
     def _calculate_borders(self, root_node, counter=None):
@@ -148,13 +150,17 @@ class DimensionService(BaseDimensionService):
     def count(self):
         # Input: None
         # Output: The count of valid dimensions in the database
-        sql = 'SELECT COUNT(DISTINCT root_tag_id) AS count FROM DIMENSIONS'
+        logger.debug('count()')
+        sql = 'SELECT COUNT(DISTINCT root_tag_id) AS count ' \
+              'FROM DIMENSIONS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add_dimension(self, tag):
         # Input: A tag that is not already a root (only the id need be valid)
         # Side effect: A new dimension has been created in the database
         # Output: The root node of the valid dimension tree
+        logger.debug('add_dimension(): %s', repr(tag))
+
         if not tag or not isinstance(tag, Tag) or \
                 not tag.id or not isinstance(tag.id, IntType):
             raise ObjectCubeException('Must give a valid tag for root')
@@ -180,6 +186,8 @@ class DimensionService(BaseDimensionService):
         # Side effect: The child_tag has been inserted as a sub-node
         #              of the node containing parent_tag
         # Output: The root node of the resulting valid dimension tree
+        logger.debug('add_node(): %s / %s / %s', repr(root_node), repr(parent_tag), repr(child_tag))
+
         if not isinstance(root_node, DimensionNode) or \
             not isinstance(parent_tag, Tag) or \
             not isinstance(child_tag, Tag) or \
@@ -209,9 +217,12 @@ class DimensionService(BaseDimensionService):
         return self.retrieve_dimension_by_root(root_node)
 
     def retrieve_dimension_roots(self):
+        logger.debug('retrieve_dimension_roots()')
         return self._read_roots()
 
     def retrieve_dimension_roots_by_tag(self, tag):
+        logger.debug('retrieve_dimension_roots_by_tag(): %s', repr(tag))
+
         if not tag or not isinstance(tag, Tag) or \
                 not tag.id or not isinstance(tag.id, IntType):
             raise ObjectCubeException('Invalid tag')
@@ -221,6 +232,8 @@ class DimensionService(BaseDimensionService):
     def retrieve_dimension_by_root(self, root_node):
         # Input: A valid root node
         # Output: The root node of the corresponding valid dimension tree
+        logger.debug('retrieve_dimension_by_root(): %s', repr(root_node))
+
         if not isinstance(root_node, DimensionNode) or \
                 not root_node.root_tag_id or not isinstance(
                 root_node.root_tag_id, IntType):
@@ -232,6 +245,8 @@ class DimensionService(BaseDimensionService):
         # Input: The root node of a valid sub-tree structure
         # Side effect: The sub-tree has been deleted from the database
         # Output: The remaining tree, or None if the entire tree was deleted
+        logger.debug('delete(): %s', repr(subtree_root_node))
+
         if not isinstance(subtree_root_node, DimensionNode) or \
                 not subtree_root_node.root_tag_id or \
                 not isinstance(subtree_root_node.root_tag_id, IntType) or \
@@ -274,6 +289,8 @@ class DimensionService(BaseDimensionService):
         # Side effect: If the dimension existed, it has been replaced.
         #              If it did not exist, it has been created.
         # Output: The resulting tree
+        logger.debug('replace_or_create_dimension(): %s', repr(root_node))
+
         if not isinstance(root_node, DimensionNode) \
                 or not root_node.root_tag_id \
                 or not isinstance(root_node.root_tag_id, IntType):

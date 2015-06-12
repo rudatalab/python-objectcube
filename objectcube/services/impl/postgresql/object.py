@@ -12,13 +12,13 @@ class ObjectService(BaseObjectService):
         super(ObjectService, self).__init__()
 
     def count(self):
-        logger.debug('Count')
+        logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count ' \
               'FROM OBJECTS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, object):
-        logger.debug('Add: ' + repr(object))
+        logger.debug('add(): %s', repr(object))
 
         if object is None or not isinstance(object, Object):
             raise ObjectCubeException('Must give valid object')
@@ -37,7 +37,7 @@ class ObjectService(BaseObjectService):
         return execute_sql_fetch_single(Object, sql, params)
 
     def retrieve_by_id(self, id):
-        logger.debug('Retrieve_by_id: ' + repr(id))
+        logger.debug('retrieve_by_id(): %s', repr(id))
 
         if id is None or not isinstance(id, IntType):
             raise ObjectCubeException('Must give valid object id')
@@ -49,7 +49,7 @@ class ObjectService(BaseObjectService):
         return execute_sql_fetch_single(Object, sql, params)
 
     def retrieve(self, offset=0, limit=10):
-        logger.debug('Retrieve ')
+        logger.debug('retrieve()')
 
         sql = 'SELECT ID, NAME, DIGEST ' \
               'FROM OBJECTS ' \
@@ -58,7 +58,7 @@ class ObjectService(BaseObjectService):
         return execute_sql_fetch_multiple(Object, sql, params)
 
     def retrieve_by_tag(self, tag, offset=0, limit=10):
-        logger.debug('Retrieve_by_tag: ' + repr(tag))
+        logger.debug('retrieve_by_tag(): %s', repr(tag))
 
         if tag is None or not isinstance(tag, Tag):
             raise ObjectCubeException('Must give valid tag')
@@ -73,7 +73,7 @@ class ObjectService(BaseObjectService):
         return execute_sql_fetch_multiple(Object, sql, params)
 
     def update(self, object):
-        logger.debug('Update: ' + repr(object))
+        logger.debug('update(): %s', repr(object))
 
         if object is None or not isinstance(object, Object):
             raise ObjectCubeException('Unable to update invalid Object')
@@ -96,7 +96,7 @@ class ObjectService(BaseObjectService):
         return db_object
 
     def delete(self, object):
-        logger.debug('Delete: ' + repr(object))
+        logger.debug('delete(): %s', repr(object))
 
         if object is None or not isinstance(object, Object):
             raise ObjectCubeException('Delete accepts only Object objects')
