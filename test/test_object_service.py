@@ -9,6 +9,11 @@ from base import ObjectCubeTestCase
 
 class TestObjectService(ObjectCubeTestCase):
 
+    def __init__(self, *args, **kwargs):
+        super(TestObjectService, self).__init__(*args, **kwargs)
+        self.object_service = get_service('ObjectService')
+        self.tagging_service = get_service('TaggingService')
+
     def assert_no_objects_in_data_store(self):
         self.assertEquals(self.object_service.count(), 0,
                           msg='No objects should be in the data store')
@@ -32,11 +37,6 @@ class TestObjectService(ObjectCubeTestCase):
                 )
             ))
         return objects
-
-    def __init__(self, *args, **kwargs):
-        super(TestObjectService, self).__init__(*args, **kwargs)
-        self.object_service = get_service('ObjectService')
-        self.tagging_service = get_service('TaggingService')
 
     def test_count_returns_number(self):
         count = self.object_service.count()
