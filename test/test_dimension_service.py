@@ -4,6 +4,15 @@ from objectcube.exceptions import ObjectCubeException, ObjectCubeDatabaseExcepti
 from objectcube.vo import Tag, DimensionNode, Concept
 
 class TestDimensionService(TestDatabaseAwareTest):
+    def _create_test_concepts(self):
+        """
+        Helper function for creating concepts in tests.
+        :param: values for tag properties
+        :return: A tag that has not been added to data store.
+        """
+        self._create_test_concept(_title='People', _description='All people in the world')
+        self._create_test_concept(_title='Object', _description='All objects in the world')
+
     def __init__(self, *args, **kwargs):
         super(TestDimensionService, self).__init__(*args, **kwargs)
         self.dimension_service = get_service('DimensionService')
@@ -18,15 +27,6 @@ class TestDimensionService(TestDatabaseAwareTest):
         """
         return self.concept_service.add(Concept(title=_title,
                                                 description=_description))
-
-    def _create_test_concepts(self):
-        """
-        Helper function for creating concepts in tests.
-        :param: values for tag properties
-        :return: A tag that has not been added to data store.
-        """
-        self._create_test_concept(_title='People', _description='All people in the world')
-        self._create_test_concept(_title='Object', _description='All objects in the world')
 
     def _create_test_tag(self, _value='', _description='', _concept_id=1):
         """
@@ -207,15 +207,6 @@ class TestDimensionService(TestDatabaseAwareTest):
 
         with self.assertRaises(ObjectCubeException):
             self.dimension_service.add_dimension(None)
-
-        with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(description='Bjorn'))
-
-        with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(value='Bjorn'))
-
-        with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(id='Bjorn'))
 
     def test_dimension_add_dimension_raises_database_exception_with_unknown_tags(self):
         self._create_test_concepts()

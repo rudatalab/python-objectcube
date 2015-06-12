@@ -125,7 +125,7 @@ class TestObjectService(ObjectCubeTestCase):
         tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
         test_object = self.create_objects(num_objects=1)[0]
-        self.tagging_service.add(test_object, tag, None)
+        self.tagging_service.add(tag, test_object, None)
         objects = self.object_service.retrieve_by_tag(tag)
 
         self.assertEquals(len(objects), 1)
@@ -142,7 +142,7 @@ class TestObjectService(ObjectCubeTestCase):
                                                    name_prefix='bar')]
 
         for obj_with_tag in objects_with_tag:
-            self.tagging_service.add(obj_with_tag, tag, None)
+            self.tagging_service.add(tag, obj_with_tag, None)
 
         _fetched_objects = self.object_service.retrieve_by_tag(tag)
 
