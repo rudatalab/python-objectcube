@@ -7,6 +7,7 @@ DB_PORT = int(os.environ.get('OBJECTCUBE_DB_PORT', 5432))
 DB_DBNAME = os.environ.get('OBJECTCUBE_DB_NAME', os.environ.get('LOGNAME'))
 DB_PASSWORD = os.environ.get('OBJECTCUBE_DB_PASSWORD',
                              os.environ.get('LOGNAME'))
+DB_MEASURE = int(os.environ.get('OBJECTCUBE_MEASURE', False))
 
 # Concept service configuration.
 FACTORY_CONFIG = {
