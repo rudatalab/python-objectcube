@@ -41,6 +41,30 @@ class SerializableMixin(object):
     def serialize(self):
         pass
 
+class Concept(SerializableMixin):
+    fields = ['id',
+              'title',
+              'description']
+
+    def __init__(self, **kwargs):
+        super(Concept, self).__init__(**kwargs)
+
+class Object(SerializableMixin):
+    fields = ['id',
+              'name',
+              'digest']
+
+    def __init__(self, **kwargs):
+        super(Object, self).__init__(**kwargs)
+
+class Plugin(SerializableMixin):
+    fields = ['id',
+              'name',
+              'module']
+
+    def __init__(self, **kwargs):
+        super(Plugin, self).__init__(**kwargs)
+
 class Tag(SerializableMixin):
     fields = ['id',
               'value',
@@ -63,30 +87,6 @@ class Tagging(SerializableMixin):
 
     def __init__(self, **kwargs):
         super(Tagging, self).__init__(**kwargs)
-
-class Concept(SerializableMixin):
-    fields = ['id',
-              'title',
-              'description']
-
-    def __init__(self, **kwargs):
-        super(Concept, self).__init__(**kwargs)
-
-class Plugin(SerializableMixin):
-    fields = ['id',
-              'name',
-              'module']
-
-    def __init__(self, **kwargs):
-        super(Plugin, self).__init__(**kwargs)
-
-class Object(SerializableMixin):
-    fields = ['id',
-              'name',
-              'digest']
-
-    def __init__(self, **kwargs):
-        super(Object, self).__init__(**kwargs)
 
 class DimensionNode(SerializableMixin):
     fields = ['root_tag_id',
