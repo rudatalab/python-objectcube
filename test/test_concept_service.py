@@ -15,7 +15,7 @@ class TestConceptService(ObjectCubeTestCase):
         concepts = []
         shuffle(titles)
         for title in titles:
-            concept = self._create_test_concept(str(title))
+            concept = self._create_test_concept(title=str(title), description=str(title)+'-desc')
             concepts.append(self.concept_service.add(concept))
         self.assertEquals(len(titles), len(concepts))
 
@@ -40,12 +40,12 @@ class TestConceptService(ObjectCubeTestCase):
 
     def test_count_increments_on_add(self):
         self.assertEqual(self.concept_service.count(), 0)
-        concept = self._create_test_concept(title='test-concept')
+        concept = self._create_test_concept(title='test-concept', description='test-desc')
         self.concept_service.add(concept)
         self.assertEqual(self.concept_service.count(), 1)
 
     def test_add_concepts_returns_concept_with_id(self):
-        concept = self._create_test_concept(title='test-concept')
+        concept = self._create_test_concept(title='test-concept', description='test-desc')
         db_concept = self.concept_service.add(concept)
         self.assertEqual(type(db_concept), type(concept))
         self.assertTrue(db_concept.id > 0)
@@ -114,7 +114,7 @@ class TestConceptService(ObjectCubeTestCase):
             Concept)
 
     def test_retrieve_by_id_returns_correct_concept(self):
-        concept = self._create_and_add_test_concept('test-title')
+        concept = self._create_and_add_test_concept(title='test-title', description='test-desc')
         db_concept = self.concept_service.retrieve_by_id(concept.id)
 
         self.assertTrue(concept is not None)
@@ -124,11 +124,11 @@ class TestConceptService(ObjectCubeTestCase):
     def test_update_raises_if_concept_missing_id(self):
         with self.assertRaises(ObjectCubeException):
             self.concept_service.update(
-                self._create_test_concept(title='test-title'))
+                self._create_test_concept(title='test-title', description='test-desc'))
 
     def test_update_raises_if_concept_not_in_data_store(self):
         with self.assertRaises(ObjectCubeException):
-            concept = self._create_test_concept(title='test', concept_id=12)
+            concept = self._create_test_concept(title='test', description='test', concept_id=12)
             self.concept_service.update(concept)
 
     def test_update_raises_if_concept_missing_title(self):
@@ -139,8 +139,9 @@ class TestConceptService(ObjectCubeTestCase):
     def test_update_concept_title(self):
         before_update_title = 'before-title'
         after_update_title = 'after-title'
+        description = 'test-desc'
 
-        before_concept = self._create_and_add_test_concept(before_update_title)
+        before_concept = self._create_and_add_test_concept(title=before_update_title, description=description)
         self.assertEqual(before_update_title, before_concept.title)
 
         before_concept.title = after_update_title
@@ -188,13 +189,13 @@ class TestConceptService(ObjectCubeTestCase):
             self.concept_service.delete_by_id(1)
 
     def test_delete_by_id_removes_concept_from_data_store(self):
-        concept = self._create_and_add_test_concept(title='test-concept')
+        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
         self.concept_service.delete_by_id(concept.id)
         db_concept = self.concept_service.retrieve_by_id(concept.id)
         self.assertIsNone(db_concept)
 
     def test_count_decreases_when_concept_is_deleted(self):
-        concept = self._create_and_add_test_concept(title='test-concept')
+        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
         count_before_delete = self.concept_service.count()
         self.concept_service.delete_by_id(concept.id)
         count_after_delete = self.concept_service.count()
@@ -211,7 +212,7 @@ class TestConceptService(ObjectCubeTestCase):
             self.concept_service.delete('')
 
     def test_delete_removes_concept_from_data_store(self):
-        concept = self._create_and_add_test_concept(title='test-concept')
+        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
         self.concept_service.delete(concept)
         db_concept = self.concept_service.retrieve_by_id(concept.id)
         self.assertIsNone(db_concept)

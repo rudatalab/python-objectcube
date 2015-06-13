@@ -2,12 +2,13 @@ from service import Service
 
 
 class BaseTagService(Service):
-    def retrieve(self, offset=0, limit=10):
+
+    def count(self):
         """
-        Retrieves tags from data store.
-        :param offset: The offset value for the result.
-        :param limit: The limit value for the result.
-        :return: List of Tag objects.
+        Returns the count of all tags in data store. Note that this value might
+        not be accurate. This value should be thought of as estimate
+        of the tag count.
+        :return: Integer
         """
         raise NotImplementedError()
 
@@ -38,16 +39,16 @@ class BaseTagService(Service):
         :return: Returns nothing.
         """
 
-    def count(self):
+    def retrieve(self, offset=0, limit=10):
         """
-        Returns the count of all tags in data store. Note that this value might
-        not be accurate. This value should be thought of as estimate
-        of the tag count.
-        :return: Integer
+        Retrieves tags from data store.
+        :param offset: The offset value for the result.
+        :param limit: The limit value for the result.
+        :return: List of Tag objects.
         """
         raise NotImplementedError()
 
-    def retrieve_by_id(self, _id):
+    def retrieve_by_id(self, id):
         """
         Retrieves tag by id.
         :param _id: Id for a given Tag.
@@ -55,7 +56,7 @@ class BaseTagService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_value(self, value):
+    def retrieve_by_value(self, value, offset=0, limit=10):
         """
         Retrieves tags by value.
         :param value: Value to fetch.
@@ -63,7 +64,7 @@ class BaseTagService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_plugin(self, plugin, offset=0, limit=100):
+    def retrieve_by_plugin(self, plugin, offset=0, limit=10):
         """
         Retrieves tags by plugin.
         :param plugin:
@@ -73,7 +74,7 @@ class BaseTagService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_concept(self, concept):
+    def retrieve_by_concept(self, concept, offset=0, limit=10):
         """
         Retrieves tags by concept.
         :param concept: Concept to fetch.

@@ -9,6 +9,11 @@ from base import ObjectCubeTestCase
 
 class TestObjectService(ObjectCubeTestCase):
 
+    def __init__(self, *args, **kwargs):
+        super(TestObjectService, self).__init__(*args, **kwargs)
+        self.object_service = get_service('ObjectService')
+        self.tagging_service = get_service('TaggingService')
+
     def assert_no_objects_in_data_store(self):
         self.assertEquals(self.object_service.count(), 0,
                           msg='No objects should be in the data store')
@@ -32,11 +37,6 @@ class TestObjectService(ObjectCubeTestCase):
                 )
             ))
         return objects
-
-    def __init__(self, *args, **kwargs):
-        super(TestObjectService, self).__init__(*args, **kwargs)
-        self.object_service = get_service('ObjectService')
-        self.tagging_service = get_service('TaggingService')
 
     def test_count_returns_number(self):
         count = self.object_service.count()
@@ -167,15 +167,15 @@ class TestObjectService(ObjectCubeTestCase):
             o = Object(name='test.jpg', digest='12345')
             self.object_service.delete(o)
 
-    def test_delete_returns_false_if_deleted_object_does_not_exist(self):
+    def test_delete_raises_if_deleted_object_does_not_exist(self):
         o = Object(name='test.jpg', digest='12345', id=1337)
-        delete_return_value = self.object_service.delete(o)
-        self.assertFalse(delete_return_value)
+        with self.assertRaises(ObjectCubeException):
+            delete_return_value = self.object_service.delete(o)
 
-    def test_delete_returns_true_if_deleted_object_does_exist(self):
+    def test_delete_returns_none_if_deleted_object_does_exist(self):
         o = self.object_service.add(Object(name='test.jpg', digest='12345'))
         delete_return_value = self.object_service.delete(o)
-        self.assertTrue(delete_return_value)
+        self.assertEquals(delete_return_value, None)
 
     def test_update_raises_if_not_object(self):
         with self.assertRaises(ObjectCubeException):
