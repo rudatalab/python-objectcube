@@ -2,12 +2,15 @@ import logging
 from psycopg2.extras import NamedTupleCursor
 
 from objectcube.contexts import Connection
-from objectcube.exceptions import ObjectCubeDatabaseException
+from objectcube.exceptions import ObjectCubeException
+from types import IntType
 
 logger = logging.getLogger('db-utils')
 
 
 def execute_sql_fetch_single(value_object_class, sql, params=()):
+    logger.debug('Execute SQL, return single value')
+    logger.debug('SQL command: ' + repr(sql) + ' Parameters: ' + repr(params))
     try:
         with Connection() as c:
             with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
@@ -17,10 +20,12 @@ def execute_sql_fetch_single(value_object_class, sql, params=()):
                     return value_object_class(**row._asdict())
     except Exception as ex:
         logger.error(ex.message)
-        raise ObjectCubeDatabaseException(ex.message)
+        raise ObjectCubeException(ex.message)
 
 
 def execute_sql_fetch_multiple(value_object_class, sql, params):
+    logger.debug('Execute SQL, return multiple values')
+    logger.debug('SQL command: ' + repr(sql) + ' Parameters: ' + repr(params))
     try:
         with Connection() as c:
             with c.cursor(cursor_factory=NamedTupleCursor) as cursor:
@@ -31,4 +36,4 @@ def execute_sql_fetch_multiple(value_object_class, sql, params):
                     return_list.append(value_object_class(**row._asdict()))
                 return return_list
     except Exception as ex:
-        raise ObjectCubeDatabaseException(ex.message)
+        raise ObjectCubeException(ex.message)
