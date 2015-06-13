@@ -20,12 +20,18 @@ class ConceptService(BaseConceptService):
 
         if concept is None or not isinstance(concept, Concept):
             raise ObjectCubeException('Add requires a valid concept')
+
         if not concept.id is None:
             raise ObjectCubeException('Add must not get ID')
-        if not concept.title or not isinstance(concept.title, StringType):
-            raise ObjectCubeException('Unable to add concept without a valid title')
-        if not concept.description or not isinstance(concept.description, StringType):
-            raise ObjectCubeException('Unable to add concept without a valid description')
+
+        if not concept.title or type(concept.title) not in [str, unicode]:
+            raise ObjectCubeException(
+                'Unable to add concept without a valid title')
+
+        if not concept.description or \
+                        type(concept.description) not in [str, unicode]:
+            raise ObjectCubeException(
+                'Unable to add concept without a valid description')
 
         sql = 'INSERT INTO ' \
               'CONCEPTS(TITLE, DESCRIPTION) ' \
@@ -35,14 +41,16 @@ class ConceptService(BaseConceptService):
         db_concept = execute_sql_fetch_single(Concept, sql, params)
 
         if db_concept is None:
-            raise ObjectCubeException('No concept added with value {}'.format(concept.value))
+            raise ObjectCubeException('No concept added with value {}'
+                                      .format(concept.value))
         return db_concept
 
     def delete_by_id(self, concept_id):
         logger.debug('delete_by_id(): %s', repr(concept_id))
 
         if concept_id is None or not isinstance(concept_id, IntType):
-            raise ObjectCubeException('Unable to find concept to delete without id')
+            raise ObjectCubeException(
+                'Unable to find concept to delete without id')
 
         sql = 'DELETE ' \
               'FROM CONCEPTS ' \
@@ -52,7 +60,8 @@ class ConceptService(BaseConceptService):
         concept = execute_sql_fetch_single(Concept, sql, params)
 
         if concept is None:
-            raise ObjectCubeException('No concept found with id {}'.format(concept_id))
+            raise ObjectCubeException('No concept found with id {}'
+                                      .format(concept_id))
         return None
 
     def delete(self, concept):
@@ -61,7 +70,8 @@ class ConceptService(BaseConceptService):
         if concept is None or not isinstance(concept, Concept):
             raise ObjectCubeException('Delete accepts only Concept objects')
         if concept.id is None or not isinstance(concept.id, IntType):
-            raise ObjectCubeException('Delete accepts only Concept objects with valid ID')
+            raise ObjectCubeException(
+                'Delete accepts only Concept objects with valid ID')
 
         self.delete_by_id(concept.id)
 
@@ -69,7 +79,8 @@ class ConceptService(BaseConceptService):
         logger.debug('retrieve_or_create(): %s', repr(concept))
 
         if type(concept) != Concept:
-            raise ObjectCubeException('retrieve_or_create accepts only Concept objects')
+            raise ObjectCubeException(
+                'retrieve_or_create accepts only Concept objects')
 
         db_concept = self.retrieve_by_title(concept.title)
         if db_concept:
@@ -82,12 +93,18 @@ class ConceptService(BaseConceptService):
 
         if concept is None or not isinstance(concept, Concept):
             raise ObjectCubeException('Unable to update concept without id')
+
         if concept.id is None or not isinstance(concept.id, IntType):
             raise ObjectCubeException('Unable to update concept without id')
+
         if not concept.title or not isinstance(concept.title, StringType):
-            raise ObjectCubeException('Unable to update concept without a valid title')
-        if not concept.description or not isinstance(concept.description, StringType):
-            raise ObjectCubeException('Unable to update concept without a valid description')
+            raise ObjectCubeException(
+                'Unable to update concept without a valid title')
+
+        if not concept.description or not isinstance(concept.description,
+                                                     StringType):
+            raise ObjectCubeException(
+                'Unable to update concept without a valid description')
 
         sql = 'UPDATE CONCEPTS ' \
               'SET TITLE=%s, DESCRIPTION=%s ' \
@@ -97,14 +114,16 @@ class ConceptService(BaseConceptService):
         db_concept = execute_sql_fetch_single(Concept, sql, params)
 
         if not db_concept:
-            raise ObjectCubeException('No concept found with id {}'.format(concept.id))
+            raise ObjectCubeException('No concept found with id {}'
+                                      .format(concept.id))
         return db_concept
 
     def retrieve_by_title(self, concept_title):
         logger.debug('retrieve_or_create(): %s', repr(concept_title))
 
         if not concept_title or not isinstance(concept_title, StringType):
-            raise ObjectCubeException('Unable to add concept without a valid title')
+            raise ObjectCubeException(
+                'Unable to add concept without a valid title')
 
         sql = "SELECT * " \
               "FROM CONCEPTS " \
