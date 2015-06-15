@@ -3,8 +3,8 @@ from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
 from objectcube.utils import md5_from_value
 from objectcube.vo import Object
-
 from base import ObjectCubeTestCase
+from types import IntType, LongType
 
 
 class TestObjectService(ObjectCubeTestCase):
@@ -27,7 +27,7 @@ class TestObjectService(ObjectCubeTestCase):
                           msg='The should be {0} object in '
                               'data store'.format(number))
 
-    def create_objects(self, num_objects, name_prefix='object_'):
+    def _create_objects(self, num_objects, name_prefix='object_'):
         objects = []
         for i in range(num_objects):
             objects.append(self.object_service.add(
@@ -40,14 +40,14 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_count_returns_number(self):
         count = self.object_service.count()
-        self.assertTrue(isinstance(count, (int, long)),
-                        msg='The count function should return a list objects')
+        self.assertTrue(isinstance(count, (IntType, LongType)),
+                        msg='The count function should return a number')
 
     def test_count_returns_zero_when_no_object_has_been_added(self):
         self.assert_no_objects_in_data_store()
 
     def test_count_increases_when_object_is_added(self):
-        self.create_objects(num_objects=1)
+        self._create_objects(num_objects=1)
         self.assert_has_some_objects_in_data_store()
         self.assert_has_number_of_objects_in_data_store(1)
 
@@ -91,7 +91,7 @@ class TestObjectService(ObjectCubeTestCase):
         number_of_object = 25
         max_fetch = 10
         expected_id_set = set(
-            map(lambda o: o.id, self.create_objects(number_of_object)))
+            map(lambda o: o.id, self._create_objects(number_of_object)))
 
         self.assertEquals(number_of_object, len(expected_id_set))
 
@@ -113,7 +113,7 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_fetch_object_outside_offset_return_empty_list(self):
         number_of_object = 20
-        self.create_objects(number_of_object)
+        self._create_objects(number_of_object)
 
         objects = self.object_service.retrieve(offset=number_of_object * 10)
         self.assertEquals(len(objects), 0,
@@ -124,7 +124,7 @@ class TestObjectService(ObjectCubeTestCase):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
-        test_object = self.create_objects(num_objects=1)[0]
+        test_object = self._create_objects(num_objects=1)[0]
         self.tagging_service.add(tag, test_object, None)
         objects = self.object_service.retrieve_by_tag(tag)
 
@@ -135,10 +135,10 @@ class TestObjectService(ObjectCubeTestCase):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
-        objects_with_tag = [o for o in self.create_objects(num_objects=10,
+        objects_with_tag = [o for o in self._create_objects(num_objects=10,
                                                            name_prefix='foo')]
         object_not_with_tag = [o for o in
-                               self.create_objects(num_objects=10,
+                               self._create_objects(num_objects=10,
                                                    name_prefix='bar')]
 
         for obj_with_tag in objects_with_tag:
