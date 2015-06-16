@@ -22,9 +22,9 @@ class ObjectService(BaseObjectService):
 
         if object is None or not isinstance(object, Object):
             raise ObjectCubeException('Must give valid object')
-        if object.name is None or not isinstance(object.name, StringType) or object.name == '':
+        if object.name is None or not isinstance(object.name, basestring) or object.name == '':
             raise ObjectCubeException('Must give object with valid name')
-        if object.digest is None or not isinstance(object.digest, StringType) or object.digest == '':
+        if object.digest is None or not isinstance(object.digest, basestring) or object.digest == '':
             raise ObjectCubeException('Must give object with valid digest')
         if not object.id is None:
             raise ObjectCubeException('Must give object without valid id')
@@ -79,9 +79,9 @@ class ObjectService(BaseObjectService):
             raise ObjectCubeException('Unable to update invalid Object')
         if object.id is None or not isinstance(object.id, IntType):
             raise ObjectCubeException('Unable to update Object without id')
-        if not object.name or not isinstance(object.name, StringType):
+        if not object.name or not isinstance(object.name, basestring):
             raise ObjectCubeException('Unable to update Object without a valid name')
-        if not object.digest or not isinstance(object.digest, StringType):
+        if not object.digest or not isinstance(object.digest, basestring):
             raise ObjectCubeException('Unable to update Object without a valid digest')
 
         sql = 'UPDATE OBJECTS ' \

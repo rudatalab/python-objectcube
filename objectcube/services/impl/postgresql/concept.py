@@ -28,8 +28,8 @@ class ConceptService(BaseConceptService):
             raise ObjectCubeException(
                 'Unable to add concept without a valid title')
 
-        if not concept.description or \
-                        type(concept.description) not in [str, unicode]:
+        if not concept.description \
+                or type(concept.description) not in [str, unicode]:
             raise ObjectCubeException(
                 'Unable to add concept without a valid description')
 
@@ -97,12 +97,12 @@ class ConceptService(BaseConceptService):
         if concept.id is None or not isinstance(concept.id, IntType):
             raise ObjectCubeException('Unable to update concept without id')
 
-        if not concept.title or not isinstance(concept.title, StringType):
+        if not concept.title or type(concept.title) not in [str, unicode]:
             raise ObjectCubeException(
                 'Unable to update concept without a valid title')
 
-        if not concept.description or not isinstance(concept.description,
-                                                     StringType):
+        if not concept.description \
+                or type(concept.description) not in [str, unicode]:
             raise ObjectCubeException(
                 'Unable to update concept without a valid description')
 
@@ -121,7 +121,7 @@ class ConceptService(BaseConceptService):
     def retrieve_by_title(self, concept_title):
         logger.debug('retrieve_or_create(): %s', repr(concept_title))
 
-        if not concept_title or not isinstance(concept_title, StringType):
+        if not concept_title or type(concept_title) not in [str, unicode]:
             raise ObjectCubeException(
                 'Unable to add concept without a valid title')
 
