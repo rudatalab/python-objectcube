@@ -4,13 +4,13 @@ from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.services.base import BaseTagService
 from objectcube.vo import Concept, Plugin, Tag
 from objectcube.exceptions import ObjectCubeException
-from types import IntType, StringType, BooleanType
+from types import IntType, BooleanType
 
 import logging
 logger = logging.getLogger('postgreSQL: TagService')
 
-class TagService(BaseTagService):
 
+class TagService(BaseTagService):
     def count(self):
         logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count ' \
@@ -100,7 +100,7 @@ class TagService(BaseTagService):
 
         # REQUIRED attributes are VALUE, TYPE, CONCEPT_ID, PLUGIN_ID
         # We need to check their existence and type
-        if tag.value is None or not isinstance(tag.value, StringType):
+        if tag.value is None or not isinstance(tag.value, basestring):
             raise ObjectCubeException('Must give a valid tag value')
         if tag.type is None or not isinstance(tag.type, IntType):
             raise ObjectCubeException('Must give a valid tag type')
@@ -161,7 +161,7 @@ class TagService(BaseTagService):
 
         # OPTIONAL attributes are all others
         # These may be None, but if they are set then they must have the correct type
-        if not tag.value is None and not isinstance(tag.value, StringType):
+        if not tag.value is None and not isinstance(tag.value, basestring):
             raise ObjectCubeException('If given, value must be a string')
         if not tag.description is None and not isinstance(tag.description, basestring):
             raise ObjectCubeException('If given, description must be a string')
@@ -178,23 +178,32 @@ class TagService(BaseTagService):
         old_tag = self.retrieve_by_id(tag.id)
         if old_tag is None:
             raise ObjectCubeException('Updating a non-existing tag')
+
         if not old_tag.mutable is None and not old_tag.mutable:
             raise ObjectCubeException('Cannot change a non-mutable concept')
+
         if not old_tag.plugin_id is None and tag.concept_id <> old_tag.concept_id:
             raise ObjectCubeException('Cannot change concept on a plugin-generated tag')
 
         # Build the SQL expression for the given attributes
         params = tuple()
         attributes = []
+
         if not tag.value is None:
             attributes.append('VALUE = %s')
             params += (tag.value, )
+
         if not tag.description is None:
             attributes.append('DESCRIPTION = %s')
             params += (tag.description, )
+
         if not tag.concept_id is None:
             attributes.append('CONCEPT_ID = %s')
             params += (tag.concept_id, )
+
+        if tag.type:
+            attributes.append('TYPE = %s')
+            params += (tag.type, )
 
         sql_attributes = ', '
         params += (tag.id, )

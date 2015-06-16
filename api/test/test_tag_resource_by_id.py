@@ -45,7 +45,6 @@ class TestAPITagResourceByID(APITest):
         self.assertEqual(final.get('description'), 'tag_description2')
 
     def test_update_tag_type_returns_updated_information(self):
-        import pdb; pdb.set_trace()
         self._create_test_tag()
         updated_data = {
             'type': 5

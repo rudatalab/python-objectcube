@@ -30,7 +30,6 @@ class TestAPIObjectResource(APITest):
         self.assertTrue(data.get('endpoint') == 'api/objects')
 
     def test_get_objects_response_object_contains_meta(self):
-        import pdb; pdb.set_trace()
         self._post_test_object()
         data = json.loads(self.get(self.base_url).data)
         self.assertTrue(data.get('meta', False))
