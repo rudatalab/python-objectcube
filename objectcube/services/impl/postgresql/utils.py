@@ -18,6 +18,8 @@ def execute_sql_fetch_single(value_object_class, sql, params=()):
                 row = cursor.fetchone()
                 if row:
                     return value_object_class(**row._asdict())
+                else:
+                    return None
     except Exception as ex:
         logger.error(ex.message)
         raise ObjectCubeException(ex.message)
