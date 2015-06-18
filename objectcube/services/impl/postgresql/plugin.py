@@ -36,6 +36,30 @@ class PluginService(BasePluginService):
         params = (plugin.name, plugin.module)
         return execute_sql_fetch_single(Plugin, sql, params)
 
+    def retrieve_by_id(self, id):
+        logger.debug('retrieve_by_id(): %s', repr(id))
+
+        if id is None or not isinstance(id, IntType):
+            raise ObjectCubeException('Must give valid object id')
+
+        sql = 'SELECT  ID, NAME, MODULE ' \
+              'FROM PLUGINS ' \
+              'WHERE ID = %s'
+        params = (id,)
+        return execute_sql_fetch_single(Plugin, sql, params)
+
+    def retrieve_by_name(self, name):
+        logger.debug('retrieve_by_name(): %s', repr(name))
+
+        if name is None or not isinstance(name, StringType):
+            raise ObjectCubeException('Must give valid name')
+
+        sql = 'SELECT  ID, NAME, MODULE ' \
+              'FROM PLUGINS ' \
+              'WHERE NAME = %s'
+        params = (name, )
+        return execute_sql_fetch_single(Plugin, sql, params)
+
     def retrieve(self, offset=0, limit=10):
         logger.debug('retrieve(): %s / %s', repr(offset), repr(limit))
 
@@ -50,28 +74,11 @@ class PluginService(BasePluginService):
         params = (offset, limit)
         return execute_sql_fetch_multiple(Plugin, sql, params)
 
-    def retrieve_by_id(self, id):
-        logger.debug('retrieve_by_id(): %s', repr(id))
+    def retrieve_by_regex(self, regex, offset=0, limit=10):
+        logger.debug('retrieve_by_regex(): %s / %s / %s', repr(regex), repr(offset), repr(limit))
 
-        if id is None or not isinstance(id, IntType):
-            raise ObjectCubeException('Must give valid object id')
-
-        sql = 'SELECT  ID, NAME, MODULE ' \
-              'FROM PLUGINS ' \
-              'WHERE ID = %s'
-        params = (id,)
-        db_plugin = execute_sql_fetch_single(Plugin, sql, params)
-
-        if db_plugin is None:
-            raise ObjectCubeException('No Plugin found with id {}'.format(id))
-        return db_plugin
-
-
-    def retrieve_by_name(self, name, offset=0, limit=10):
-        logger.debug('retrieve_by_name(): %s / %s / %s', repr(name), repr(offset), repr(limit))
-
-        if name is None or not isinstance(name, StringType):
-            raise ObjectCubeException('Must give valid name')
+        if regex is None or not isinstance(regex, StringType):
+            raise ObjectCubeException('Must give valid regex')
         if offset is None or not isinstance(offset, IntType):
             raise ObjectCubeException('Must give valid offset')
         if limit is None or not isinstance(limit, IntType):
@@ -79,7 +86,7 @@ class PluginService(BasePluginService):
 
         sql = 'SELECT  ID, NAME, MODULE ' \
               'FROM PLUGINS ' \
-              'WHERE NAME = %s ' \
+              'WHERE NAME ~ %s ' \
               'OFFSET %s LIMIT %s'
-        params = (name, offset, limit)
+        params = (regex, offset, limit)
         return execute_sql_fetch_multiple(Plugin, sql, params)
