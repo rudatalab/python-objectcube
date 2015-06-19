@@ -2,7 +2,7 @@
 from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
 from objectcube.utils import md5_from_value
-from objectcube.vo import Object
+from objectcube.vo import Object, Tag
 from base import ObjectCubeTestCase
 from types import IntType, LongType
 
@@ -38,34 +38,92 @@ class TestObjectService(ObjectCubeTestCase):
             ))
         return objects
 
-    def test_count_returns_number(self):
+    def _objects_to_id_set(self, concepts):
+        return set(map(lambda c: c.id, concepts))
+
+    def test_object_count_returns_number(self):
         count = self.object_service.count()
         self.assertTrue(isinstance(count, (IntType, LongType)),
                         msg='The count function should return a number')
 
-    def test_count_returns_zero_when_no_object_has_been_added(self):
+    def test_object_count_returns_zero_when_no_object_has_been_added(self):
         self.assert_no_objects_in_data_store()
 
-    def test_count_increases_when_object_is_added(self):
+    def test_object_count_increases_when_object_is_added(self):
         self._create_objects(num_objects=1)
         self.assert_has_some_objects_in_data_store()
         self.assert_has_number_of_objects_in_data_store(1)
 
-    def test_add_object_raises_exception_if_name_is_missing(self):
+    def test_object_add_object_raises_on_illegal_inputs(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(None)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add('ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(0)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object())
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(id=0, name='Name', digest='Desc'))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(id=1, name='Name', digest='Desc'))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(id=-1, name='Name', digest='Desc'))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(id='ID', name='Name', digest='Desc'))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(id=3.1415297, name='Name', digest='Desc'))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(id=Object(), name='Name', digest='Desc'))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=0))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=Object()))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=''))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name='Name', digest=0))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name='Name', digest=1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name='Name', digest=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name='Name', digest=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name='Name', digest=Object()))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name='Name', digest=''))
+
+    def test_object_add_object_raises_exception_if_name_is_missing(self):
         with self.assertRaises(ObjectCubeException):
             self.object_service.add(Object(digest='x', name=None))
 
         with self.assertRaises(ObjectCubeException):
             self.object_service.add(Object(digest='x', name=''))
 
-    def test_add_object_raises_exception_if_digest_is_missing(self):
+    def test_object_add_object_raises_exception_if_digest_is_missing(self):
         with self.assertRaises(ObjectCubeException):
             self.object_service.add(Object(digest=None, name='x'))
 
         with self.assertRaises(ObjectCubeException):
             self.object_service.add(Object(digest='', name='x'))
 
-    def test_add_object_returns_object(self):
+    def test_object_add_object_returns_object(self):
         in_object = Object(digest=md5_from_value('x'), name='foo.jpg')
         db_object = self.object_service.add(in_object)
         self.assertTrue(
@@ -73,7 +131,7 @@ class TestObjectService(ObjectCubeTestCase):
             msg='The object add function should return value of type Object.')
         self.assertTrue(db_object.id)
 
-    def test_retrieve_by_id(self):
+    def test_object_retrieve_by_id_finds_correct_object(self):
         num_objects = 10
         for i in range(1, num_objects):
             object_name = '{}'.format(i)
@@ -87,7 +145,22 @@ class TestObjectService(ObjectCubeTestCase):
             self.assertEquals(db_object2.name, object_name)
             self.assertEquals(db_object2.digest, db_object.digest)
 
-    def test_retrieve_offset_limit(self):
+    def test_object_retrieve_by_id_returns_none_on_nonexisting_id(self):
+        self.assertEquals(self.object_service.retrieve_by_id(23099), None)
+
+    def test_object_retrieve_by_id_raises_on_invalid_id(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_id(id=None)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_id(id='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_id(id=3.141527)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_id(id='')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_id(id=Object())
+
+    def test_object_retrieve_offset_limit(self):
         number_of_object = 25
         max_fetch = 10
         expected_id_set = set(
@@ -111,7 +184,7 @@ class TestObjectService(ObjectCubeTestCase):
             offset += max_fetch
         self.assertEquals(expected_id_set, all_retrieved_set)
 
-    def test_fetch_object_outside_offset_return_empty_list(self):
+    def test_object_fetch_object_outside_offset_return_empty_list(self):
         number_of_object = 20
         self._create_objects(number_of_object)
 
@@ -120,7 +193,7 @@ class TestObjectService(ObjectCubeTestCase):
                           msg='When selected offset which is outside of the '
                           'data set, then we will get an empty list')
 
-    def test_fetch_object_by_tag(self):
+    def test_object_fetch_object_by_tag(self):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
@@ -131,15 +204,15 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertEquals(len(objects), 1)
         self.assertEquals(test_object, objects[0])
 
-    def test_fetch_multiple_objects_with_same_tag(self):
+    def test_object_fetch_multiple_objects_with_same_tag(self):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
 
         objects_with_tag = [o for o in self._create_objects(num_objects=10,
-                                                           name_prefix='foo')]
+                                                            name_prefix='foo')]
         object_not_with_tag = [o for o in
                                self._create_objects(num_objects=10,
-                                                   name_prefix='bar')]
+                                                    name_prefix='bar')]
 
         for obj_with_tag in objects_with_tag:
             self.tagging_service.add(tag, obj_with_tag, None)
@@ -155,52 +228,338 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertEqual(
             len(fetched_id_set.intersection(unexpected_id_set)), 0)
 
-    def test_delete_raises_if_object_is_not_vo_object(self):
+    def test_object_fetch_zero_objects_with_same_tag(self):
+        tag_service = get_service('TagService')
+        tag = tag_service.add(self._create_test_tag(value='test-tag-1'))
+        objects = self._create_objects(num_objects=10,
+                                       name_prefix='bar')
+
+        fetched_objects = self.object_service.retrieve_by_tag(tag)
+
+        expected_id_set = set()
+        fetched_id_set = set(map(lambda o: o.id, (fetched_objects)))
+
+        self.assertEqual(expected_id_set, fetched_id_set)
+
+    def test_object_delete_raises_if_object_is_not_vo_object(self):
         with self.assertRaises(ObjectCubeException):
             self.object_service.delete('something')
 
         with self.assertRaises(ObjectCubeException):
             self.object_service.delete(1)
 
-    def test_delete_raises_if_object_has_no_id(self):
+    def test_object_delete_raises_if_object_has_no_id(self):
         with self.assertRaises(ObjectCubeException):
             o = Object(name='test.jpg', digest='12345')
             self.object_service.delete(o)
 
-    def test_delete_raises_if_deleted_object_does_not_exist(self):
+    def test_object_delete_raises_if_deleted_object_does_not_exist(self):
         o = Object(name='test.jpg', digest='12345', id=1337)
         with self.assertRaises(ObjectCubeException):
             delete_return_value = self.object_service.delete(o)
 
-    def test_delete_returns_none_if_deleted_object_does_exist(self):
+    def test_object_delete_returns_none_if_deleted_object_does_exist(self):
         o = self.object_service.add(Object(name='test.jpg', digest='12345'))
         delete_return_value = self.object_service.delete(o)
         self.assertEquals(delete_return_value, None)
 
-    def test_update_raises_if_not_object(self):
+    def test_object_delete_by_id_raises_on_invalid_id(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.delete_by_id(id=None)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.delete_by_id(id='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.delete_by_id(id=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.delete_by_id(id=Object())
+
+    def test_object_delete_by_id_raises_if_deleted_object_does_not_exist(self):
+        with self.assertRaises(ObjectCubeException):
+            delete_return_value = self.object_service.delete_by_id(1337)
+
+    def test_object_delete_by_id_returns_none_if_deleted_object_does_exist(self):
+        o = self.object_service.add(Object(name='test.jpg', digest='12345'))
+        delete_return_value = self.object_service.delete_by_id(o.id)
+        self.assertEquals(delete_return_value, None)
+
+    def test_object_update_raises_if_not_object(self):
         with self.assertRaises(ObjectCubeException):
             self.object_service.update('test')
-
         with self.assertRaises(ObjectCubeException):
-            self.object_service.update(1234)
+            self.object_service.update(1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(0)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Tag())
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(None)
 
-    def test_update_raises_if_object_with_no_id(self):
+    def test_object_update_raises_if_object_with_no_id(self):
         with self.assertRaises(ObjectCubeException):
             o = Object(name='test.jpg', digest='12345')
             self.object_service.update(o)
 
-    def test_update_raises_if_update_object_that_does_not_exist(self):
+    def test_object_update_raises_if_update_object_that_does_not_exist(self):
         with self.assertRaises(ObjectCubeException):
             o = Object(name='test.jpg', digest='12345', id=234)
             self.object_service.update(o)
 
-    def test_update_updates_object_name(self):
-        before_change_title = 'test-title'
-        after_change_title = 'updated-title'
-        o = self.object_service.add(Object(name=before_change_title,
-                                           digest='12345'))
+    def test_object_update_raises_on_illegal_name_digest(self):
+        o = self.object_service.add(Object(name='name', digest='digest'))
 
-        o.name = after_change_title
-        self.object_service.update(o)
-        fresh_db = self.object_service.retrieve_by_id(o.id)
-        self.assertEqual(o.name, after_change_title)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=None))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=''))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=0))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, name=o.name, digest=Object()))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=None))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=''))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=0))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.update(Object(id=o.id, digest=o.name, name=Object()))
+
+    def test_object_adding_duplicate_fails(self):
+        name1 = 'test-title'
+        name2 = 'updated-title'
+
+        digest1 = 'test-digest'
+        digest2 = 'updated-digest'
+
+        o1 = self.object_service.add(Object(name=name1, digest=digest1))
+        self.assertEqual(o1.name, name1)
+        self.assertEqual(o1.digest, digest1)
+        o1 = self.object_service.retrieve_by_id(o1.id)
+        self.assertEqual(o1.name, name1)
+        self.assertEqual(o1.digest, digest1)
+
+        # Changing only digest is OK
+        o2 = self.object_service.add(Object(name=name1, digest=digest2))
+        self.assertEqual(o2.name, name1)
+        self.assertEqual(o2.digest, digest2)
+        o2 = self.object_service.retrieve_by_id(o2.id)
+        self.assertEqual(o2.name, name1)
+        self.assertEqual(o2.digest, digest2)
+
+        # Changing only name is OK
+        o3 = self.object_service.add(Object(name=name2, digest=digest1))
+        self.assertEqual(o3.name, name2)
+        self.assertEqual(o3.digest, digest1)
+        o3 = self.object_service.retrieve_by_id(o3.id)
+        self.assertEqual(o3.name, name2)
+        self.assertEqual(o3.digest, digest1)
+
+        # Changing neither is not OK
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.add(Object(name=name1, digest=digest1))
+
+    def test_object_update_updates_object(self):
+        name1 = 'test-title'
+        name2 = 'updated-title'
+
+        digest1 = 'test-digest'
+        digest2 = 'updated-digest'
+
+        o1 = self.object_service.add(Object(name=name1, digest=digest1))
+
+        o1.name = name2
+        o2 = self.object_service.update(o1)
+        self.assertEqual(o2.name, name2)
+        self.assertEqual(o2.digest, digest1)
+
+        o2 = self.object_service.retrieve_by_id(o1.id)
+        self.assertEqual(o2.name, name2)
+        self.assertEqual(o2.digest, digest1)
+
+        o2.digest = digest2
+        o3 = self.object_service.update(o2)
+        self.assertEqual(o3.name, name2)
+        self.assertEqual(o3.digest, digest2)
+
+        o3 = self.object_service.retrieve_by_id(o2.id)
+        self.assertEqual(o3.name, name2)
+        self.assertEqual(o3.digest, digest2)
+
+        o3.name = name1
+        o3.digest = digest1
+        o4 = self.object_service.update(o3)
+        self.assertEqual(o4.name, name1)
+        self.assertEqual(o4.digest, digest1)
+
+        o4 = self.object_service.retrieve_by_id(o3.id)
+        self.assertEqual(o4.name, name1)
+        self.assertEqual(o4.digest, digest1)
+
+    def test_object_retrieve_raises_on_invalid_limit_offset(self):
+        self.assertEquals(0, self.object_service.count(), msg='Database is not empty in beginning')
+        self.object_service.add(Object(name='Concept', digest='Desc'))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(offset=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(offset='0')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(offset='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(offset=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(offset=Object(id=0))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(limit=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(limit='0')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(limit='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(limit=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve(limit=Object(id=0))
+
+    def test_object_retrieve_by_regex_raises_on_invalid_limit_offset(self):
+        self.assertEquals(0, self.object_service.count(), msg='Database is not empty in beginning')
+        self.object_service.add(Object(name='Concept', digest='Desc'))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', offset=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', offset='0')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', offset='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', offset=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', offset=Object(id=0))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', limit=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', limit='0')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', limit='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', limit=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name='Test', limit=Object(id=0))
+
+    def test_object_retrieve_by_tag_raises_on_invalid_limit_offset(self):
+        self.assertEquals(0, self.object_service.count(), msg='Database is not empty in beginning')
+        self.object_service.add(Object(name='Concept', digest='Desc'))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), offset=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), offset='0')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), offset='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), offset=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), offset=Object(id=0))
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), limit=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), limit='0')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), limit='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), limit=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(tag=Tag(id=1), limit=Object(id=0))
+
+    def test_object_retrieve_by_regex_raises_on_invalid_name(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name=0)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name=1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_regex(name=Object())
+
+    def test_concept_retrieve_by_regex_offset_limit(self):
+        number_of_object = 27
+        max_fetch = 9
+        db_objects = self._create_objects(number_of_object)
+        expected_id_set = set(map(lambda o: o.id, db_objects))
+        self.assertEquals(number_of_object, len(expected_id_set))
+
+        offset = 0
+        all_retrieved_set = set()
+        while True:
+            objects = self.object_service.retrieve_by_regex(name='object*',
+                                                            offset=offset,
+                                                            limit=max_fetch)
+            retrieved_id_set = set(map(lambda o: o.id, objects))
+            self.assertTrue(all_retrieved_set.isdisjoint(retrieved_id_set),
+                            msg='ids overlap with previously retrieved object'
+                            ' when there should be no overlap')
+            all_retrieved_set.update(retrieved_id_set)
+            if len(objects) != max_fetch:
+                self.assertEquals(number_of_object % max_fetch, len(objects))
+                break
+            offset += max_fetch
+        self.assertEquals(expected_id_set, all_retrieved_set)
+
+        offset = 0
+        while True:
+            concepts = self.object_service.retrieve_by_regex(name=db_objects[0].name,
+                                                             offset=offset, limit=max_fetch)
+            if len(concepts) != max_fetch:
+                break
+            offset += max_fetch
+        self.assertEquals(len(concepts), 1, 'Returned too many concepts - name should be unique')
+
+        offset = 0
+        while True:
+            concepts = self.object_service.retrieve_by_regex(name='Unknown name',
+                                                             offset=offset, limit=max_fetch)
+            if len(concepts) != max_fetch:
+                break
+            offset += max_fetch
+        self.assertEquals(len(concepts), 0, 'Returned too many concepts - name should not exist')
+
+    def test_object_retrieve_by_tag_raises_exception_with_illegal_tag_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag('1')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag('Bjorn')
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(None)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(1)
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(0)
+
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(Tag())
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(Tag(id='ID'))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(Tag(id=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(Tag(id=Tag()))
+        with self.assertRaises(ObjectCubeException):
+            self.object_service.retrieve_by_tag(Tag(id=''))
+
