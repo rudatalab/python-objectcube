@@ -3,7 +3,10 @@ from psycopg2.extras import NamedTupleCursor
 
 from objectcube.contexts import Connection
 from objectcube.exceptions import ObjectCubeException
-from types import IntType
+from types import StringTypes, IntType, LongType
+
+StringTypes = StringTypes
+IntTypes = (IntType, LongType)
 
 logger = logging.getLogger('db-utils')
 

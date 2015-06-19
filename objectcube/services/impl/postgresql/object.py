@@ -1,8 +1,7 @@
-from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
+from utils import *
 from objectcube.services.base import BaseObjectService
 from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import Object, Tag
-from types import IntType, LongType, StringTypes
 
 import logging
 logger = logging.getLogger('postgreSQL: ObjectService')
@@ -43,7 +42,7 @@ class ObjectService(BaseObjectService):
 
         if obj is None or not isinstance(obj, Object):
             raise ObjectCubeException('Function requires valid Object')
-        if obj.id is None or not isinstance(obj.id, IntType):
+        if obj.id is None or not isinstance(obj.id, IntTypes):
             raise ObjectCubeException('Function requires valid id')
         if not obj.name or \
                 not isinstance(obj.name, StringTypes) or obj.name == '':
@@ -68,7 +67,7 @@ class ObjectService(BaseObjectService):
 
         if obj is None or not isinstance(obj, Object):
             raise ObjectCubeException('Function requires valid Object')
-        if obj.id is None or not isinstance(obj.id, IntType):
+        if obj.id is None or not isinstance(obj.id, IntTypes):
             raise ObjectCubeException('Function requires valid id')
 
         sql = 'DELETE ' \
@@ -85,7 +84,7 @@ class ObjectService(BaseObjectService):
     def delete_by_id(self, id):
         logger.debug('delete_by_id(): %s', repr(id))
 
-        if id is None or not isinstance(id, IntType):
+        if id is None or not isinstance(id, IntTypes):
             raise ObjectCubeException('Function requires valid id')
 
         sql = 'DELETE ' \
@@ -102,7 +101,7 @@ class ObjectService(BaseObjectService):
     def retrieve_by_id(self, id):
         logger.debug('retrieve_by_id(): %s', repr(id))
 
-        if id is None or not isinstance(id, IntType):
+        if id is None or not isinstance(id, IntTypes):
             raise ObjectCubeException('Function requires valid id')
 
         sql = "SELECT * " \
@@ -115,9 +114,9 @@ class ObjectService(BaseObjectService):
         logger.debug('retrieve(): %s / %s',
                      repr(offset), repr(limit))
 
-        if offset is None or not isinstance(offset, (IntType, LongType)):
+        if offset is None or not isinstance(offset, IntTypes):
             raise ObjectCubeException('Function requires valid offset')
-        if limit is None or not isinstance(limit, (IntType, LongType)):
+        if limit is None or not isinstance(limit, IntTypes):
             raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT ID, NAME, DIGEST ' \
@@ -132,9 +131,9 @@ class ObjectService(BaseObjectService):
 
         if name is None or not isinstance(name, StringTypes):
             raise ObjectCubeException('Function requires valid name regex')
-        if offset is None or not isinstance(offset, (IntType, LongType)):
+        if offset is None or not isinstance(offset, IntTypes):
             raise ObjectCubeException('Function requires valid offset')
-        if limit is None or not isinstance(limit, (IntType, LongType)):
+        if limit is None or not isinstance(limit, IntTypes):
             raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT ID, NAME, DIGEST ' \
@@ -150,11 +149,11 @@ class ObjectService(BaseObjectService):
 
         if tag is None or not isinstance(tag, Tag):
             raise ObjectCubeException('Function requires valid tag')
-        if tag.id is None or not isinstance(tag.id, IntType):
+        if tag.id is None or not isinstance(tag.id, IntTypes):
             raise ObjectCubeException('Function requires valid tag id')
-        if offset is None or not isinstance(offset, (IntType, LongType)):
+        if offset is None or not isinstance(offset, IntTypes):
             raise ObjectCubeException('Function requires valid offset')
-        if limit is None or not isinstance(limit, (IntType, LongType)):
+        if limit is None or not isinstance(limit, IntTypes):
             raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT O.ID, O.NAME, O.DIGEST ' \
