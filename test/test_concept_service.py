@@ -15,7 +15,8 @@ class TestConceptService(ObjectCubeTestCase):
         concepts = []
         shuffle(titles)
         for title in titles:
-            concept = self._create_test_concept(title=str(title), description=str(title)+'-desc')
+            concept = self._create_test_concept(title='Concept'+str(title),
+                                                description=str(title)+'-desc')
             concepts.append(self.concept_service.add(concept))
         self.assertEquals(len(titles), len(concepts))
 
@@ -24,8 +25,8 @@ class TestConceptService(ObjectCubeTestCase):
     def _tags_to_id_set(self, concepts):
         return set(map(lambda c: c.id, concepts))
 
-    def _create_test_concept(self, title='', description='', concept_id=None):
-        return Concept(id=concept_id, title=title, description=description)
+    def _create_test_concept(self, title='', description='', id=None):
+        return Concept(id=id, title=title, description=description)
 
     def _create_and_add_test_concept(self, title, description=''):
         test_concept = self._create_test_concept(title=title,
@@ -35,53 +36,70 @@ class TestConceptService(ObjectCubeTestCase):
         self.assertIsNotNone(concept)
         return concept
 
-    def test_count_returns_zero_with_empty_data_store(self):
+    def test_concept_count_returns_zero_with_empty_data_store(self):
         self.assertEqual(self.concept_service.count(), 0)
 
-    def test_count_increments_on_add(self):
+    def test_concept_count_increments_on_add(self):
         self.assertEqual(self.concept_service.count(), 0)
         concept = self._create_test_concept(title='test-concept', description='test-desc')
         self.concept_service.add(concept)
         self.assertEqual(self.concept_service.count(), 1)
 
-    def test_add_concepts_returns_concept_with_id(self):
+    def test_concept_add_concepts_returns_concept_with_id(self):
         concept = self._create_test_concept(title='test-concept', description='test-desc')
         db_concept = self.concept_service.add(concept)
         self.assertEqual(type(db_concept), type(concept))
         self.assertTrue(db_concept.id > 0)
 
-    def test_add_raises_exception_on_objects_with_ids(self):
+    def test_concept_add_raises_exception_on_objects_with_ids(self):
         concept = Concept(**{'id': 4, 'title': 'test', 'description': ''})
         with self.assertRaises(ObjectCubeException):
             self.concept_service.add(concept)
 
-    def test_add_raises_exception_when_title_is_missing(self):
+    def test_concept_add_raises_exception_when_title_is_missing(self):
         concept = Concept(**{'description': ''})
         with self.assertRaises(ObjectCubeException):
             self.concept_service.add(concept)
 
-    def test_retrieve_by_title_raises_when_title_is_missing(self):
+    def test_concept_retrieve_by_title_raises_with_invalid_title(self):
         with self.assertRaises(ObjectCubeException):
             self.concept_service.retrieve_by_title(None)
-
         with self.assertRaises(ObjectCubeException):
-            self.concept_service.retrieve_by_title('')
+            self.concept_service.retrieve_by_title(title=0)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_title(title=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_title(title=1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_title(title=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_title(title=Concept())
 
-    def test_retrieve_by_title_returns_none_if_not_found(self):
-        self.assertIsNone(
-            self.concept_service.retrieve_by_title('does-not-exists'))
+    def test_concept_retrieve_by_regex_raises_with_invalid_regex(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=0)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=Concept())
 
-    def test_retrieve_by_title_returns_concept(self):
+    def test_concept_retrieve_by_title_returns_none_if_not_found(self):
+        concept = self.concept_service.retrieve_by_title('does-not-exists')
+        self.assertEquals(concept, None, 'Should be None')
+
+    def test_concept_retrieve_by_title_returns_concept(self):
         test_concept_title = 'test-title'
         test_concept = self._create_test_concept(title=test_concept_title,
                                                  description='test')
         self.concept_service.add(test_concept)
-        self.assertEqual(
-            type(
-                self.concept_service.retrieve_by_title(test_concept_title)),
-            Concept)
+        out_concept = self.concept_service.retrieve_by_title(test_concept_title)
+        self.assertEqual(type(out_concept), Concept)
 
-    def test_retrieve_by_title_returns_correct_concept(self):
+    def test_concept_retrieve_by_title_returns_correct_concept(self):
         test_concept_title = 'test-title'
         test_concept = self._create_test_concept(title=test_concept_title,
                                                  description='test')
@@ -92,51 +110,82 @@ class TestConceptService(ObjectCubeTestCase):
         self.assertTrue(db_concept is not None)
         self.assertEquals(concept, db_concept)
 
-    def test_retrieve_by_title_raises_when_id_is_missing(self):
+    def test_concept_retrieve_by_title_raises_when_id_is_missing(self):
         with self.assertRaises(ObjectCubeException):
             self.concept_service.retrieve_by_id(None)
 
         with self.assertRaises(ObjectCubeException):
             self.concept_service.retrieve_by_id('')
 
-    def test_retrieve_by_id_returns_none_if_not_found(self):
-        self.assertIsNone(
-            self.concept_service.retrieve_by_id(43534534))
+    def test_concept_retrieve_by_id_returns_none_if_not_found(self):
+        self.assertIsNone(self.concept_service.retrieve_by_id(43534534))
 
-    def test_retrieve_by_id_returns_concept(self):
-        test_concept_title = 'test-title'
-        test_concept = self._create_test_concept(title=test_concept_title,
+    def test_concept_retrieve_by_id_returns_correct_concept(self):
+        test_concept = self._create_test_concept(title='test-title',
                                                  description='test')
-        concept = self.concept_service.add(test_concept)
-        self.assertEqual(
-            type(
-                self.concept_service.retrieve_by_id(concept.id)),
-            Concept)
+        db_concept = self.concept_service.add(test_concept)
+        out_concept = self.concept_service.retrieve_by_id(db_concept.id)
 
-    def test_retrieve_by_id_returns_correct_concept(self):
-        concept = self._create_and_add_test_concept(title='test-title', description='test-desc')
-        db_concept = self.concept_service.retrieve_by_id(concept.id)
-
-        self.assertTrue(concept is not None)
+        self.assertEqual(type(out_concept), Concept)
+        self.assertEqual(type(db_concept), Concept)
+        self.assertTrue(out_concept is not None)
         self.assertTrue(db_concept is not None)
-        self.assertEquals(concept, db_concept)
+        self.assertEquals(out_concept, db_concept)
 
-    def test_update_raises_if_concept_missing_id(self):
+    def test_concept_update_raises_if_concept_missing_id(self):
         with self.assertRaises(ObjectCubeException):
             self.concept_service.update(
                 self._create_test_concept(title='test-title', description='test-desc'))
 
-    def test_update_raises_if_concept_not_in_data_store(self):
+    def test_concept_update_raises_if_concept_not_in_data_store(self):
         with self.assertRaises(ObjectCubeException):
-            concept = self._create_test_concept(title='test', description='test', concept_id=12)
+            concept = self._create_test_concept(title='test',
+                                                description='test',
+                                                id=12)
             self.concept_service.update(concept)
 
-    def test_update_raises_if_concept_missing_title(self):
+    def test_concept_update_raises_if_concept_missing_title(self):
+        # Invalid ID formats
         with self.assertRaises(ObjectCubeException):
-            self.concept_service.update(
-                self._create_test_concept(concept_id=23))
+            self.concept_service.update(None)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(0)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update('ID')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(3.1415297)
 
-    def test_update_concept_title(self):
+        # Invalid title formats
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept())
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=23))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title=1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title=0))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title=Concept()))
+
+        # Invalid description formats
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title='new'))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title='new', description=0))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title='new', description=0))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title='new', description=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.update(Concept(id=1, title='new', description=Concept()))
+
+    def test_concept_update_concept_title(self):
         before_update_title = 'before-title'
         after_update_title = 'after-title'
         description = 'test-desc'
@@ -153,7 +202,7 @@ class TestConceptService(ObjectCubeTestCase):
         self.assertEqual(db_concept.title, after_update_title)
         self.assertEqual(db_concept.id, before_concept.id)
 
-    def test_update_description(self):
+    def test_concept_update_description(self):
         before_update_description = 'before-description'
         after_update_description = 'after-description'
         test_title = 'test-title'
@@ -174,50 +223,52 @@ class TestConceptService(ObjectCubeTestCase):
         self.assertEqual(db_concept.description, after_update_description)
         self.assertEqual(db_concept.id, before_concept.id)
 
-    def test_delete_by_id_raise_if_id_is_missing(self):
+    def test_concept_delete_raises_if_concept_not_in_data_store(self):
         with self.assertRaises(ObjectCubeException):
-            self.concept_service.delete_by_id(None)
+            self.concept_service.delete(Concept(id=1))
 
-        with self.assertRaises(ObjectCubeException):
-            self.concept_service.delete_by_id(0)
-
-        with self.assertRaises(ObjectCubeException):
-            self.concept_service.delete_by_id('12')
-
-    def test_delete_by_id_raises_if_concept_not_in_data_store(self):
-        with self.assertRaises(ObjectCubeException):
-            self.concept_service.delete_by_id(1)
-
-    def test_delete_by_id_removes_concept_from_data_store(self):
-        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
-        self.concept_service.delete_by_id(concept.id)
-        db_concept = self.concept_service.retrieve_by_id(concept.id)
-        self.assertIsNone(db_concept)
-
-    def test_count_decreases_when_concept_is_deleted(self):
-        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
-        count_before_delete = self.concept_service.count()
-        self.concept_service.delete_by_id(concept.id)
-        count_after_delete = self.concept_service.count()
-        self.assertEqual(count_after_delete, count_before_delete - 1)
-
-    def test_delete_raises_if_type_not_concept(self):
-        with self.assertRaises(Exception):
-            self.concept_service.delete(1)
-
-        with self.assertRaises(Exception):
-            self.concept_service.delete(None)
-
-        with self.assertRaises(Exception):
-            self.concept_service.delete('')
-
-    def test_delete_removes_concept_from_data_store(self):
+    def test_concept_delete_removes_concept_from_data_store(self):
         concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
         self.concept_service.delete(concept)
         db_concept = self.concept_service.retrieve_by_id(concept.id)
         self.assertIsNone(db_concept)
 
-    def test_retrieve_offset_limit(self):
+    def test_concept_count_decreases_when_concept_is_deleted(self):
+        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
+        count_before_delete = self.concept_service.count()
+        self.concept_service.delete(concept)
+        count_after_delete = self.concept_service.count()
+        self.assertEqual(count_after_delete, count_before_delete - 1)
+
+    def test_concept_delete_raises_if_type_not_concept(self):
+        with self.assertRaises(Exception):
+            self.concept_service.delete(1)
+        with self.assertRaises(Exception):
+            self.concept_service.delete(None)
+        with self.assertRaises(Exception):
+            self.concept_service.delete('')
+
+    def test_concept_delete_raises_if_concept_id_is_invalid(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete(Concept())
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete(Concept(id=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete(Concept(id='0'))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete(Concept(id='1'))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete(Concept(id='ID'))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete(Concept(id=Concept()))
+
+    def test_concept_delete_removes_concept_from_data_store(self):
+        concept = self._create_and_add_test_concept(title='test-concept', description='test-desc')
+        self.concept_service.delete(concept)
+        db_concept = self.concept_service.retrieve_by_id(concept.id)
+        self.assertIsNone(db_concept)
+
+    def test_concept_retrieve_offset_limit(self):
         number_of_concepts = 43
         max_fetch = 10
         expected_id_set = self._tags_to_id_set(
@@ -240,7 +291,7 @@ class TestConceptService(ObjectCubeTestCase):
             offset += max_fetch
         self.assertEquals(expected_id_set, all_retrieved_set)
 
-    def test_retrieve_or_create_adds_new_concept_if_not_data_store(self):
+    def test_concept_retrieve_or_create_adds_new_concept_if_not_data_store(self):
         concept_test_title = 'test-concept'
         concept_test_description = 'hi mom'
         concept = self._create_test_concept(
@@ -248,7 +299,7 @@ class TestConceptService(ObjectCubeTestCase):
             description=concept_test_description
         )
 
-        self.assertIsNone(self.concept_service.retrieve_by_title(concept.title))
+        self.assertEquals(self.concept_service.retrieve_by_title(concept.title), None)
         fresh_concept = self.concept_service.retrieve_or_create(concept)
 
         self.assertIsNotNone(fresh_concept)
@@ -262,7 +313,72 @@ class TestConceptService(ObjectCubeTestCase):
         self.assertEqual(concept_test_title, db_concept.title)
         self.assertEqual(concept_test_description, db_concept.description)
 
-    def test_retrieve_or_create_returns_existing_concept_if_found(self):
+    def test_concept_add_raises_on_illegal_arguments(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(None)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(0)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add('ID')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept())
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(id=1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(id=0))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(id=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(id=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(id='ID'))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(id=Concept()))
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title=1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title=0))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title=Concept()))
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title='Title', description=1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title='Title', description=-1))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title='Title', description=0))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title='Title', description=3.1415297))
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(Concept(title='Title', description=Concept()))
+
+    def test_concept_add_raises_on_duplicate_title(self):
+        self.assertEquals(self.concept_service.count(), 0)
+        concept1 = Concept(title='Title', description='Description1')
+        concept2 = Concept(title='Title', description='Description2')
+
+        # First insertion is ok
+        concept3=self.concept_service.add(concept1)
+        self.assertEquals(concept1.title, concept3.title)
+        self.assertEquals(concept1.description, concept3.description)
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.add(concept2)
+        self.assertEquals(self.concept_service.count(), 1)
+
+    def test_concept_retrieve_or_create_returns_existing_concept_if_found(self):
         concept_test_title = 'test-concept'
         concept_test_description = 'hi mom'
 
@@ -275,7 +391,7 @@ class TestConceptService(ObjectCubeTestCase):
         db_concept = self.concept_service.retrieve_or_create(concept)
         self.assertEqual(db_concept, concept)
 
-    def test_retrieve_or_create_requires_concept_type(self):
+    def test_concept_retrieve_or_create_requires_concept_type(self):
         concept_test_title = 'test-concept'
         before_count = self.concept_service.count()
 
@@ -283,4 +399,188 @@ class TestConceptService(ObjectCubeTestCase):
             fresh_concept = self.concept_service.retrieve_or_create(concept_test_title)
 
         self.assertEqual(self.concept_service.count(), before_count)
+
+    def test_concept_retrieve_or_create_requires_title(self):
+        before_count = self.concept_service.count()
+
+        with self.assertRaises(Exception):
+            self.concept_service.retrieve_or_create(Concept())
+
+        with self.assertRaises(Exception):
+            self.concept_service.retrieve_or_create(Concept(title=0))
+        with self.assertRaises(Exception):
+            self.concept_service.retrieve_or_create(Concept(title=1))
+        with self.assertRaises(Exception):
+            self.concept_service.retrieve_or_create(Concept(title=-1))
+        with self.assertRaises(Exception):
+            self.concept_service.retrieve_or_create(Concept(title=3.1415297))
+        with self.assertRaises(Exception):
+            self.concept_service.retrieve_or_create(Concept(title=Concept()))
+
+        self.assertEqual(self.concept_service.count(), before_count)
+
+    def test_concept_retrieve_or_create_does_not_require_description(self):
+        before_count = self.concept_service.count()
+
+        test_concept = Concept(title='test')
+        concept = self.concept_service.retrieve_or_create(test_concept)
+        db_concept = self.concept_service.retrieve_or_create(concept)
+
+        self.assertEqual(db_concept.description, '')
+        self.assertEqual(self.concept_service.count(), before_count + 1)
+
+    def test_concept_retrieve_or_create_does_uses_description(self):
+        before_count = self.concept_service.count()
+
+        test_concept = Concept(title='test', description='Desc')
+        concept = self.concept_service.retrieve_or_create(test_concept)
+        db_concept = self.concept_service.retrieve_or_create(concept)
+
+        self.assertEqual(db_concept.description, concept.description)
+        self.assertEqual(db_concept.description, test_concept.description)
+        self.assertEqual(self.concept_service.count(), before_count + 1)
+
+    def test_concept_retrieve_offset_limit(self):
+        number_of_concepts = 43
+        max_fetch = 10
+        expected_id_set = self._tags_to_id_set(
+            self._add_test_concepts(range(number_of_concepts)))
+        self.assertEquals(number_of_concepts, len(expected_id_set))
+
+        all_retrieved_set = set()
+        offset = 0
+
+        while True:
+            tags = self.concept_service.retrieve(offset=offset, limit=max_fetch)
+            retrieved_id_set = self._tags_to_id_set(tags)
+            self.assertTrue(all_retrieved_set.isdisjoint(retrieved_id_set),
+                            msg='ids overlap with previously retrieved tags')
+            all_retrieved_set.update(retrieved_id_set)
+            if len(tags) != max_fetch:
+                self.assertEquals(number_of_concepts % max_fetch, len(tags))
+                break
+            offset += max_fetch
+        self.assertEquals(expected_id_set, all_retrieved_set)
+
+    def test_concept_retrieve_by_regex_offset_limit(self):
+        number_of_concepts = 43
+        max_fetch = 10
+        db_concepts = self._add_test_concepts(range(number_of_concepts))
+        self.assertEquals(number_of_concepts, len(db_concepts))
+
+        offset = 0
+        while True:
+            concepts = self.concept_service.retrieve_by_regex(regex=db_concepts[0].title,
+                                                              offset=offset, limit=max_fetch)
+            if len(concepts) != max_fetch:
+                break
+            offset += max_fetch
+        self.assertEquals(len(concepts), 1, 'Returned too many concepts - name should be unique')
+
+        expected_id_set = self._tags_to_id_set(db_concepts)
+        self.assertEquals(number_of_concepts, len(expected_id_set))
+        all_retrieved_set = set()
+        offset = 0
+        while True:
+            concepts = self.concept_service.retrieve_by_regex(regex='Concept',
+                                                              offset=offset, limit=max_fetch)
+            retrieved_id_set = self._tags_to_id_set(concepts)
+            self.assertTrue(all_retrieved_set.isdisjoint(retrieved_id_set),
+                            msg='ids overlap with previously retrieved tags')
+            all_retrieved_set.update(retrieved_id_set)
+            if len(concepts) != max_fetch:
+                self.assertEquals(number_of_concepts % max_fetch, len(concepts))
+                break
+            offset += max_fetch
+        self.assertEquals(expected_id_set, all_retrieved_set,
+                          'Returned wrong concepts for regexp')
+
+        offset = 0
+        while True:
+            concepts = self.concept_service.retrieve_by_regex(regex='Unknown name',
+                                                              offset=offset, limit=max_fetch)
+            if len(concepts) != max_fetch:
+                break
+            offset += max_fetch
+        self.assertEquals(len(concepts), 0, 'Returned too many concepts - name should not exist')
+
+    def test_concept_retrieve_by_regex_raises_on_invalid_limit_offset(self):
+        self.assertEquals(0, self.concept_service.count(), msg='Database is not empty in beginning')
+        db_concept = self.concept_service.add(Concept(title='Concept', description='Desc'))
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, offset=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, offset='0')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, offset='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, offset=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, offset=Concept(id=0))
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, limit=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, limit='0')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, limit='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, limit=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve_by_regex(regex=db_concept.title, limit=Concept(id=0))
+
+    def test_concept_retrieve_raises_on_invalid_limit_offset(self):
+        self.assertEquals(0, self.concept_service.count(), msg='Database is not empty in beginning')
+        db_concept = self.concept_service.add(Concept(title='Concept', description='Desc'))
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(offset=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(offset='0')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(offset='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(offset=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(offset=Concept(id=0))
+
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(limit=-1)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(limit='0')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(limit='ID')
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(limit=3.1415297)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.retrieve(limit=Concept(id=0))
+
+    def test_concept_delete_by_id_raise_if_id_is_missing(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete_by_id(None)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete_by_id(0)
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete_by_id('12')
+
+    def test_concept_delete_by_id_raises_if_concept_not_in_data_store(self):
+        with self.assertRaises(ObjectCubeException):
+            self.concept_service.delete_by_id(1)
+
+    def test_concept_delete_by_id_removes_concept_from_data_store(self):
+        concept = self._create_and_add_test_concept(title='test-concept',
+                                                    description='test-desc')
+        self.concept_service.delete_by_id(concept.id)
+        db_concept = self.concept_service.retrieve_by_id(concept.id)
+        self.assertIsNone(db_concept)
+
+    def test_concept_count_decreases_when_concept_is_deleted(self):
+        concept = self._create_and_add_test_concept(title='test-concept',
+                                                    description='test-desc')
+        count_before_delete = self.concept_service.count()
+        self.concept_service.delete_by_id(concept.id)
+        count_after_delete = self.concept_service.count()
+        self.assertEqual(count_after_delete, count_before_delete - 1)
+
 

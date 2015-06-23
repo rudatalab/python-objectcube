@@ -3,7 +3,10 @@ from psycopg2.extras import NamedTupleCursor
 
 from objectcube.contexts import Connection
 from objectcube.exceptions import ObjectCubeException
-from types import IntType
+from types import StringTypes, IntType, LongType
+
+StringTypes = StringTypes
+IntTypes = (IntType, LongType)
 
 logger = logging.getLogger('db-utils')
 
@@ -18,6 +21,8 @@ def execute_sql_fetch_single(value_object_class, sql, params=()):
                 row = cursor.fetchone()
                 if row:
                     return value_object_class(**row._asdict())
+                else:
+                    return None
     except Exception as ex:
         logger.error(ex.message)
         raise ObjectCubeException(ex.message)

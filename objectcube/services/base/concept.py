@@ -9,15 +9,6 @@ class BaseConceptService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve(self, offset=0, limit=100):
-        """
-        Fetches list of concepts, by offset and limit, in data store.
-        :param offset: Offset value
-        :param limit: Limit value
-        :return: List of concepts.
-        """
-        raise NotImplementedError()
-
     def add(self, concept):
         """
         Adds new concept to data store.
@@ -35,10 +26,11 @@ class BaseConceptService(Service):
         """
         raise NotImplementedError()
 
-    def delete_by_id(self, concept_id):
+    def delete_by_id(self, id):
         """
-        Delete Concept by id
-        :param concept_id: Number containing concept id.
+        Delete concept object from data store.
+        :param id: identifier of Concept object
+        that will be deleted.
         :return: None
         """
         raise NotImplementedError()
@@ -61,7 +53,7 @@ class BaseConceptService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_id(self, concept_id):
+    def retrieve_by_id(self, id):
         """
         Fetches Concept by id.
         :param concept_id: Number
@@ -69,7 +61,24 @@ class BaseConceptService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_title(self, concept_title):
+    def retrieve_by_title(self, title):
+        """
+        Fetches Concept by id.
+        :param concept_title: Title for a given concept.
+        :return: Returns a Concept if found by a given title, None otherwise.
+        """
+        raise NotImplementedError()
+
+    def retrieve(self, offset=0, limit=10):
+        """
+        Fetches list of concepts, by offset and limit, in data store.
+        :param offset: Offset value
+        :param limit: Limit value
+        :return: List of concepts.
+        """
+        raise NotImplementedError()
+
+    def retrieve_by_regex(self, regex, offset=0, limit=10):
         """
         Fetches Concept by id.
         :param concept_title: Title for a given concept.

@@ -6,17 +6,17 @@ class BasePluginService(Service):
     def count(self):
         raise NotImplementedError()
 
-    def get_plugins(self):
-        raise NotImplementedError()
-
-    def get_plugin_by_name(self):
-        raise NotImplementedError()
-
-    def get_plugin_by_id(self):
-        raise NotImplementedError()
-
     def add(self, plugin):
         raise NotImplementedError()
 
-    def process(self, _object, _data):
+    def retrieve_by_id(self, id):
+        raise NotImplementedError()
+
+    def retrieve_by_name(self, name):
+        raise NotImplementedError()
+
+    def retrieve(self, offset=0, limit=10):
+        raise NotImplementedError()
+
+    def retrieve_by_regex(self, regex, offset=0, limit=10):
         raise NotImplementedError()
