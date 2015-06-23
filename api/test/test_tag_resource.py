@@ -33,19 +33,19 @@ class TestAPITagResource(APITest):
 
     def test_create_tag_returns_tag(self):
         data = {
-            'description': 'tag_description',
-            'value': 'tag_value',
+            'description': u'tag_description',
+            'value': u'tag_value',
             'type': 0
         }
         res = self.post(self.base_url, data=data)
         res_data = json.loads(res.data)
-        self.assertEqual(res_data.get('value'), 'tag_value')
-        self.assertEqual(res_data.get('description'), 'tag_description')
+        self.assertEqual(res_data.get('value'), u'tag_value')
+        self.assertEqual(res_data.get('description'), u'tag_description')
         self.assertEqual(res_data.get('type'), 0)
 
     def test_tag_with_no_value_returns_400(self):
         data = {
-            'description': 'tag_description',
+            'description': u'tag_description',
             'type': 0
         }
         res = self.post(self.base_url, data=data)
@@ -53,8 +53,8 @@ class TestAPITagResource(APITest):
 
     def test_tag_with_no_type_returns_400(self):
         data = {
-            'description': 'tag_description',
-            'value': 'tag_value'
+            'description': u'tag_description',
+            'value': u'tag_value'
         }
         res = self.post(self.base_url, data=data)
         self.assertEqual(res.status_code, 400)

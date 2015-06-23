@@ -42,24 +42,26 @@ class TestConceptService(ObjectCubeTestCase):
 
     def test_concept_count_increments_on_add(self):
         self.assertEqual(self.concept_service.count(), 0)
-        concept = self._create_test_concept(title=u'test-concept', description=u'test-desc')
+        concept = self._create_test_concept(title=u'test-concept',
+                                            description=u'test-desc')
         self.concept_service.add(concept)
         self.assertEqual(self.concept_service.count(), 1)
 
     def test_concept_add_concepts_returns_concept_with_id(self):
-        concept = self._create_test_concept(title=u'test-concept', description=u'test-desc')
+        concept = self._create_test_concept(title=u'test-concept',
+                                            description=u'test-desc')
         db_concept = self.concept_service.add(concept)
         self.assertEqual(type(db_concept), type(concept))
         self.assertTrue(db_concept.id > 0)
 
     def test_concept_add_raises_exception_on_objects_with_ids(self):
-        concept = Concept(**{'id': 4L, 'title': 'test', 'description': ''})
+        concept = Concept(**{'id': 4L, 'title': u'test', 'description': u''})
         with self.assertRaises(ObjectCubeException):
             self.concept_service.add(concept)
 
     def test_concept_add_raises_exception_when_title_is_missing(self):
-        concept = Concept(**{'description': ''})
         with self.assertRaises(ObjectCubeException):
+            concept = Concept(**{'description': u''})
             self.concept_service.add(concept)
 
     def test_concept_retrieve_by_title_raises_with_invalid_title(self):

@@ -1,22 +1,37 @@
-import json
+from exceptions import ObjectCubeException
+from types import LongType, UnicodeType, BooleanType, NoneType, ListType
 
-class SerializableMixin(object):
+
+class ObjectCubeClass(object):
     def __init__(self, **kwargs):
         self.data = {}
-        for field in self.fields:
-            if field not in kwargs:
-                self.data[field] = None
-
-            self.data[field] = kwargs.get(field)
+        for key, type_ in self.fields.items():
+            if isinstance(kwargs.get(key), type_):
+                self.data[key] = kwargs.get(key)
+            else:
+                raise ObjectCubeException(
+                    'Init invalid type: Class {}; Field {}; Value {}; '
+                    'Desired Type {}; Given Type {}'
+                    .format(self.__class__, key, kwargs.get(key),
+                            type_, type(kwargs.get(key))))
 
     def __getattr__(self, key):
         if key not in self.data:
-            raise Exception('Class {} does not have a field with name {}'
-                            .format(self.__class__, key))
+            raise ObjectCubeException(
+                'Get invalid field: Class {}; Field {}'
+                .format(self.__class__, key))
         return self.data.get(key)
 
     def __setattr__(self, key, value):
-        super(SerializableMixin, self).__setattr__(key, value)
+        super(ObjectCubeClass, self).__setattr__(key, value)
+        # Type checking is only done on the specified fields
+        # of each class to allow the statement self.data = {} in __init__
+        if key in self.fields and not isinstance(value, self.fields[key]):
+            raise ObjectCubeException(
+                'Set invalid type: Class {}; Field {}; Value {};'
+                'Desired Type {}; Given Type {}'
+                .format(self.__class__, key, value,
+                        self.fields[key], type(value)))
         self.data[key] = value
 
     def __str__(self):
@@ -24,7 +39,7 @@ class SerializableMixin(object):
 
     def __repr__(self):
         return '{0}({1})'.format(self.__class__.__name__,
-                                 repr(self.to_dict()))
+                                 repr(self.__dict__()))
 
     def __eq__(self, other):
         for f in self.fields:
@@ -32,7 +47,7 @@ class SerializableMixin(object):
                 return False
         return True
 
-    def to_dict(self):
+    def __dict__(self):
         out = {}
         for field in self.fields:
             out[field] = self.data[field]
@@ -41,60 +56,66 @@ class SerializableMixin(object):
     def serialize(self):
         pass
 
-class Concept(SerializableMixin):
-    fields = ['id',
-              'title',
-              'description']
 
-    def __init__(self, **kwargs):
-        super(Concept, self).__init__(**kwargs)
-
-class Object(SerializableMixin):
-    fields = ['id',
-              'name',
-              'digest']
-
-    def __init__(self, **kwargs):
-        super(Object, self).__init__(**kwargs)
-
-class Plugin(SerializableMixin):
-    fields = ['id',
-              'name',
-              'module']
+class Plugin(ObjectCubeClass):
+    fields = {'id': (LongType, NoneType),
+              'name': UnicodeType,
+              'module': UnicodeType}
 
     def __init__(self, **kwargs):
         super(Plugin, self).__init__(**kwargs)
 
-class Tag(SerializableMixin):
-    fields = ['id',
-              'value',
-              'description',
-              'mutable',
-              'type',
-              'concept_id',
-              'plugin_id']
+
+class Concept(ObjectCubeClass):
+    fields = {'id': (LongType, NoneType),
+              'title': UnicodeType,
+              'description': UnicodeType}
+
+    def __init__(self, **kwargs):
+        super(Concept, self).__init__(**kwargs)
+
+
+class Object(ObjectCubeClass):
+    fields = {'id': (LongType, NoneType),
+              'name': UnicodeType,
+              'digest': UnicodeType}
+
+    def __init__(self, **kwargs):
+        super(Object, self).__init__(**kwargs)
+
+
+class Tag(ObjectCubeClass):
+    fields = {'id': (LongType, NoneType),
+              'value': UnicodeType,
+              'description': UnicodeType,
+              'mutable': BooleanType,
+              'type': (LongType, NoneType),
+              'concept_id': (LongType, NoneType),
+              'plugin_id': (LongType, NoneType)}
 
     def __init__(self, **kwargs):
         super(Tag, self).__init__(**kwargs)
 
-class Tagging(SerializableMixin):
-    fields = ['id',
-              'tag_id',
-              'object_id',
-              'meta',
-              'plugin_id',
-              'plugin_set_id']
+
+class Tagging(ObjectCubeClass):
+    fields = {'id': (LongType, NoneType),
+              'tag_id': LongType,
+              'object_id': LongType,
+              'meta': (UnicodeType, NoneType),
+              'plugin_id': (LongType, NoneType),
+              'plugin_set_id': (LongType, NoneType)}
 
     def __init__(self, **kwargs):
         super(Tagging, self).__init__(**kwargs)
 
-class DimensionNode(SerializableMixin):
-    fields = ['root_tag_id',
-              'node_tag_id',
-              'node_tag_value',
-              'left_border',
-              'right_border',
-              'child_nodes']
+
+class DimensionNode(ObjectCubeClass):
+    fields = {'root_tag_id': LongType,
+              'node_tag_id': LongType,
+              'node_tag_value': UnicodeType,
+              'left_border': LongType,
+              'right_border': LongType,
+              'child_nodes': ListType}
 
     def __init__(self, **kwargs):
         super(DimensionNode, self).__init__(**kwargs)

@@ -10,13 +10,13 @@ class TestAPIConceptResourceByID(APITest):
         self.app = app.test_client()
 
     def _post_test_concepts(self, number_to_create=10,
-                            title_prefix='concept-'):
+                            title_prefix=u'concept-'):
         added_concepts = []
         for i in range(number_to_create):
-            concept_title = '{}{}'.format(title_prefix, i)
+            concept_title = u'{}{}'.format(title_prefix, i)
 
             data = {
-                'description': 'description-{}'.format(i),
+                'description': u'description-{}'.format(i),
                 'title': concept_title
             }
             res = self.post(self.base_url, data=data)
@@ -32,8 +32,8 @@ class TestAPIConceptResourceByID(APITest):
         concept = self._post_test_concepts(number_to_create=1)[0]
         res = self.get(self.base_url + '/{}'.format(concept['id']))
         data = json.loads(res.data)
-        self.assertTrue(data.get('meta', True))
-        self.assertTrue(data.get('concepts', True))
+        self.assertTrue(data.get(u'meta', True))
+        self.assertTrue(data.get(u'concepts', True))
         self.assertEqual(res.status_code, 200)
 
     def test_get_concepts_route_returns_application_json(self):
@@ -56,30 +56,30 @@ class TestAPIConceptResourceByID(APITest):
         self.assertEqual(res.status_code, 400)
 
     def test_update_with_new_title_returns_updated_concept(self):
-        data = {'description': 'test desc', 'title': 'title1'}
+        data = {'description': u'test desc', 'title': u'title1'}
         self.post(self.base_url, data=data)
-        updated_data = {'title': 'title2'}
+        updated_data = {'title': u'title2'}
         res = self.put(self.base_url + '/1', data=updated_data)
         final = json.loads(res.data)
         self.assertTrue(final.get('title') == 'title2')
-        self.assertTrue(final.get('description') == 'test desc')
+        self.assertTrue(final.get('description') ==  'test desc')
 
     def test_update_with_new_description_returns_updated_concept(self):
-        data = {'description': 'test desc', 'title': 'title1'}
+        data = {'description': u'test desc', 'title': u'title1'}
         self.post(self.base_url, data=data)
-        updated_data = {'description': 'desc2'}
+        updated_data = {'description': u'desc2'}
         res = self.put(self.base_url + '/1', data=updated_data)
         final = json.loads(res.data)
-        self.assertTrue(final.get('description') == 'desc2')
-        self.assertTrue(final.get('title') == 'title1')
+        self.assertTrue(final.get('description') == u'desc2')
+        self.assertTrue(final.get('title') == u'title1')
 
     def test_update_with_invalid_id_returns_404(self):
-        data = {'description': 'test desc', 'title': 'title1'}
+        data = {'description': u'test desc', 'title': u'title1'}
         res = self.put(self.base_url + '/42', data=data)
         self.assertTrue(res.status_code == 404)
 
     def test_delete_concept_deletes_concept_and_returns_204(self):
-        data = {'description': 'test desc', 'title': 'title1'}
+        data = {'description': u'test desc', 'title': u'title1'}
         res = self.post(self.base_url, data=data)
         self.assertTrue(res.status_code == 201)
         res = self.delete(self.base_url + '/1')
@@ -92,11 +92,11 @@ class TestAPIConceptResourceByID(APITest):
         self.assertTrue(res.status_code == 404)
 
     def test_update_title_is_already_in_use_throws_database_error(self):
-        data = {'description': 'test desc', 'title': 'title1'}
+        data = {'description': u'test desc', 'title': u'title1'}
         res = self.post(self.base_url, data=data)
-        data2 = {'description': 'test desc2', 'title': 'title2'}
+        data2 = {'description': u'test desc2', 'title': u'title2'}
         res2 = self.post(self.base_url, data=data2)
         self.assertTrue(res.status_code == 201)
         self.assertTrue(res2.status_code == 201)
-        edit = {'title': 'title1'}
+        edit = {'title': u'title1'}
         self.assertRaises(self.put(self.base_url + '/1', data=edit))

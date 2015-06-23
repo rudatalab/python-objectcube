@@ -1,5 +1,5 @@
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
-from types import IntType, StringType
+from types import LongType, UnicodeType
 from objectcube.services.base import BaseDimensionService
 from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import (Tag, DimensionNode)
@@ -13,10 +13,12 @@ class DimensionService(BaseDimensionService):
         # Output: Nothing
         # Side effect: The left_border and right_border values
         #              are correct in the input tree.
-        if not counter:
-            counter = [1]
+        if counter is None:
+            counter = [1L]
 
         root_node.left_border = counter[0]
+        logger.debug('_calculate_borders(): %s ',
+                     repr(type(counter[0])))
         counter[0] += 1
 
         if root_node.child_nodes:
@@ -30,8 +32,8 @@ class DimensionService(BaseDimensionService):
         # Input: Array of nodes representing a valid tree structure,
         #        without any linking
         # Output: The root node of a valid tree structure
-        if not counter:
-            counter = [0]
+        if counter is None:
+            counter = [0L]
 
         parent_node = DimensionNode(
             root_tag_id=dimension_node_array[counter[0]].root_tag_id,
@@ -67,8 +69,12 @@ class DimensionService(BaseDimensionService):
         # Input: A single tree node
         # Side effect: The tree node has been written to the database
         # Output: The Node written
-        sql = 'INSERT INTO DIMENSIONS( ROOT_TAG_ID, NODE_TAG_ID, LEFT_BORDER,'\
-              'RIGHT_BORDER) VALUES( %s, %s, %s, %s) RETURNING *'
+        sql = 'INSERT ' \
+              'INTO DIMENSIONS ( ' \
+              '  ROOT_TAG_ID, NODE_TAG_ID, LEFT_BORDER, RIGHT_BORDER' \
+              ') ' \
+              'VALUES( %s, %s, %s, %s) ' \
+              'RETURNING *'
         params = (node.root_tag_id, node.node_tag_id,
                   node.left_border, node.right_border)
         return execute_sql_fetch_single(DimensionNode, sql, params)
@@ -162,15 +168,15 @@ class DimensionService(BaseDimensionService):
         logger.debug('add_dimension(): %s', repr(tag))
 
         if not tag or not isinstance(tag, Tag) or \
-                not tag.id or not isinstance(tag.id, IntType):
+                not tag.id or not isinstance(tag.id, LongType):
             raise ObjectCubeException('Must give a valid tag for root')
 
         # Create the root node
         root_node = DimensionNode(root_tag_id=tag.id,
                                   node_tag_id=tag.id,
-                                  node_tag_value='',
-                                  left_border=0,
-                                  right_border=0,
+                                  node_tag_value=u'',
+                                  left_border=0L,
+                                  right_border=0L,
                                   child_nodes=[]
                                   )
 
@@ -186,15 +192,16 @@ class DimensionService(BaseDimensionService):
         # Side effect: The child_tag has been inserted as a sub-node
         #              of the node containing parent_tag
         # Output: The root node of the resulting valid dimension tree
-        logger.debug('add_node(): %s / %s / %s', repr(root_node), repr(parent_tag), repr(child_tag))
+        logger.debug('add_node(): %s / %s / %s',
+                     repr(root_node), repr(parent_tag), repr(child_tag))
 
         if not isinstance(root_node, DimensionNode) or \
             not isinstance(parent_tag, Tag) or \
             not isinstance(child_tag, Tag) or \
             not root_node.root_tag_id or \
-            not isinstance(root_node.root_tag_id, IntType) or \
-            not parent_tag.id or not isinstance(parent_tag.id, IntType) or \
-                not child_tag.id or not isinstance(child_tag.id, IntType):
+            not isinstance(root_node.root_tag_id, LongType) or \
+            not parent_tag.id or not isinstance(parent_tag.id, LongType) or \
+                not child_tag.id or not isinstance(child_tag.id, LongType):
             raise ObjectCubeException('Input not of correct types')
 
         # Create the child
@@ -224,7 +231,7 @@ class DimensionService(BaseDimensionService):
         logger.debug('retrieve_dimension_roots_by_tag(): %s', repr(tag))
 
         if not tag or not isinstance(tag, Tag) or \
-                not tag.id or not isinstance(tag.id, IntType):
+                not tag.id or not isinstance(tag.id, LongType):
             raise ObjectCubeException('Invalid tag')
 
         return self._read_roots(tag)
@@ -236,7 +243,7 @@ class DimensionService(BaseDimensionService):
 
         if not isinstance(root_node, DimensionNode) or \
                 not root_node.root_tag_id or not isinstance(
-                root_node.root_tag_id, IntType):
+                root_node.root_tag_id, LongType):
             raise ObjectCubeException('Invalid root node')
 
         return self._read_nodes(root_node)
@@ -249,9 +256,9 @@ class DimensionService(BaseDimensionService):
 
         if not isinstance(subtree_root_node, DimensionNode) or \
                 not subtree_root_node.root_tag_id or \
-                not isinstance(subtree_root_node.root_tag_id, IntType) or \
+                not isinstance(subtree_root_node.root_tag_id, LongType) or \
                 not subtree_root_node.node_tag_id or \
-                not isinstance(subtree_root_node.node_tag_id, IntType):
+                not isinstance(subtree_root_node.node_tag_id, LongType):
             raise ObjectCubeException(
                 'Must give DimensionNode with valid root_tag_id '
                 'and node_tag_id')
@@ -293,7 +300,7 @@ class DimensionService(BaseDimensionService):
 
         if not isinstance(root_node, DimensionNode) \
                 or not root_node.root_tag_id \
-                or not isinstance(root_node.root_tag_id, IntType):
+                or not isinstance(root_node.root_tag_id, LongType):
             raise ObjectCubeException(
                 'Must give DimensionNode with valid root_tag_id')
 

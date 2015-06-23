@@ -18,17 +18,17 @@ class TestTagService(ObjectCubeTestCase):
                          value=None, description=None,
                          mutable=None, type=None,
                          plugin=None, concept=None):
-        """
+        '''
         Helper function for creating test tags in tests.
         :param value: Value for the tag being created
         :return: Tag instance that can be added to data store.
-        """
+        '''
         return Tag(**{
             'id': None if id is None else id,
-            'value': '' if value is None else value,
-            'description': '' if description is None else description,
+            'value': u'' if value is None else value,
+            'description': u'' if description is None else description,
             'mutable': False if mutable is None else mutable,
-            'type': 0 if type is None else type,
+            'type': 0L if type is None else type,
             'concept_id': None if concept is None else concept.id,
             'plugin_id': None if plugin is None else plugin.id,
         })
@@ -37,15 +37,15 @@ class TestTagService(ObjectCubeTestCase):
                        values, description=None,
                        mutable=None, type=None,
                        plugin=None, concept=None):
-        """
+        '''
         Helper function for creating db tags in tests.
         :param values: Values for the tags to be added.
         :return: Tags added to data store.
-        """
+        '''
         tags = []
         shuffle(values)
         for value in values:
-            tag = self._create_test_tag(value=str(value),
+            tag = self._create_test_tag(value=unicode(value),
                                         description=description,
                                         type=type, mutable=mutable,
                                         plugin=plugin, concept=concept)
@@ -54,49 +54,49 @@ class TestTagService(ObjectCubeTestCase):
         return tags
 
     def _tags_to_id_set(self, tags):
-        """
+        '''
         Helper to create id sets from tag list for testing union, intersect, etc.
         :param tags: List of tags to create id set from
         :return set containing the ids of the input tags
-        """
+        '''
         return set(map(lambda t: t.id, tags))
 
     def test_tag_count_returns_number(self):
         val = self.tag_service.count()
         self.assertTrue(isinstance(val, (int, long)),
-                        msg='The count function should return a integer')
+                        msg=u'The count function should return a integer')
 
     def test_tag_count_return_zero_when_database_is_empty(self):
         self.assertTrue(self.tag_service.count() == 0,
-                        msg='When no tags have been added to data storage, '
+                        msg=u'When no tags have been added to data storage, '
                             'then the count function should '
                             'return the value zero.')
 
     def test_tag_retrieve_returns_list(self):
         self.assertTrue(isinstance(self.tag_service.retrieve(), list),
-                        msg='The return value from retrieve should be of '
+                        msg=u'The return value from retrieve should be of '
                             'type list')
 
     def test_tag_retrieve_returns_empty_list(self):
         tags = self.tag_service.retrieve()
         self.assertTrue(len(tags) == 0,
-                        msg='When no tags are in data store then count '
+                        msg=u'When no tags are in data store then count '
                             'should return empty list')
 
     def test_tag_retrieve_offset_limit(self):
         number_of_tags = 43
-        max_fetch = 10
+        max_fetch = 10L
         expected_id_set = self._tags_to_id_set(
             self._add_test_tags(range(number_of_tags)))
         self.assertEquals(number_of_tags, len(expected_id_set))
 
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             tags = self.tag_service.retrieve(offset=offset, limit=max_fetch)
             retrieved_id_set = self._tags_to_id_set(tags)
             self.assertTrue(all_retrieved_set.isdisjoint(retrieved_id_set),
-                            msg='ids overlap with previously retrieved tags'
+                            msg=u'ids overlap with previously retrieved tags'
                             ' when there should be no overlap')
             all_retrieved_set.update(retrieved_id_set)
             if len(tags) != max_fetch:
@@ -107,18 +107,18 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_tag_retrieve_by_id_limit_same_as_count(self):
         number_of_tags = 43
-        max_fetch = 43
+        max_fetch = 43L
         expected_id_set = self._tags_to_id_set(
             self._add_test_tags(range(number_of_tags)))
         self.assertEquals(number_of_tags, len(expected_id_set))
 
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             tags = self.tag_service.retrieve(offset=offset, limit=max_fetch)
             retrieved_id_set = self._tags_to_id_set(tags)
             self.assertTrue(all_retrieved_set.isdisjoint(retrieved_id_set),
-                            msg='ids overlap with previously retrieved tags'
+                            msg=u'ids overlap with previously retrieved tags'
                             ' when there should be no overlap')
             all_retrieved_set.update(retrieved_id_set)
             if len(tags) != max_fetch:
@@ -130,16 +130,16 @@ class TestTagService(ObjectCubeTestCase):
     def test_tag_fetch_tag_outside_offset_return_empty_list(self):
         number_of_tags = 20
         for i in range(number_of_tags):
-            self.tag_service.add(self._create_test_tag(value=str(i)))
+            self.tag_service.add(self._create_test_tag(value=unicode(i)))
 
         tags = self.tag_service.retrieve(offset=100)
         self.assertTrue(len(tags) == 0,
-                        msg='When selected offset which is outside of the '
+                        msg=u'When selected offset which is outside of the '
                             'data set, then we will get an empty list')
 
     def test_tag_add_raises_exception_if_has_id(self):
         t = self._create_test_tag()
-        t.id = 12
+        t.id = 12L
         with self.assertRaises(ObjectCubeException):
             self.tag_service.add(t)
 
@@ -161,9 +161,9 @@ class TestTagService(ObjectCubeTestCase):
         self.assertEquals(self.tag_service.count(), 1)
 
     def test_tag_add_duplicate_increases_count(self):
-        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.tag_service.add(self._create_test_tag(value=u'Bjorn'))
         self.assertEquals(self.tag_service.count(), 1)
-        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.tag_service.add(self._create_test_tag(value=u'Bjorn'))
         self.assertEquals(self.tag_service.count(), 2)
 
     def test_tag_add_raises_exception_with_illegal_tag_arguments(self):
@@ -201,97 +201,97 @@ class TestTagService(ObjectCubeTestCase):
 
         # Test tags with illegal TYPE
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=None))
+            self.tag_service.add(Tag(value=u'Valid tag', type=None))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=True))
+            self.tag_service.add(Tag(value=u'Valid tag', type=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=False))
+            self.tag_service.add(Tag(value=u'Valid tag', type=False))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type='0'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type='ID'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=u'ID'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=3.1415297))
+            self.tag_service.add(Tag(value=u'Valid tag', type=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=Tag()))
+            self.tag_service.add(Tag(value=u'Valid tag', type=Tag()))
 
         # Test tags with illegal DESCRIPTION
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, description=0))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, description=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, description=1))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, description=1))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, description=True))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, description=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, description=False))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, description=False))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, description=3.1415297))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, description=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, description=Tag()))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, description=Tag()))
 
         # Test tags with illegal MUTABLE
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, mutable=0))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, mutable=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, mutable=1))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, mutable=1))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, mutable='0'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, mutable=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, mutable='BJORN'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, mutable=u'BJORN'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, mutable=3.1415297))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, mutable=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, mutable=Tag()))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, mutable=Tag()))
 
         # Test tags with illegal CONCEPT_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id=True))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id='0'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id='BJORN'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=u'BJORN'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id=3.1415297))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id=Tag()))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=Tag()))
 
         # Test with non-existent CONCEPT_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id=0))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id=-12))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=-12))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, concept_id=2000101))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, concept_id=2000101))
 
         # Test tags with illegal PLUGIN_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id=True))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id='0'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id='BJORN'))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=u'BJORN'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id=3.1415297))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id=Tag()))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=Tag()))
 
         # Test with non-existent PLUGIN_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id=0))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id=-12))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=-12))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(value="Valid tag", type=1, plugin_id=2000101))
+            self.tag_service.add(Tag(value=u'Valid tag', type=1, plugin_id=2000101))
 
-        self.assertEquals(self.tag_service.count(), count, msg='Illegal tag was added')
+        self.assertEquals(self.tag_service.count(), count, msg=u'Illegal tag was added')
 
     def test_tag_retrieve_duplicate_returns_both(self):
         self.assertEquals(self.tag_service.count(), 0)
-        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.tag_service.add(self._create_test_tag(value=u'Bjorn'))
         self.assertEquals(self.tag_service.count(), 1)
-        self.tag_service.add(self._create_test_tag(value='Bjorn'))
+        self.tag_service.add(self._create_test_tag(value=u'Bjorn'))
         self.assertEquals(self.tag_service.count(), 2)
-        retrieved = self.tag_service.retrieve_by_value('Bjorn')
+        retrieved = self.tag_service.retrieve_by_value(u'Bjorn')
         self.assertEquals(len(retrieved), 2)
 
     def test_tag_retrieve_by_id_raises_exception_with_illegal_id_arguments(self):
@@ -305,13 +305,13 @@ class TestTagService(ObjectCubeTestCase):
             self.tag_service.retrieve_by_id(None)
 
     def test_tag_retrieve_by_id_returns_nothing_with_non_existing_id_arguments(self):
-        tag = self.tag_service.retrieve_by_id(-1)
+        tag = self.tag_service.retrieve_by_id(-1L)
         self.assertEquals(tag, None, 'Tag returned where none should exist')
 
-        tag = self.tag_service.retrieve_by_id(0)
+        tag = self.tag_service.retrieve_by_id(0L)
         self.assertEquals(tag, None, 'Tag returned where none should exist')
 
-        tag = self.tag_service.retrieve_by_id(10000)
+        tag = self.tag_service.retrieve_by_id(10000L)
         self.assertEquals(tag, None, 'Tag returned where none should exist')
 
     def test_tag_retrieve_by_id(self):
@@ -321,30 +321,30 @@ class TestTagService(ObjectCubeTestCase):
         self.assertEquals(t_from_db, t_out)
 
     def test_tag_retrieve_by_value(self):
-        retrieved_before = self.tag_service.retrieve_by_value('42')
+        retrieved_before = self.tag_service.retrieve_by_value(u'42')
         self.assertEquals(len(retrieved_before), 0)
 
-        added_tags = self._add_test_tags(['41', '42', '42', '43'])
-        relevant_tags = filter(lambda t: t.value == '42', added_tags)
-        retrieve_after = self.tag_service.retrieve_by_value('42')
+        added_tags = self._add_test_tags([u'41', u'42', u'42', u'43'])
+        relevant_tags = filter(lambda t: t.value == u'42', added_tags)
+        retrieve_after = self.tag_service.retrieve_by_value(u'42')
         self.assertEquals(len(retrieve_after), 2)
         self.assertEquals(self._tags_to_id_set(relevant_tags),
                           self._tags_to_id_set(retrieve_after))
 
-        low = self.tag_service.retrieve_by_value('42', 0, 1)
-        high = self.tag_service.retrieve_by_value('42', 1, 1)
-        out_of_range = self.tag_service.retrieve_by_value('42', 2, 1)
+        low = self.tag_service.retrieve_by_value(u'42', 0, 1)
+        high = self.tag_service.retrieve_by_value(u'42', 1, 1)
+        out_of_range = self.tag_service.retrieve_by_value(u'42', 2, 1)
         self.assertEquals(self._tags_to_id_set(relevant_tags),
                           self._tags_to_id_set(low) |
                           self._tags_to_id_set(high))
         self.assertEquals(0, len(out_of_range))
 
     def test_tag_retrieve_by_plugin(self):
-        db_plugin = self.plugin_service.add(Plugin(name='test1_plugin',
-                                                   module='dummy1_plugin'))
+        db_plugin = self.plugin_service.add(Plugin(name=u'test1_plugin',
+                                                   module=u'dummy1_plugin'))
         self._add_test_tags(['41', '42', '42', '43'], plugin=db_plugin)
-        no_plugin = self.plugin_service.add(Plugin(name='test2_plugin',
-                                                   module='dummy2_plugin'))
+        no_plugin = self.plugin_service.add(Plugin(name=u'test2_plugin',
+                                                   module=u'dummy2_plugin'))
 
         db_plugin_set = self.tag_service.retrieve_by_plugin(db_plugin)
         self.assertEquals(len(db_plugin_set), self.tag_service.count())
@@ -364,8 +364,8 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_tag_retrieve_by_concept(self):
         db_concept = self.concept_service.add(
-            Concept(title='test_concept', description='test concept'))
-        db_plugin = self.plugin_service.add(Plugin(name='Plugin', module='Module'))
+            Concept(title=u'test_concept', description=u'test concept'))
+        db_plugin = self.plugin_service.add(Plugin(name=u'Plugin', module=u'Module'))
         db_tags = self._add_test_tags(values=['41', '42', '42', '43'], mutable=True)
 
         retrieved_before = self.tag_service.retrieve_by_concept(db_concept)
@@ -373,14 +373,14 @@ class TestTagService(ObjectCubeTestCase):
 
         # add tag with concept or/and assign concept to some of the tags
         tag_ids_with_concept = set()
-        new_tag = self._create_test_tag(value='new_concept_tag', concept=db_concept)
+        new_tag = self._create_test_tag(value=u'new_concept_tag', concept=db_concept)
         tag_ids_with_concept.add(self.tag_service.add(new_tag).id)
 
         db_tags[0].concept_id = db_concept.id
         tag_ids_with_concept.add(self.tag_service.update(db_tags[0]).id)
 
         # by creating with retrieve_or_create..
-        add_or_create_tag = self._create_test_tag(value='non_existing_concept_tag',
+        add_or_create_tag = self._create_test_tag(value=u'non_existing_concept_tag',
                                                   concept=db_concept, plugin=db_plugin)
         tag_ids_with_concept.add(
             self.tag_service.retrieve_or_create(add_or_create_tag).id)
@@ -408,22 +408,22 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_tag_retrieve_returns_list(self):
         self.assertTrue(
-            isinstance(self.tag_service.retrieve_by_value('23f'), list))
+            isinstance(self.tag_service.retrieve_by_value(u'23f'), list))
 
     def test_tag_update(self):
-        db_tags = self._add_test_tags(values=['a', 'b', 'c'], mutable=True)
+        db_tags = self._add_test_tags(values=[u'a', u'b', u'c'], mutable=True)
 
         tag = db_tags[1]
-        tag.value = 'd'
-        tag.description = 'foobar'
+        tag.value = u'd'
+        tag.description = u'foobar'
 
         updated_tag = self.tag_service.update(tag)
-        self.assertEquals(updated_tag.value, 'd')
+        self.assertEquals(updated_tag.value, u'd')
         self.assertEquals(updated_tag, tag)
 
         db_tags2 = self.tag_service.retrieve()
-        db_tags2.sort(lambda a, b: a.id - b.id)
-        db_tags.sort(lambda a, b: a.id - b.id)
+        db_tags2.sort(lambda a, b: int(a.id) - int(b.id))
+        db_tags.sort(lambda a, b: int(a.id) - int(b.id))
         self.assertEquals(db_tags, db_tags2)
 
     def test_tag_update_raises_on_invalid_arguments(self):
@@ -459,104 +459,104 @@ class TestTagService(ObjectCubeTestCase):
 
         # Test tags with illegal TYPE
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=None))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=None))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=True))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=False))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=False))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type='0'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type='ID'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=u'ID'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=3.1415297))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=Tag()))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=Tag()))
 
         # Test tags with illegal DESCRIPTION
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, description=0))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, description=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, description=1))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, description=1))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, description=True))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, description=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, description=False))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, description=False))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, description=3.1415297))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, description=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, description=Tag()))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, description=Tag()))
 
         # Test tags with illegal MUTABLE
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, mutable=0))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, mutable=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, mutable=1))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, mutable=1))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, mutable='0'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, mutable=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, mutable='BJORN'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, mutable=u'BJORN'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, mutable=3.1415297))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, mutable=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, mutable=Tag()))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, mutable=Tag()))
 
         # Test tags with illegal CONCEPT_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id=True))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id='0'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id='BJORN'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=u'BJORN'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id=3.1415297))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id=Tag()))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=Tag()))
 
         # Test with non-existent CONCEPT_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id=0))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id=-12))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=-12))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, concept_id=2000101))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, concept_id=2000101))
 
         # Test tags with illegal PLUGIN_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id=True))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=True))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id='0'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=u'0'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id='BJORN'))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=u'BJORN'))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id=3.1415297))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=3.1415297))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id=Tag()))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=Tag()))
 
         # Test with non-existent PLUGIN_ID
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id=0))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=0))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id=-12))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=-12))
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.add(Tag(id=update_tag.id, value="Valid tag", type=1, plugin_id=2000101))
+            self.tag_service.add(Tag(id=update_tag.id, value=u'Valid tag', type=1, plugin_id=2000101))
 
-        self.assertEquals(self.tag_service.count(), count, msg='Illegal tag was added')
+        self.assertEquals(self.tag_service.count(), count, msg=u'Illegal tag was added')
 
         db_tags2 = self.tag_service.retrieve()
-        db_tags2.sort(lambda a, b: a.id - b.id)
-        db_tags.sort(lambda a, b: a.id - b.id)
-        self.assertEquals(db_tags, db_tags2, msg='Able to change some tag')
+        db_tags2.sort(lambda a, b: int(a.id) - int(b.id))
+        db_tags.sort(lambda a, b: int(a.id) - int(b.id))
+        self.assertEquals(db_tags, db_tags2, msg=u'Able to change some tag')
 
     def test_tag_delete(self):
-        db_tags = self._add_test_tags(['a', 'b', 'c'])
+        db_tags = self._add_test_tags([u'a', u'b', u'c'])
 
         victim = db_tags.pop(1)
         self.tag_service.delete(victim)
 
         db_tags2 = self.tag_service.retrieve()
-        db_tags2.sort(lambda a, b: a.id - b.id)
-        db_tags.sort(lambda a, b: a.id - b.id)
+        db_tags2.sort(lambda a, b: int(a.id) - int(b.id))
+        db_tags.sort(lambda a, b: int(a.id) - int(b.id))
         self.assertEquals(db_tags, db_tags2)
 
     def test_tag_delete_raises_on_invalid_arguments(self):
@@ -568,16 +568,16 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_tag_retrieve_or_create(self):
         db_concept = self.concept_service.add(
-            Concept(title='test_concept', description='test concept'))
-        db_plugin = self.plugin_service.add(Plugin(name='Plugin', module='Module'))
+            Concept(title=u'test_concept', description=u'test concept'))
+        db_plugin = self.plugin_service.add(Plugin(name=u'Plugin', module=u'Module'))
         db_tags = self._add_test_tags(values=['a', 'b', 'c'], concept=db_concept, plugin=db_plugin)
 
-        tag_c = self._create_test_tag(value='c', concept=db_concept, plugin=db_plugin)
+        tag_c = self._create_test_tag(value=u'c', concept=db_concept, plugin=db_plugin)
         db_tag_c = self.tag_service.retrieve_or_create(tag_c)
         db_tag_c2 = filter(lambda t: t.value == 'c', db_tags)[0]
         self.assertEquals(db_tag_c, db_tag_c2)
 
-        tag_d = self._create_test_tag(value='d', concept=db_concept, plugin=db_plugin)
+        tag_d = self._create_test_tag(value=u'd', concept=db_concept, plugin=db_plugin)
         db_tag_d = self.tag_service.retrieve_or_create(tag_d)
 
         db_tag_d2 = self.tag_service.retrieve_by_id(db_tag_d.id)
@@ -592,10 +592,10 @@ class TestTagService(ObjectCubeTestCase):
 
     def test_tag_retrieve_or_create_ambiguous_retrieval(self):
         db_concept = self.concept_service.add(
-            Concept(title='test_concept', description='test concept'))
-        db_plugin = self.plugin_service.add(Plugin(name='Plugin', module='Module'))
+            Concept(title=u'test_concept', description=u'test concept'))
+        db_plugin = self.plugin_service.add(Plugin(name=u'Plugin', module=u'Module'))
         db_tags = self._add_test_tags(values=['a', 'b', 'b', 'c'], concept=db_concept, plugin=db_plugin)
 
-        tag_b = self._create_test_tag(value='b', concept=db_concept, plugin=db_plugin)
+        tag_b = self._create_test_tag(value=u'b', concept=db_concept, plugin=db_plugin)
         with self.assertRaises(ObjectCubeException):
             db_tag_b = self.tag_service.retrieve_or_create(tag_b)

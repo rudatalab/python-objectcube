@@ -15,7 +15,7 @@ class TestTaggingService(ObjectCubeTestCase):
         self.object_service = get_service('ObjectService')
         self.tag_service = get_service('TagService')
 
-    def _create_test_object(self, _name='', _digest=''):
+    def _create_test_object(self, _name=u'', _digest=u''):
         return self.object_service.add(Object(id=None,
                                               name=_name,
                                               digest=_digest))
@@ -23,20 +23,20 @@ class TestTaggingService(ObjectCubeTestCase):
     def _create_test_objects(self, names):
         objects = []
         for name in names:
-            objects.append(self._create_test_object(name, 'DIGEST'))
+            objects.append(self._create_test_object(name, u'DIGEST'))
 
         self.assertEquals(len(names), len(objects))
         return objects
 
     def _create_objects(self):
-        return self._create_test_objects(['Fig', 'Img', 'Photo'])
+        return self._create_test_objects([u'Fig', u'Img', u'Photo'])
 
-    def _create_test_tag(self, _value='', _description=''):
+    def _create_test_tag(self, _value=u'', _description=u''):
         return self.tag_service.add(Tag(id=None,
                                         value=_value,
                                         description=_description,
                                         mutable=False,
-                                        type=0,
+                                        type=0L,
                                         concept_id=None,
                                         plugin_id=None))
 
@@ -45,13 +45,16 @@ class TestTaggingService(ObjectCubeTestCase):
         shuffle(values)
 
         for value in values:
-            tags.append(self._create_test_tag(value, 'DESCRIPTION'))
+            tags.append(self._create_test_tag(value, u'DESCRIPTION'))
 
         self.assertEquals(len(values), len(tags))
         return tags
 
     def _create_tags(self):
-        return self._create_test_tags(['People', 'Classmates', 'RU', 'Jack', 'Jill', 'MH', 'Bob', 'Alice', 'John'])
+        return self._create_test_tags([
+            u'People', u'Classmates', u'RU', u'Jack', u'Jill',
+            u'MH', u'Bob', u'Alice', u'John'
+        ])
 
     def _create_test_tagging(self, tag_id, object_id, meta, plugin_id, plugin_set_id):
         return self.tagging_service.add(tag_id,
@@ -65,7 +68,7 @@ class TestTaggingService(ObjectCubeTestCase):
         shuffle(meta_list)
 
         for meta in meta_list:
-            taggings.append(self._create_test_tagging(tag_id, object_id, str(meta), plugin_id, plugin_set_id))
+            taggings.append(self._create_test_tagging(tag_id, object_id, unicode(meta), plugin_id, plugin_set_id))
 
         self.assertEquals(len(meta_list), len(taggings))
         return taggings
@@ -86,14 +89,14 @@ class TestTaggingService(ObjectCubeTestCase):
         return set(map(lambda t: t.id, tags))
 
     def _set_up_db(self, number_of_taggings):
-        db_plugin = self.plugin_service.add(Plugin(name='Plugin', module='Description'))
+        db_plugin = self.plugin_service.add(Plugin(name=u'Plugin', module=u'Description'))
         db_tags = self._create_tags()
         db_objects = self._create_objects()
         db_taggings = self._create_taggings(db_tags[0],
                                             db_objects[0],
                                             number_of_taggings,
-                                            db_plugin.id, 1)
-        return (db_plugin, db_tags, db_objects, db_taggings)
+                                            db_plugin.id, 1L)
+        return db_plugin, db_tags, db_objects, db_taggings
 
     def test_tagging_add_increases_count(self):
         count = self.tagging_service.count()
@@ -109,7 +112,8 @@ class TestTaggingService(ObjectCubeTestCase):
 
     def test_tagging_add_illegal_tagging_fails(self):
         number_of_taggings = 1
-        (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
+        (db_plugin, db_tags, db_objects, db_taggings) = \
+            self._set_up_db(number_of_taggings)
         count = self.tagging_service.count()
 
         # Test tags with illegal ID
@@ -124,7 +128,8 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Test with non-existent tags
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(Tag(id=db_tags[0].id+10000), db_objects[0], meta=None)
+            self.tagging_service.add(Tag(id=db_tags[0].id+10000),
+                                     db_objects[0], meta=None)
 
         # Test objects with illegal ID
         with self.assertRaises(ObjectCubeException):
@@ -138,7 +143,9 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Test with non-existent objects
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], Object(id=db_objects[0].id+10000), meta=None)
+            self.tagging_service.add(db_tags[0],
+                                     Object(id=db_objects[0].id+10000),
+                                     meta=None)
 
         # Test objects with illegal meta
         with self.assertRaises(ObjectCubeException):
@@ -152,36 +159,46 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Test objects with illegal plugin
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=0)
+            self.tagging_service.add(db_tags[0], db_objects[0],
+                                     meta=None, plugin=0)
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=1)
+            self.tagging_service.add(db_tags[0], db_objects[0],
+                                     meta=None, plugin=1)
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=3.1415297)
+            self.tagging_service.add(db_tags[0], db_objects[0],
+                                     meta=None, plugin=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin='ID')
+            self.tagging_service.add(db_tags[0], db_objects[0],
+                                     meta=None, plugin='ID')
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=Plugin())
+            self.tagging_service.add(db_tags[0], db_objects[0],
+                                     meta=None, plugin=[])
 
         # Test with non-existent plugin
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], Object(id=db_objects[0].id), meta=None,
-                                     plugin=Plugin(id=db_plugin.id+1000))
+            self.tagging_service.add(db_tags[0], Object(id=db_objects[0].id),
+                                     meta=None,
+                                     plugin=Plugin(id=long(db_plugin.id+1000)))
 
         # Test objects with illegal plugin set id
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=None, plugin_set_id=3.1415297)
+            self.tagging_service.add(db_tags[0], db_objects[0], meta=None,
+                                     plugin=None, plugin_set_id=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=None, plugin_set_id='ID')
+            self.tagging_service.add(db_tags[0], db_objects[0], meta=None,
+                                     plugin=None, plugin_set_id='ID')
         with self.assertRaises(ObjectCubeException):
-            self.tagging_service.add(db_tags[0], db_objects[0], meta=None, plugin=None, plugin_set_id=db_tags[1])
+            self.tagging_service.add(db_tags[0], db_objects[0], meta=None,
+                                     plugin=None, plugin_set_id=db_tags[1])
 
-        self.assertEqual(count, self.tagging_service.count(), msg='Illegal taggings added')
+        self.assertEqual(count, self.tagging_service.count(),
+                         msg='Illegal taggings added')
 
     def test_retrieve_by_id_offset_limit(self):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -193,7 +210,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_tag_id(tag_id=db_tags[0].id,
@@ -222,7 +239,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_id_limit_same_as_count(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -235,7 +252,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_tag_id(tag_id=db_tags[0].id,
@@ -264,7 +281,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_id_non_existent_id_returns_no_results(self):
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -276,7 +293,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_tag_id(tag_id=db_tags[0].id+20000,
@@ -301,7 +318,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_id_wrong_id_returns_no_results(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -314,7 +331,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_tag_id(tag_id=db_tags[1].id,
@@ -339,7 +356,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_id_invalid_id_throws_exception(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -364,7 +381,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -376,7 +393,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_object_id(object_id=db_objects[0].id,
@@ -405,7 +422,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_object_id_limit_same_as_count(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -418,7 +435,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_object_id(object_id=db_objects[0].id,
@@ -447,7 +464,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_object_id_non_existent_id_returns_no_results(self):
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -459,7 +476,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_object_id(object_id=db_objects[0].id+20000,
@@ -484,7 +501,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_object_id_wrong_id_returns_no_results(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -497,7 +514,7 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
             tags = self.tagging_service.retrieve_by_object_id(object_id=db_objects[1].id,
@@ -522,7 +539,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_object_id_invalid_id_throws_exception(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -547,7 +564,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -559,10 +576,10 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id)),
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -588,7 +605,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_plugin_set_id_limit_same_as_count(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -601,10 +618,10 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id)),
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -630,7 +647,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_plugin_set_id_non_existent_id_returns_no_results(self):
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -642,10 +659,10 @@ class TestTaggingService(ObjectCubeTestCase):
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id))+200,
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id+200,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -667,7 +684,7 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_retrieve_by_plugin_set_id_invalid_id_throws_exception(self):
         # Initialize
         count = self.tagging_service.count()
-        number_of_taggings = 43
+        number_of_taggings = 43L
         max_fetch = number_of_taggings
 
         # Setup the DB with all taggings
@@ -692,7 +709,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -705,16 +722,16 @@ class TestTaggingService(ObjectCubeTestCase):
         # Resolve all the tags to the first one
         self.tagging_service.resolve(tag=db_tags[0],
                                      object=db_objects[0],
-                                     meta='NEW TAGGING',
+                                     meta=u'NEW TAGGING',
                                      plugin=db_plugin,
-                                     plugin_set_id=int(str(db_taggings[0].plugin_set_id)))
+                                     plugin_set_id=db_taggings[0].plugin_set_id)
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id)),
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -736,7 +753,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -752,14 +769,14 @@ class TestTaggingService(ObjectCubeTestCase):
                                          object=db_objects[0],
                                          meta='NEW TAGGING',
                                          plugin=db_plugin,
-                                         plugin_set_id=int(str(db_taggings[0].plugin_set_id)))
+                                         plugin_set_id=db_taggings[0].plugin_set_id)
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id)),
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -781,7 +798,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -794,16 +811,16 @@ class TestTaggingService(ObjectCubeTestCase):
         # Resolve all the tags from a non-existing plugin set to the first one
         self.tagging_service.resolve(tag=db_tags[0],
                                      object=db_objects[0],
-                                     meta='NEW TAGGING',
+                                     meta=u'NEW TAGGING',
                                      plugin=db_plugin,
-                                     plugin_set_id=int(str(db_taggings[0].plugin_set_id+100)))
+                                     plugin_set_id=db_taggings[0].plugin_set_id+100)
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id+100)),
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id+100,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -825,7 +842,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -839,19 +856,19 @@ class TestTaggingService(ObjectCubeTestCase):
         with self.assertRaises(ObjectCubeException):
             self.tagging_service.resolve(tag=db_tags[0],
                                          object=db_objects[0],
-                                         meta='NEW TAGGING',
+                                         meta=u'NEW TAGGING',
                                          plugin=db_plugin,
                                          plugin_set_id=3.1415297)
         with self.assertRaises(ObjectCubeException):
             self.tagging_service.resolve(tag=db_tags[0],
                                          object=db_objects[0],
-                                         meta='NEW TAGGING',
+                                         meta=u'NEW TAGGING',
                                          plugin=db_plugin,
                                          plugin_set_id='ID')
         with self.assertRaises(ObjectCubeException):
             self.tagging_service.resolve(tag=db_tags[0],
                                          object=db_objects[0],
-                                         meta='NEW TAGGING',
+                                         meta=u'NEW TAGGING',
                                          plugin=db_plugin,
                                          plugin_set_id=db_tags[1])
 
@@ -862,7 +879,7 @@ class TestTaggingService(ObjectCubeTestCase):
         # Initialize
         count = self.tagging_service.count()
         number_of_taggings = 43
-        max_fetch = 10
+        max_fetch = 10L
 
         # Setup the DB with all taggings
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
@@ -873,14 +890,14 @@ class TestTaggingService(ObjectCubeTestCase):
         self.assertEquals(number_of_taggings, self.tagging_service.count()-count)
 
         # Delete the plugin set
-        self.tagging_service.delete_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id)))
+        self.tagging_service.delete_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id)
 
         # Start retrieving
         all_retrieved_set = set()
-        offset = 0
+        offset = 0L
         while True:
             # Get the next max_fetch tags
-            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id)),
+            tags = self.tagging_service.retrieve_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id,
                                                            offset=offset,
                                                            limit=max_fetch)
 
@@ -904,7 +921,7 @@ class TestTaggingService(ObjectCubeTestCase):
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
 
         # Delete a non-existing set, nothing should happen
-        self.tagging_service.delete_by_set_id(plugin_set_id=int(str(db_taggings[0].plugin_set_id+10000)))
+        self.tagging_service.delete_by_set_id(plugin_set_id=db_taggings[0].plugin_set_id+10000)
 
         # Check outcome
         self.assertEquals(self.tagging_service.count(), number_of_taggings, msg='Plugin set should not have changed')
@@ -1014,7 +1031,8 @@ class TestTaggingService(ObjectCubeTestCase):
     def test_delete_illegal_tagging_fails(self):
         # Initialize
         number_of_taggings = 43
-        (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
+        (db_plugin, db_tags, db_objects, db_taggings) = \
+            self._set_up_db(number_of_taggings)
 
         # Look for invalid tags, should get errors
         with self.assertRaises(ObjectCubeException):
@@ -1024,15 +1042,17 @@ class TestTaggingService(ObjectCubeTestCase):
         with self.assertRaises(ObjectCubeException):
             self.tagging_service.delete(Tag(id=db_tags[0]))
 
-        self.assertEquals(self.tagging_service.count(), number_of_taggings, msg='Tagging set modified')
+        self.assertEquals(self.tagging_service.count(),
+                          number_of_taggings, msg='Tagging set modified')
 
     def test_update_works(self):
         # Initialize
         number_of_taggings = 43
-        (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
+        (db_plugin, db_tags, db_objects, db_taggings) = \
+            self._set_up_db(number_of_taggings)
 
         # Update a tag
-        meta = 'NEW META'
+        meta = u'NEW META'
         db_taggings[0].meta = meta
         tagging = self.tagging_service.update(db_taggings[0])
         self.assertEquals(tagging.meta, meta, msg='Update did not change meta')
@@ -1049,20 +1069,20 @@ class TestTaggingService(ObjectCubeTestCase):
         number_of_taggings = 43
         (db_plugin, db_tags, db_objects, db_taggings) = self._set_up_db(number_of_taggings)
 
-        db_taggings[0].meta = 0
         with self.assertRaises(ObjectCubeException):
+            db_taggings[0].meta = 0
             self.tagging_service.update(db_taggings[0])
 
-        db_taggings[0].meta = 1
         with self.assertRaises(ObjectCubeException):
+            db_taggings[0].meta = 1
             self.tagging_service.update(db_taggings[0])
 
-        db_taggings[0].meta = 3.1415297
         with self.assertRaises(ObjectCubeException):
+            db_taggings[0].meta = 3.1415297
             self.tagging_service.update(db_taggings[0])
 
-        db_taggings[0].meta = db_tags[0]
         with self.assertRaises(ObjectCubeException):
+            db_taggings[0].meta = db_tags[0]
             self.tagging_service.update(db_taggings[0])
 
         self.assertEquals(self.tagging_service.count(), number_of_taggings, msg='Tagging set incorrectly modified')

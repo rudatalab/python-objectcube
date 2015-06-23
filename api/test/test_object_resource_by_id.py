@@ -11,8 +11,8 @@ class TestAPIObjectResourceByID(APITest):
 
     def _create_test_object(self):
         data = {
-            'name': 'obj_name',
-            'digest': 'testdig'
+            'name': u'obj_name',
+            'digest': u'testdig'
         }
         res = self.post(self.base_url, data=data)
         self.assertEqual(res.status_code, 201)
@@ -25,8 +25,8 @@ class TestAPIObjectResourceByID(APITest):
         self._create_test_object()
         fetch = self.get(self.base_url + '/1')
         final = json.loads(fetch.data)
-        self.assertTrue(final.get('meta', False))
-        self.assertTrue(final.get('object', False))
+        self.assertTrue(final.get(u'meta', False))
+        self.assertTrue(final.get(u'object', False))
 
     def test_get_description_query_parameter_returns_description(self):
         res = self.get(self.base_url + '/1?description')
@@ -36,12 +36,12 @@ class TestAPIObjectResourceByID(APITest):
     def test_update_object_name_returns_updated_information(self):
         self._create_test_object()
         updated_data = {
-            'name': 'dummy'
+            'name': u'dummy'
         }
         edit = self.put(self.base_url + '/1', data=updated_data)
         final = json.loads(edit.data)
         self.assertEqual(edit.status_code, 200)
-        self.assertEqual(final.get('name'), 'dummy')
+        self.assertEqual(final.get('name'), u'dummy')
 
     def test_put_with_no_data_returns_400(self):
         res = self.put(self.base_url + '/1', data=None)
@@ -58,7 +58,7 @@ class TestAPIObjectResourceByID(APITest):
     def test_updating_object_by_id_that_doesnt_exist_returns_404(self):
         self._create_test_object()
         updated_data = {
-            'name': 'dummy'
+            'name': u'dummy'
         }
         edit = self.put(self.base_url + '/500', data=updated_data)
         self.assertEqual(edit.status_code, 404)

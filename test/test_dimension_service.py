@@ -10,7 +10,7 @@ class TestDimensionService(TestDatabaseAwareTest):
         self.tag_service = get_service('TagService')
         self.concept_service = get_service('ConceptService')
 
-    def _create_test_concept(self, title='', description=''):
+    def _create_test_concept(self, title=u'', description=u''):
         """
         Helper function for creating concepts in tests.
         :param: values for concept properties
@@ -25,10 +25,12 @@ class TestDimensionService(TestDatabaseAwareTest):
         :param: values for tag properties
         :return: A tag that has not been added to data store.
         """
-        self._create_test_concept(title='People', description='All people in the world')
-        self._create_test_concept(title='Object', description='All objects in the world')
+        self._create_test_concept(title=u'People',
+                                  description=u'All people in the world')
+        self._create_test_concept(title=u'Object',
+                                  description=u'All objects in the world')
 
-    def _create_test_tag(self, value='', description='DESC', concept_id=1):
+    def _create_test_tag(self, value=u'', description=u'DESC', concept_id=1L):
         """
         Helper function for creating db tags in tests.
         :param: values for tag properties
@@ -38,7 +40,7 @@ class TestDimensionService(TestDatabaseAwareTest):
                                         value=value,
                                         description=description,
                                         mutable=False,
-                                        type=0,
+                                        type=0L,
                                         concept_id=concept_id,
                                         plugin_id=None))
 
@@ -50,7 +52,8 @@ class TestDimensionService(TestDatabaseAwareTest):
         """
         tags = []
         for value in values:
-            tags.append(self._create_test_tag(value=value, concept_id=concept_id))
+            tags.append(self._create_test_tag(value=value,
+                                              concept_id=concept_id))
 
         self.assertEquals(len(values), len(tags))
         return tags
@@ -85,8 +88,10 @@ class TestDimensionService(TestDatabaseAwareTest):
         return True
 
     def _setup_large_dimension(self):
-        tags = self._create_test_tags(['People', 'Classmates', 'RU', 'Jack', 'Jill', 'MH', 'Bob', 'Alice', 'John'],
-                                      concept_id=1)
+        tags = self._create_test_tags([
+            u'People', u'Classmates', u'RU', u'Jack',
+            u'Jill', u'MH', u'Bob', u'Alice', u'John'],
+            concept_id=1L)
 
         root_node = self.dimension_service.add_dimension(tags[0])
         root_node = self.dimension_service.add_node(root_node, tags[0], tags[1])
@@ -99,17 +104,19 @@ class TestDimensionService(TestDatabaseAwareTest):
         root_node = self.dimension_service.add_node(root_node, tags[5], tags[7])
         self.assertEquals(self._count_nodes(root_node), len(tags),
                           msg='Not enough nodes in hierarchy')
-        self.assertEquals(self._count_nodes(root_node), self._count_nodes_recursive(root_node),
+        self.assertEquals(self._count_nodes(root_node),
+                          self._count_nodes_recursive(root_node),
                           msg='Node count methods disagree')
 
     def _setup_small_dimension(self):
-        tags = self._create_test_tags(['Bill', 'RU'], concept_id=2)
+        tags = self._create_test_tags([u'Bill', u'RU'], concept_id=2L)
 
         root_node = self.dimension_service.add_dimension(tags[1])
         root_node = self.dimension_service.add_node(root_node, tags[1], tags[0])
         self.assertEquals(self._count_nodes(root_node), len(tags),
                           msg='Not enough nodes in hierarchy')
-        self.assertEquals(self._count_nodes(root_node), self._count_nodes_recursive(root_node),
+        self.assertEquals(self._count_nodes(root_node),
+                          self._count_nodes_recursive(root_node),
                           msg='Node count methods disagree')
 
     def test_dimension_many_tags(self):
@@ -119,11 +126,12 @@ class TestDimensionService(TestDatabaseAwareTest):
         roots = self.dimension_service.retrieve_dimension_roots()
         self.assertEquals(len(roots), 1, msg='Wrong number of roots')
 
-        tags = self.tag_service.retrieve_by_value('Jack')
+        tags = self.tag_service.retrieve_by_value(u'Jack')
         self.assertEquals(len(tags), 1, msg='Tags')
 
         roots = self.dimension_service.retrieve_dimension_roots_by_tag(tags[0])
-        self.assertEquals(len(roots), 1, msg='Wrong number of roots attached to Jack')
+        self.assertEquals(len(roots), 1,
+                          msg='Wrong number of roots attached to Jack')
 
     def test_dimension_few_tags(self):
         self._create_test_concepts()
@@ -131,20 +139,25 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_large_dimension()
 
         roots = self.dimension_service.retrieve_dimension_roots()
-        self.assertEquals(len(roots), 2, msg='Wrong number of roots')
-        tags = self.tag_service.retrieve_by_value('Jack')
-        self.assertEquals(len(tags), 1, msg='Wrong number of tags')
+        self.assertEquals(len(roots), 2,
+                          msg='Wrong number of roots')
+        tags = self.tag_service.retrieve_by_value(u'Jack')
+        self.assertEquals(len(tags), 1,
+                          msg='Wrong number of tags')
 
         # Delete the large dimension
         roots = self.dimension_service.retrieve_dimension_roots_by_tag(tags[0])
         self.dimension_service.delete(roots[0])
 
         roots = self.dimension_service.retrieve_dimension_roots()
-        self.assertEquals(len(roots), 1, msg='Wrong number of roots after delete')
-        tags = self.tag_service.retrieve_by_value('Jack')
-        self.assertEquals(len(tags), 1, msg='Tags')
+        self.assertEquals(len(roots), 1,
+                          msg='Wrong number of roots after delete')
+        tags = self.tag_service.retrieve_by_value(u'Jack')
+        self.assertEquals(len(tags), 1,
+                          msg='Tags')
         roots = self.dimension_service.retrieve_dimension_roots_by_tag(tags[0])
-        self.assertEquals(len(roots), 0, msg='Wrong number of roots attached to Jack after delete')
+        self.assertEquals(len(roots), 0,
+                          msg='Wrong nr roots attached to Jack after delete')
 
     def test_two_dimensions(self):
         self._create_test_concepts()
@@ -153,10 +166,11 @@ class TestDimensionService(TestDatabaseAwareTest):
 
         roots = self.dimension_service.retrieve_dimension_roots()
         self.assertEquals(len(roots), 2, msg='Wrong number of roots')
-        tags = self.tag_service.retrieve_by_value('Jack')
+        tags = self.tag_service.retrieve_by_value(u'Jack')
         self.assertEquals(len(tags), 1, msg='Tags')
         roots = self.dimension_service.retrieve_dimension_roots_by_tag(tags[0])
         self.assertEquals(len(roots), 1, msg='Wrong number of roots')
+
 
     def test_dimensions_initial_count_zero(self):
         self.assertEquals(self.dimension_service.count(), 0,
@@ -164,7 +178,7 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def test_dimensions_count_correct(self):
         self._create_test_concepts()
-        tag = self._create_test_tag(value='Test')
+        tag = self._create_test_tag(value=u'Test')
         db_node = self.dimension_service.add_dimension(tag)
 
         self.assertEquals(self._count_nodes(db_node), 1,
@@ -172,7 +186,7 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def test_dimensions_equal_correct(self):
         self._create_test_concepts()
-        tag = self._create_test_tag(value='Test')
+        tag = self._create_test_tag(value=u'Test')
         db_node = self.dimension_service.add_dimension(tag)
         root1 = self.dimension_service.retrieve_dimension_by_root(db_node)
         root2 = self.dimension_service.retrieve_dimension_by_root(db_node)
@@ -181,14 +195,14 @@ class TestDimensionService(TestDatabaseAwareTest):
 
     def test_dimensions_add_dimension(self):
         self._create_test_concepts()
-        tag = self._create_test_tag('Test')
+        tag = self._create_test_tag(u'Test')
         db_node = self.dimension_service.add_dimension(tag)
         self.assertEquals(self.dimension_service.count(), 1,
                           msg='Dimension has not been added')
 
     def test_dimensions_delete_dimension(self):
         self._create_test_concepts()
-        tag = self._create_test_tag('Test')
+        tag = self._create_test_tag(u'Test')
         db_node = self.dimension_service.add_dimension(tag)
         self.dimension_service.delete(db_node)
         self.assertEquals(self.dimension_service.count(), 0,
@@ -214,13 +228,13 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_large_dimension()
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(id=-1))
+            self.dimension_service.add_dimension(Tag(id=-1L))
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(id=42))
+            self.dimension_service.add_dimension(Tag(id=42L))
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_dimension(Tag(id=30, value='Bjorn', description='Bjorn in his might'))
+            self.dimension_service.add_dimension(Tag(id=30L, value=u'Bjorn', description=u'Bjorn in his might'))
 
     def test_dimension_add_node_raises_exception_with_illegal_tags(self):
         self._create_test_concepts()
@@ -241,13 +255,13 @@ class TestDimensionService(TestDatabaseAwareTest):
             self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), None)
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(description='Bjorn'))
+            self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(description=u'Bjorn'))
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(value='Bjorn'))
+            self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(value=u'Bjorn'))
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(id='Bjorn'))
+            self.dimension_service.add_node(roots[0], Tag(id=roots[0].root_tag_id), Tag(id=u'Bjorn'))
 
     def test_dimension_add_node_raises_database_exception_with_unknown_tags(self):
         self._create_test_concepts()
@@ -296,15 +310,15 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_small_dimension()
         self._setup_large_dimension()
 
-        tag = Tag(id=-1)
+        tag = Tag(id=-1L)
         self.assertEquals(len(self.dimension_service.retrieve_dimension_roots_by_tag(tag)), 0,
                               msg='Should return no roots for unknown tags')
 
-        tag = Tag(id=42)
+        tag = Tag(id=42L)
         self.assertEquals(len(self.dimension_service.retrieve_dimension_roots_by_tag(tag)), 0,
                               msg='Should return no roots for unknown tags')
 
-        tag = Tag(id=30, value='Bjorn', description='Bjorn in his might')
+        tag = Tag(id=30L, value=u'Bjorn', description=u'Bjorn in his might')
         self.assertEquals(len(self.dimension_service.retrieve_dimension_roots_by_tag(tag)), 0,
                               msg='Should return no roots for unknown tags')
 
@@ -334,10 +348,10 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_small_dimension()
         self._setup_large_dimension()
 
-        self.assertIsNone(self.dimension_service.retrieve_dimension_by_root(DimensionNode(root_tag_id=-1)),
+        self.assertIsNone(self.dimension_service.retrieve_dimension_by_root(DimensionNode(root_tag_id=-1L)),
                           msg='Should return None for unknown tags')
 
-        self.assertIsNone(self.dimension_service.retrieve_dimension_by_root(DimensionNode(root_tag_id=42)),
+        self.assertIsNone(self.dimension_service.retrieve_dimension_by_root(DimensionNode(root_tag_id=42L)),
                           msg='Should return None for unknown tags')
 
     def test_dimension_delete_raises_exception_with_illegal_roots(self):

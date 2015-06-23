@@ -8,6 +8,7 @@ from psycopg2.extras import NamedTupleCursor
 from objectcube.contexts import Connection
 from objectcube.exceptions import ObjectCubeException
 
+
 logger = logging.getLogger('db-utils')
 
 
