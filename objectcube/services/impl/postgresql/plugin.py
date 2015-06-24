@@ -1,7 +1,7 @@
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.services.base import BasePluginService
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import Plugin
+from objectcube.data_objects import Plugin
 from types import UnicodeType, LongType
 from logging import getLogger
 
@@ -22,10 +22,6 @@ class PluginService(BasePluginService):
 
         if not isinstance(plugin, Plugin):
             raise ObjectCubeException('Function requires valid plugin')
-        if not plugin.name:
-            raise ObjectCubeException('Function requires valid name')
-        if not plugin.module:
-            raise ObjectCubeException('Function requires valid module')
         if plugin.id:
             raise ObjectCubeException('Function must not get id')
 
@@ -62,7 +58,7 @@ class PluginService(BasePluginService):
 
     def retrieve(self, offset=0L, limit=10L):
         self.logger.debug('retrieve(): %s / %s',
-                     repr(offset), repr(limit))
+                          repr(offset), repr(limit))
 
         if not isinstance(offset, LongType):
             raise ObjectCubeException('Function requires valid offset')

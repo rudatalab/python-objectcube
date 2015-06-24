@@ -1,6 +1,6 @@
 from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import Plugin, Tag
+from objectcube.data_objects import Plugin, Tag
 from base import ObjectCubeTestCase
 from types import LongType
 from random import shuffle
