@@ -82,13 +82,13 @@ class TestObjectService(ObjectCubeTestCase):
             self.object_service.add(Object())
 
         with self.assertRaises(ObjectCubeException):
-            self.object_service.add(Object(id=0,
+            self.object_service.add(Object(id=0L,
                                            name=u'Name', digest=u'Desc'))
         with self.assertRaises(ObjectCubeException):
-            self.object_service.add(Object(id=1,
+            self.object_service.add(Object(id=1L,
                                            name=u'Name', digest=u'Desc'))
         with self.assertRaises(ObjectCubeException):
-            self.object_service.add(Object(id=-1,
+            self.object_service.add(Object(id=-1L,
                                            name=u'Name', digest=u'Desc'))
         with self.assertRaises(ObjectCubeException):
             self.object_service.add(Object(id='ID',
@@ -272,7 +272,7 @@ class TestObjectService(ObjectCubeTestCase):
             self.object_service.delete(o)
 
     def test_object_delete_raises_if_deleted_object_does_not_exist(self):
-        o = Object(name=u'test.jpg', digest=u'12345', id_=1337)
+        o = Object(name=u'test.jpg', digest=u'12345', id_=1337L)
         with self.assertRaises(ObjectCubeException):
             self.object_service.delete(o)
 
@@ -293,7 +293,7 @@ class TestObjectService(ObjectCubeTestCase):
 
     def test_object_delete_by_id_raises_if_object_does_not_exist(self):
         with self.assertRaises(ObjectCubeException):
-            self.object_service.update(1234L)
+            self.object_service.delete_by_id(id_=1234L)
 
     def test_object_delete_by_id_returns_none_if_object_does_exist(self):
         o = self.object_service.add(Object(name=u'test.jpg', digest=u'12345'))
