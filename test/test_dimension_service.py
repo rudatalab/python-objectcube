@@ -1,7 +1,7 @@
 from base import TestDatabaseAwareTest
 from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException, ObjectCubeException
-from objectcube.vo import Tag, DimensionNode, Concept
+from objectcube.data_objects import Tag, DimensionNode, Concept
 
 class TestDimensionService(TestDatabaseAwareTest):
     def __init__(self, *args, **kwargs):

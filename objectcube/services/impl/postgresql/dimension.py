@@ -2,7 +2,7 @@ from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from types import LongType, UnicodeType
 from objectcube.services.base import BaseDimensionService
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import (Tag, DimensionNode)
+from objectcube.data_objects import Tag, DimensionNode
 
 import logging
 logger = logging.getLogger('postgreSQL: DimensionService')

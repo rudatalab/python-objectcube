@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from flask.ext import restful
 from flask import request
-from objectcube.vo import Object
+from objectcube.data_objects import Object
 from objectcube.utils import md5_from_value
 from objectcube.factory import get_service
 from meta import api_metable

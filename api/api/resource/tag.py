@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from flask.ext import restful
 from flask import request
-from objectcube.vo import Tag
+from objectcube.data_objects import Tag
 from objectcube.factory import get_service
 from meta import api_metable
 

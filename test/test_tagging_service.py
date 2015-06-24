@@ -1,7 +1,7 @@
 from random import shuffle
 
 from base import ObjectCubeTestCase
-from objectcube.vo import Object, Tag, Tagging, Plugin
+from objectcube.data_objects import Object, Tag, Tagging, Plugin
 from objectcube.exceptions import ObjectCubeException, ObjectCubeException
 from objectcube.factory import get_service
 

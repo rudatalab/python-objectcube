@@ -259,7 +259,7 @@ class TestObjectService(ObjectCubeTestCase):
 
         self.assertEqual(expected_id_set, fetched_id_set)
 
-    def test_object_delete_raises_if_object_is_not_vo_object(self):
+    def test_object_delete_raises_if_object_is_not_object(self):
         with self.assertRaises(ObjectCubeException):
             self.object_service.delete('something')
 

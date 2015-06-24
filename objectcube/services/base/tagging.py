@@ -1,5 +1,4 @@
 from service import Service
-from objectcube.vo import Plugin
 
 
 class BaseTaggingService(Service):
