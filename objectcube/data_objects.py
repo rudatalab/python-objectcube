@@ -6,14 +6,18 @@ class ObjectCubeClass(object):
     def __init__(self, **kwargs):
         self.data = {}
         for key, type_ in self.fields.items():
-            if isinstance(kwargs.get(key), type_):
-                self.data[key] = kwargs.get(key)
-            else:
+            # Type checking is only done on the specified fields
+            # of each class, allowing to set other fields to anything
+            # If a string is given, it must be non-empty
+            if not isinstance(kwargs.get(key), type_) \
+                    or (isinstance(kwargs.get(key), UnicodeType)
+                        and kwargs.get(key) == u''):
                 raise ObjectCubeException(
                     'Init invalid type: Class {}; Field {}; Value {}; '
                     'Desired Type {}; Given Type {}'
                     .format(self.__class__, key, kwargs.get(key),
                             type_, type(kwargs.get(key))))
+            self.data[key] = kwargs.get(key)
 
     def __getattr__(self, key):
         if key not in self.data:
