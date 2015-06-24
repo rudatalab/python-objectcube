@@ -10,8 +10,7 @@ class ObjectCubeClass(object):
             # of each class, allowing to set other fields to anything
             # If a string is given, it must be non-empty
             if not isinstance(kwargs.get(key), type_) \
-                    or (isinstance(kwargs.get(key), UnicodeType)
-                        and kwargs.get(key) == u''):
+                    or kwargs.get(key) == u'':
                 raise ObjectCubeException(
                     'Init invalid type: Class {}; Field {}; Value {}; '
                     'Desired Type {}; Given Type {}'
@@ -30,7 +29,8 @@ class ObjectCubeClass(object):
         super(ObjectCubeClass, self).__setattr__(key, value)
         # Type checking is only done on the specified fields
         # of each class to allow the statement self.data = {} in __init__
-        if key in self.fields and not isinstance(value, self.fields[key]):
+        if key in self.fields \
+                and (not isinstance(value, self.fields[key]) or value == u''):
             raise ObjectCubeException(
                 'Set invalid type: Class {}; Field {}; Value {};'
                 'Desired Type {}; Given Type {}'
@@ -93,7 +93,7 @@ class Tag(ObjectCubeClass):
               'value': UnicodeType,
               'description': UnicodeType,
               'mutable': BooleanType,
-              'type': (LongType, NoneType),
+              'type': LongType,
               'concept_id': (LongType, NoneType),
               'plugin_id': (LongType, NoneType)}
 
