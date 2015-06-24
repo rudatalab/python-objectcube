@@ -1,7 +1,7 @@
 from utils import *
 from objectcube.services.base import BaseTaggingService
 from objectcube.exceptions import ObjectCubeException
-from objectcube.vo import Object, Plugin, Tag, Tagging
+from objectcube.data_objects import Object, Plugin, Tag, Tagging
 from types import LongType, UnicodeType
 
 import logging

@@ -1,73 +1,48 @@
-from psycopg2.extras import NamedTupleCursor
-
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.services.base import BaseTagService
-from objectcube.vo import Concept, Plugin, Tag
+from objectcube.data_objects import Concept, Plugin, Tag
 from objectcube.exceptions import ObjectCubeException
 from types import LongType, BooleanType, UnicodeType
 
-import logging
-logger = logging.getLogger('postgreSQL: TagService')
-
+from logging import getLogger
 
 class TagService(BaseTagService):
+    def __init__(self):
+        super(TagService, self).__init__()
+        self.logger = getLogger('postgreSQL: TagService')
+
     def count(self):
-        logger.debug('count()')
+        self.logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count ' \
               'FROM TAGS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, tag):
-        logger.debug('add(): %s', repr(tag))
+        self.logger.debug('add(): %s', repr(tag))
 
         # Need to give a tag, but it cannot have an ID
-        if tag is None or not isinstance(tag, Tag):
-            raise ObjectCubeException('Must give a valid tag')
+        if not isinstance(tag, Tag):
+            raise ObjectCubeException('Function requires valid Tag')
+        if tag.id:
+            raise ObjectCubeException('Function must not get Tag id')
 
-        if tag.id is not None:
-            raise ObjectCubeException('Unable to to add tag that has id')
+        # Build the SQL expression, starting with required attributes
+        sql_attributes = 'VALUE, TYPE, MUTABLE'
+        sql_values = '%s, %s, %s'
+        params = (tag.value, tag.type, tag.mutable)
 
-        # NOT NULL attributes are VALUE and TYPE, need to check their existence and type
-        if tag.value is None or not isinstance(tag.value, UnicodeType):
-            raise ObjectCubeException('Must give a valid tag value')
-
-        if tag.type is None or not isinstance(tag.type, LongType):
-            raise ObjectCubeException('Must give a valid tag type')
-
-        # NULL attributes are DESCRIPTION, MUTABLE, CONCEPT_ID and PLUGIN_ID
-        # These may be None, but if they are set then they must have the correct type
-        #import pdb; pdb.set_trace()
-        if not tag.description is None and not isinstance(tag.description, UnicodeType):
-            raise ObjectCubeException('If given, description must be a string')
-        if not tag.mutable is None and not isinstance(tag.mutable, BooleanType):
-            raise ObjectCubeException('If given, mutable must be valid')
-        if not tag.concept_id is None and not isinstance(tag.concept_id, LongType):
-            raise ObjectCubeException('If given, concept_id must be valid')
-        if not tag.plugin_id is None and not isinstance(tag.plugin_id, LongType):
-            raise ObjectCubeException('If given, plugin_id must be an integer')
-
-        # Build the SQL expression, starting with NOT NULL attributes
-        sql_attributes = 'VALUE, TYPE'
-        sql_values = '%s, %s'
-        params = (tag.value, tag.type)
-
-        # Build the SQL expression, continuing with NULL attributes
-        if not tag.description is None:
+        # Build the SQL expression, continuing with optional attributes
+        if tag.description:
             sql_attributes += ', DESCRIPTION'
             sql_values += ',%s'
             params += (tag.description,)
 
-        if not tag.mutable is None:
-            sql_attributes += ', MUTABLE'
-            sql_values += ',%s'
-            params += (tag.mutable,)
-
-        if not tag.concept_id is None:
+        if tag.concept_id:
             sql_attributes += ', CONCEPT_ID'
             sql_values += ',%s'
             params += (tag.concept_id,)
 
-        if not tag.plugin_id is None:
+        if tag.plugin_id:
             sql_attributes += ', PLUGIN_ID'
             sql_values += ',%s'
             params += (tag.plugin_id,)
@@ -90,7 +65,7 @@ class TagService(BaseTagService):
         :param tag: Tag
         :return: Tag
         """
-        logger.debug('retrieve_or_create(): %s', repr(tag))
+        self.logger.debug('retrieve_or_create(): %s', repr(tag))
 
         # Need to give a tag, but cannot have ID
         if tag is None or not isinstance(tag, Tag):
@@ -151,7 +126,7 @@ class TagService(BaseTagService):
         :param tag: Tag
         :return: Tag
         """
-        logger.debug('update(): %s', repr(tag))
+        self.logger.debug('update(): %s', repr(tag))
 
         # Need to give a tag, must have ID
         if tag is None or not isinstance(tag, Tag):
@@ -214,7 +189,7 @@ class TagService(BaseTagService):
         return execute_sql_fetch_single(Tag, sql, params)
 
     def retrieve(self, offset=0, limit=10):
-        logger.debug('retrieve()')
+        self.logger.debug('retrieve()')
         sql = 'SELECT * ' \
               'FROM TAGS ' \
               'LIMIT %s OFFSET %s'
@@ -222,7 +197,7 @@ class TagService(BaseTagService):
         return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_value(self, value, offset=0, limit=10):
-        logger.debug('retrieve_by_value(): %s', repr(value))
+        self.logger.debug('retrieve_by_value(): %s', repr(value))
 
         if value is None or not isinstance(value, UnicodeType):
             raise ObjectCubeException('Must give string value')
@@ -235,7 +210,7 @@ class TagService(BaseTagService):
         return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_plugin(self, plugin, offset=0, limit=10):
-        logger.debug('retrieve_by_plugin(): %s', repr(plugin))
+        self.logger.debug('retrieve_by_plugin(): %s', repr(plugin))
 
         if plugin is None or not isinstance(plugin, Plugin) \
                 or plugin.id is None or not isinstance(plugin.id, LongType):
@@ -249,7 +224,7 @@ class TagService(BaseTagService):
         return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_concept(self, concept, offset=0, limit=10):
-        logger.debug('retrieve_by_concept(): %s', repr(concept))
+        self.logger.debug('retrieve_by_concept(): %s', repr(concept))
 
         if concept is None or not isinstance(concept, Concept) \
                 or concept.id is None or not isinstance(concept.id, LongType):
@@ -263,7 +238,7 @@ class TagService(BaseTagService):
         return execute_sql_fetch_multiple(Tag, sql, params)
 
     def retrieve_by_id(self, id):
-        logger.debug('retrieve_by_id(): %s', repr(id))
+        self.logger.debug('retrieve_by_id(): %s', repr(id))
 
         if id is None or not isinstance(id, LongType):
             raise ObjectCubeException('Id value must be number')
@@ -275,7 +250,7 @@ class TagService(BaseTagService):
         return execute_sql_fetch_single(Tag, sql, params)
 
     def delete(self, tag):
-        logger.debug('delete(): %s', repr(tag))
+        self.logger.debug('delete(): %s', repr(tag))
 
         if tag is None or not isinstance(tag, Tag) \
                 or tag.id is None or not isinstance(tag.id, LongType):
