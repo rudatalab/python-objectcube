@@ -2,8 +2,9 @@ from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
 from objectcube.vo import Plugin, Tag
 from base import ObjectCubeTestCase
-from types import IntType, LongType
+from types import LongType
 from random import shuffle
+
 
 class TestPluginService(ObjectCubeTestCase):
 
@@ -71,35 +72,35 @@ class TestPluginService(ObjectCubeTestCase):
                                                    module=u'Module'))
 
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   offset=-1)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   offset='0')
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   offset='ID')
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   offset=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   offset=Tag(id=0))
 
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   limit=-1)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   limit='0')
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   limit='ID')
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   limit=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=db_plugin.name,
+            self.plugin_service.retrieve_by_regex(name=db_plugin.name,
                                                   limit=Tag(id=0))
 
     def test_plugin_retrieve_by_name_raises_on_invalid_name(self):
@@ -148,9 +149,10 @@ class TestPluginService(ObjectCubeTestCase):
         db_plugins = self._create_plugins(number_of_plugins)
 
         offset = 0L
+        plugins = []
         while True:
             plugins = self.plugin_service.retrieve_by_regex(
-                regex=db_plugins[0].name,
+                name=db_plugins[0].name,
                 offset=offset, limit=max_fetch
             )
             if len(plugins) != max_fetch:
@@ -163,7 +165,7 @@ class TestPluginService(ObjectCubeTestCase):
         all_retrieved_set = set()
         offset = 0L
         while True:
-            plugins = self.plugin_service.retrieve_by_regex(regex=u'Plugin',
+            plugins = self.plugin_service.retrieve_by_regex(name=u'Plugin',
                                                             offset=offset,
                                                             limit=max_fetch)
             retrieved_id_set = set(map(lambda o: o.id, plugins))
@@ -179,7 +181,7 @@ class TestPluginService(ObjectCubeTestCase):
         offset = 0L
         while True:
             plugins = self.plugin_service.retrieve_by_regex(
-                regex=u'Unknown name',
+                name=u'Unknown name',
                 offset=offset, limit=max_fetch
             )
             if len(plugins) != max_fetch:
@@ -190,7 +192,7 @@ class TestPluginService(ObjectCubeTestCase):
 
     def test_plugin_retrieve_by_name(self):
         number_of_plugins = 43
-        db_plugins=self._create_plugins(number_of_plugins)
+        db_plugins = self._create_plugins(number_of_plugins)
         ids = range(0, number_of_plugins)
         shuffle(ids)
 
@@ -205,13 +207,13 @@ class TestPluginService(ObjectCubeTestCase):
 
     def test_plugin_retrieve_by_id(self):
         number_of_plugins = 25
-        db_plugins=self._create_plugins(number_of_plugins)
+        db_plugins = self._create_plugins(number_of_plugins)
         ids = range(0, number_of_plugins)
         shuffle(ids)
 
         for i in range(0, number_of_plugins):
-            db_plugin=self.plugin_service.retrieve_by_id(
-                id=db_plugins[ids[i]].id
+            db_plugin = self.plugin_service.retrieve_by_id(
+                id_=db_plugins[ids[i]].id
             )
             self.assertEquals(db_plugin, db_plugins[ids[i]])
             self.assertEquals(db_plugin.id, db_plugins[ids[i]].id)
@@ -224,24 +226,24 @@ class TestPluginService(ObjectCubeTestCase):
         self.plugin_service.add(Plugin(name=u'Plugin_1', module=u'Module'))
 
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_id(id='0')
+            self.plugin_service.retrieve_by_id(id_='0')
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_id(id='ID')
+            self.plugin_service.retrieve_by_id(id_='ID')
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_id(id=3.1415297)
+            self.plugin_service.retrieve_by_id(id_=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_id(id=Plugin(id=1))
+            self.plugin_service.retrieve_by_id(id_=Plugin(id=1))
 
     def test_plugin_retrieve_by_id_returns_nothing_for_non_existing_id(self):
         self.assertEquals(0, self.plugin_service.count(),
                           msg='Database is not empty in beginning')
         self.plugin_service.add(Plugin(name=u'Plugin_1', module=u'Module'))
 
-        self.assertEquals(self.plugin_service.retrieve_by_id(id=-1L), None,
+        self.assertEquals(self.plugin_service.retrieve_by_id(id_=-1L), None,
                           msg='Something found')
-        self.assertEquals(self.plugin_service.retrieve_by_id(id=0L), None,
+        self.assertEquals(self.plugin_service.retrieve_by_id(id_=0L), None,
                           msg='Something found')
-        self.assertEquals(self.plugin_service.retrieve_by_id(id=2000L), None,
+        self.assertEquals(self.plugin_service.retrieve_by_id(id_=2000L), None,
                           msg='Something found')
 
     def test_plugin_add_raises_on_invalid_input(self):
@@ -316,13 +318,12 @@ class TestPluginService(ObjectCubeTestCase):
                                                    module=u'Module'))
 
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=-1)
+            self.plugin_service.retrieve_by_regex(name=-1)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=0)
+            self.plugin_service.retrieve_by_regex(name=0)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=1)
+            self.plugin_service.retrieve_by_regex(name=1)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=3.1415297)
+            self.plugin_service.retrieve_by_regex(name=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.plugin_service.retrieve_by_regex(regex=Plugin(id=0))
-
+            self.plugin_service.retrieve_by_regex(name=Plugin(id=0))
