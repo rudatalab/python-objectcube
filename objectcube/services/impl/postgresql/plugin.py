@@ -22,7 +22,7 @@ class PluginService(BasePluginService):
 
         if not isinstance(plugin, Plugin):
             raise ObjectCubeException('Function requires valid plugin')
-        if plugin.id:
+        if plugin.id is not None:
             raise ObjectCubeException('Function must not get id')
 
         sql = 'INSERT ' \

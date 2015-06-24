@@ -22,7 +22,7 @@ class ConceptService(BaseConceptService):
 
         if not isinstance(concept, Concept):
             raise ObjectCubeException('Function requires valid concept')
-        if concept.id:
+        if concept.id is not None:
             raise ObjectCubeException('Function must not get id')
 
         sql = 'INSERT INTO ' \

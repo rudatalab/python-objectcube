@@ -22,7 +22,7 @@ class ObjectService(BaseObjectService):
 
         if not isinstance(object_, Object):
             raise ObjectCubeException('Function requires valid Object')
-        if object_.id:
+        if object_.id is not None:
             raise ObjectCubeException('Function must not get id')
 
         sql = 'INSERT ' \
