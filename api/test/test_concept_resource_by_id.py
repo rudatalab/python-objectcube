@@ -62,7 +62,7 @@ class TestAPIConceptResourceByID(APITest):
         res = self.put(self.base_url + '/1', data=updated_data)
         final = json.loads(res.data)
         self.assertTrue(final.get('title') == 'title2')
-        self.assertTrue(final.get('description') ==  'test desc')
+        self.assertTrue(final.get('description') == 'test desc')
 
     def test_update_with_new_description_returns_updated_concept(self):
         data = {'description': u'test desc', 'title': u'title1'}
