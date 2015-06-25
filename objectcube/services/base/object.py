@@ -1,5 +1,6 @@
 from service import Service
 
+
 class BaseObjectService(Service):
     def count(self):
         """
