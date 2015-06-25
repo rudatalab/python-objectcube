@@ -1,58 +1,48 @@
-from utils import *
+from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.services.base import BaseTaggingService
 from objectcube.exceptions import ObjectCubeException
-from objectcube.data_objects import Object, Plugin, Tag, Tagging
-from types import LongType, UnicodeType
+from objectcube.data_objects import Tagging
+from types import LongType
+from logging import getLogger
 
-import logging
-logger = logging.getLogger('postgreSQL: TaggingService')
 
 class TaggingService(BaseTaggingService):
+    def __init__(self):
+        super(TaggingService, self).__init__()
+        self.logger = getLogger('postgreSQL: TaggingService')
 
     def count(self):
-        logger.debug('count()')
+        self.logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count ' \
               'FROM TAGGINGS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
-    def add(self, tag, object_, meta, plugin=None, plugin_set_id=None):
-        logger.debug('add(): %s / %s / %s / %s / %s',
-                     repr(tag), repr(object_), repr(meta),
-                     repr(plugin), repr(plugin_set_id))
+    def add(self, tagging):
+        self.logger.debug('add(): %s ', repr(tagging))
 
-        if not isinstance(tag, Tag):
-            raise ObjectCubeException('Must give valid tag')
-        if not isinstance(object_, Object):
-            raise ObjectCubeException('Must give valid object')
-        if meta is not None \
-                and not isinstance(meta, unicode):
-            raise ObjectCubeException('If given, meta must be valid')
-        if plugin is not None \
-                and (not isinstance(plugin, Plugin)
-                     or not isinstance(plugin.id, LongType)):
-            raise ObjectCubeException('If given, plugin must be a valid Plugin')
-        if plugin_set_id is not None \
-                and not isinstance(plugin_set_id, LongType):
-            raise ObjectCubeException('If given, plugin_set_id must be valid')
+        if not isinstance(tagging, Tagging):
+            raise ObjectCubeException('Function requires valid tagging')
+        if tagging.id is not None:
+            raise ObjectCubeException('Function must not get Tagging id')
 
-        sql_attributes = 'OBJECT_ID, TAG_ID'
+        # Build the SQL expression, starting with required attributes
+        sql_attributes = 'TAG_ID, OBJECT_ID'
         sql_values = '%s, %s'
-        params = (object_.id, tag.id)
+        params = (tagging.tag_id, tagging.object_id)
 
-        if meta is not None:
+        # Build the SQL expression, continuing with optional attributes
+        if tagging.meta:
             sql_attributes += ', META'
-            sql_values += ',%s'
-            params += (meta,)
-
-        if plugin is not None:
+            sql_values += ', %s'
+            params += (tagging.meta,)
+        if tagging.plugin_id:
             sql_attributes += ', PLUGIN_ID'
             sql_values += ',%s'
-            params += (plugin.id,)
-
-        if plugin_set_id is not None:
+            params += (tagging.plugin_id,)
+        if tagging.plugin_set_id:
             sql_attributes += ', PLUGIN_SET_ID'
             sql_values += ',%s'
-            params += (plugin_set_id,)
+            params += (tagging.plugin_set_id,)
 
         sql = 'INSERT INTO TAGGINGS (' + \
               sql_attributes + \
@@ -61,68 +51,141 @@ class TaggingService(BaseTaggingService):
               ') RETURNING *'
         return execute_sql_fetch_single(Tagging, sql, params)
 
-    def delete_by_set_id(self, plugin_set_id):
-        logger.debug('delete_by_set_id(): %s', repr(plugin_set_id))
+    def update(self, tagging):
+        self.logger.debug('update(): %s', repr(tagging))
 
-        if plugin_set_id is None or not isinstance(plugin_set_id, LongType):
-            raise ObjectCubeException('Must give valid plugin_set_id')
+        if not isinstance(tagging, Tagging):
+            raise ObjectCubeException('Function requires valid tagging')
+        if not tagging.id:
+            raise ObjectCubeException('Function requires valid id')
+
+        if tagging.meta:
+            sql = 'UPDATE TAGGINGS ' \
+                  'SET META = %s ' \
+                  'WHERE ID = %s ' \
+                  'RETURNING *'
+            params = (tagging.meta, tagging.id)
+        else:
+            sql = 'UPDATE TAGGINGS ' \
+                  'SET META = NULL ' \
+                  'WHERE ID = %s ' \
+                  'RETURNING *'
+            params = (tagging.id,)
+        return execute_sql_fetch_single(Tagging, sql, params)
+
+    def resolve(self, tagging):
+        self.logger.debug('resolve(): %s', repr(tagging))
+
+        if not isinstance(tagging, Tagging):
+            raise ObjectCubeException('Function requires valid Tagging')
+        if not tagging.plugin_set_id:
+            raise ObjectCubeException('Function requires valid plugin set id')
+
+        # Either update or add, depending on
+        # whether this is a new tagging or an old one
+        if tagging.id:
+            db_tagging = self.update(tagging)
+        else:
+            db_tagging = self.add(tagging)
+
+        # Delete all the other ones in the set
+        sql = 'DELETE ' \
+              'FROM TAGGINGS ' \
+              'WHERE PLUGIN_SET_ID = %s ' \
+              '  AND NOT ID = %s ' \
+              'RETURNING *'
+        params = (db_tagging.plugin_set_id, db_tagging.id)
+        execute_sql_fetch_single(Tagging, sql, params)
+        return db_tagging
+
+    def delete(self, tagging):
+        self.logger.debug('delete(): %s', repr(tagging))
+
+        if not isinstance(tagging, Tagging):
+            raise ObjectCubeException('Function requires valid Tagging')
+        if not tagging.id:
+            raise ObjectCubeException('Function requires valid id')
+
+        sql = 'DELETE FROM TAGGINGS ' \
+              'WHERE ID = %s' \
+              'RETURNING *'
+        params = (tagging.id, )
+        db_tagging = execute_sql_fetch_single(Tagging, sql, params)
+
+        if not db_tagging:
+            raise ObjectCubeException('No Tagging found to delete')
+        return None
+
+    def delete_by_id(self, id_):
+        self.logger.debug('delete_by_id(): %s', repr(id_))
+
+        if not isinstance(id_, LongType):
+            raise ObjectCubeException('Function requires valid id')
+
+        sql = 'DELETE FROM TAGGINGS ' \
+              'WHERE ID = %s' \
+              'RETURNING *'
+        params = (id_, )
+        db_tagging = execute_sql_fetch_single(Tagging, sql, params)
+
+        if not db_tagging:
+            raise ObjectCubeException('No Tagging found to delete')
+        return None
+
+    def delete_by_set_id(self, plugin_set_id):
+        self.logger.debug('delete_by_set_id(): %s', repr(plugin_set_id))
+
+        if not isinstance(plugin_set_id, LongType):
+            raise ObjectCubeException('Function requires valid plugin set id')
 
         sql = 'DELETE ' \
               'FROM TAGGINGS ' \
               'WHERE PLUGIN_SET_ID = %s ' \
               'RETURNING *'
         params = (plugin_set_id, )
-        execute_sql_fetch_single(Tagging, sql, params)
+        db_tagging = execute_sql_fetch_single(Tagging, sql, params)
+
+        if not db_tagging:
+            raise ObjectCubeException('No Tagging found to delete')
         return None
 
-    def resolve(self, tag, object, meta, plugin, plugin_set_id):
-        logger.debug('resolve(): %s / %s / %s / %s / %s',
-                     repr(tag), repr(object), repr(meta), repr(plugin), repr(plugin_set_id))
+    def retrieve_by_id(self, id_):
+        self.logger.debug('retrieve_by_id(): %s', repr(id_))
 
-        if plugin_set_id is None or not isinstance(plugin_set_id, LongType):
-            raise ObjectCubeException('Must give valid plugin_set_id to merge')
-
-        tagging = self.add(tag, object, meta, plugin, plugin_set_id)
-        sql = 'DELETE ' \
-              'FROM TAGGINGS ' \
-              'WHERE PLUGIN_SET_ID = %s ' \
-              '  AND NOT ID = %s ' \
-              'RETURNING *'
-        params = (plugin_set_id, tagging.id)
-        execute_sql_fetch_single(Tagging, sql, params)
-        return tag
-
-    def delete(self, tagging):
-        logger.debug('delete(): %s', repr(tagging))
-
-        if tagging is None or not isinstance(tagging, Tagging) or \
-                tagging.id is None or not isinstance(tagging.id, LongType):
-            raise ObjectCubeException('Must give tagging with valid id')
-
-        sql = 'DELETE FROM TAGGINGS ' \
-              'WHERE ID = %s' \
-              'RETURNING *'
-        params = (tagging.id, )
-        execute_sql_fetch_single(Tagging, sql, params)
-        return None
-
-    def retrieve_by_id(self, tagging_id):
-        logger.debug('retrieve_by_id(): %s', repr(tagging_id))
-
-        if tagging_id is None or tagging_id <= 0 or not isinstance(tagging_id, LongType):
-            raise ObjectCubeException('Id value must be a positive number')
+        if not isinstance(id_, LongType):
+            raise ObjectCubeException('Function requires valid id')
 
         sql = 'SELECT * ' \
               'FROM TAGGINGS ' \
               'WHERE ID = %s'
-        params = (tagging_id,)
+        params = (id_,)
         return execute_sql_fetch_single(Tagging, sql, params)
 
-    def retrieve_by_tag_id(self, tag_id, offset=0, limit=10):
-        logger.debug('retrieve_by_tag_id(): %s', repr(tag_id))
+    def retrieve(self, offset=0L, limit=10L):
+        self.logger.debug('retrieve(): %s / %s',
+                          repr(offset), repr(limit))
 
-        if tag_id is None or not isinstance(tag_id, LongType):
-            raise ObjectCubeException('Must give valid tag id')
+        if not isinstance(offset, LongType):
+            raise ObjectCubeException('Function requires valid offset')
+        if not isinstance(limit, LongType):
+            raise ObjectCubeException('Function requires valid limit')
+
+        sql = 'SELECT * ' \
+              'FROM TAGGINGS ' \
+              'OFFSET %s LIMIT %s'
+        params = (offset, limit)
+        return execute_sql_fetch_multiple(Tagging, sql, params)
+
+    def retrieve_by_tag_id(self, tag_id, offset=0L, limit=10L):
+        self.logger.debug('retrieve_by_tag_id(): %s', repr(tag_id))
+
+        if not isinstance(tag_id, LongType):
+            raise ObjectCubeException('Function requires valid tag id')
+
+        if not isinstance(offset, LongType):
+            raise ObjectCubeException('Function requires valid offset')
+        if not isinstance(limit, LongType):
+            raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT * ' \
               'FROM TAGGINGS ' \
@@ -131,11 +194,16 @@ class TaggingService(BaseTaggingService):
         params = (tag_id, offset, limit)
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
-    def retrieve_by_object_id(self, object_id, offset=0, limit=10):
-        logger.debug('retrieve_by_object_id(): %s', repr(object_id))
+    def retrieve_by_object_id(self, object_id, offset=0L, limit=10L):
+        self.logger.debug('retrieve_by_object_id(): %s', repr(object_id))
 
-        if object_id is None or not isinstance(object_id, LongType):
-            raise ObjectCubeException('Must give valid object id')
+        if not isinstance(object_id, LongType):
+            raise ObjectCubeException('Function requires valid object id')
+
+        if not isinstance(offset, LongType):
+            raise ObjectCubeException('Function requires valid offset')
+        if not isinstance(limit, LongType):
+            raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT * ' \
               'FROM TAGGINGS ' \
@@ -144,11 +212,16 @@ class TaggingService(BaseTaggingService):
         params = (object_id, offset, limit)
         return execute_sql_fetch_multiple(Tagging, sql, params)
 
-    def retrieve_by_set_id(self, plugin_set_id, offset=0, limit=10):
-        logger.debug('retrieve_by_set_id(): %s', repr(plugin_set_id))
+    def retrieve_by_set_id(self, plugin_set_id, offset=0L, limit=10L):
+        self.logger.debug('retrieve_by_set_id(): %s', repr(plugin_set_id))
 
-        if not plugin_set_id or not isinstance(plugin_set_id, LongType):
-            raise ObjectCubeException('Must give valid plugin set id')
+        if not isinstance(plugin_set_id, LongType):
+            raise ObjectCubeException('Function requires valid plugin set id')
+
+        if not isinstance(offset, LongType):
+            raise ObjectCubeException('Function requires valid offset')
+        if not isinstance(limit, LongType):
+            raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT * ' \
               'FROM TAGGINGS ' \
@@ -156,27 +229,3 @@ class TaggingService(BaseTaggingService):
               'OFFSET %s LIMIT %s'
         params = (plugin_set_id, offset, limit)
         return execute_sql_fetch_multiple(Tagging, sql, params)
-
-    def update(self, tagging):
-        logger.debug('update(): %s', repr(tagging))
-
-        if tagging is None or not isinstance(tagging, Tagging):
-            raise ObjectCubeException('Must give valid tagging')
-        if tagging.id is None or not isinstance(tagging.id, LongType):
-            raise ObjectCubeException('Must give tagging with valid id')
-        if not tagging.meta is None and not isinstance(tagging.meta, UnicodeType):
-            raise ObjectCubeException('If given, meta must be valid string')
-
-        if tagging.meta is None:
-            sql = 'UPDATE TAGGINGS ' \
-                  'SET META = NULL ' \
-                  'WHERE ID = %s ' \
-                  'RETURNING *'
-            params = (tagging.id,)
-        else:
-            sql = 'UPDATE TAGGINGS ' \
-                  'SET META = %s ' \
-                  'WHERE ID = %s ' \
-                  'RETURNING *'
-            params = (tagging.meta, tagging.id)
-        return execute_sql_fetch_single(Tagging, sql, params)
