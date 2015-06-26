@@ -1,7 +1,7 @@
 from objectcube.factory import get_service
 from objectcube.exceptions import ObjectCubeException
 from objectcube.utils import md5_from_value
-from objectcube.data_objects import Object, Tag
+from objectcube.data_objects import Object, Tag, Tagging
 from base import ObjectCubeTestCase
 from types import IntType, LongType
 
@@ -211,18 +211,19 @@ class TestObjectService(ObjectCubeTestCase):
                           msg='When selected offset which is outside of the '
                           'data set, then we will get an empty list')
 
-    def test_object_retrieve_by_tag(self):
+    def test_object_retrieve_by_tag_id(self):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value=u'test-tag-1'))
 
         test_object = self._create_objects(num_objects=1)[0]
-        self.tagging_service.add(tag, test_object, None)
-        objects = self.object_service.retrieve_by_tag(tag)
+        tagging = Tagging(tag_id=tag.id, object_id=test_object.id)
+        self.tagging_service.add(tagging)
 
+        objects = self.object_service.retrieve_by_tag_id(tag.id)
         self.assertEquals(len(objects), 1)
         self.assertEquals(test_object, objects[0])
 
-    def test_object_retrieve_by_tag_multiple_objects_with_same_tag(self):
+    def test_object_retrieve_by_tag_id_multiple_objects_with_same_tag(self):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value=u'test-tag-1'))
 
@@ -234,9 +235,10 @@ class TestObjectService(ObjectCubeTestCase):
                                self._create_objects(num_objects=10,
                                                     name_prefix=u'bar')]
         for obj_with_tag in objects_with_tag:
-            self.tagging_service.add(tag, obj_with_tag, None)
+            tagging = Tagging(tag_id=tag.id, object_id=obj_with_tag.id)
+            self.tagging_service.add(tagging)
 
-        _fetched_objects = self.object_service.retrieve_by_tag(tag)
+        _fetched_objects = self.object_service.retrieve_by_tag_id(tag.id)
 
         expected_id_set = set(map(lambda o: o.id, objects_with_tag))
         fetched_id_set = set(map(lambda o: o.id, _fetched_objects))
@@ -247,12 +249,12 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertEqual(
             len(fetched_id_set.intersection(unexpected_id_set)), 0)
 
-    def test_object_retrieve_by_tag_zero_objects_with_same_tag(self):
+    def test_object_retrieve_by_tag_id_zero_objects_with_same_tag(self):
         tag_service = get_service('TagService')
         tag = tag_service.add(self._create_test_tag(value=u'test-tag-1'))
         self._create_objects(num_objects=10, name_prefix=u'bar')
 
-        fetched_objects = self.object_service.retrieve_by_tag(tag)
+        fetched_objects = self.object_service.retrieve_by_tag_id(tag.id)
 
         expected_id_set = set()
         fetched_id_set = set(map(lambda o: o.id, fetched_objects))
@@ -504,46 +506,44 @@ class TestObjectService(ObjectCubeTestCase):
             self.object_service.retrieve_by_regex(name=u'Test',
                                                   limit=Object(id=0))
 
-    def test_object_retrieve_by_tag_raises_on_invalid_limit_offset(self):
+    def test_object_retrieve_by_tag_id_raises_on_invalid_limit_offset(self):
         self.assertEquals(0, self.object_service.count(),
                           msg='Database is not empty in beginning')
         self.object_service.add(Object(name=u'Concept', digest=u'Desc'))
 
-        tag = self._create_test_tag(value=u'Test title',
-                                    description=u'Description')
-        tag.id = 1L
+        tag_id = 1L
 
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                offset=-1)
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   offset=-1)
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                offset='0')
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   offset='0')
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                offset='ID')
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   offset='ID')
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                offset=3.1415297)
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   offset=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                offset=Object(id=0))
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   offset=Object(id=0))
 
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                limit=-1)
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   limit=-1)
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                limit='0')
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   limit='0')
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                limit='ID')
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   limit='ID')
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                limit=3.1415297)
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   limit=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(tag,
-                                                limit=Object(id=0))
+            self.object_service.retrieve_by_tag_id(tag_id,
+                                                   limit=Object(id=0))
 
     def test_object_retrieve_by_regex_raises_on_invalid_name(self):
         with self.assertRaises(ObjectCubeException):
@@ -608,34 +608,34 @@ class TestObjectService(ObjectCubeTestCase):
         self.assertEquals(len(concepts), 0,
                           'Returned too many concepts-name should not exist')
 
-    def test_object_retrieve_by_tag_raises_with_illegal_tag_arguments(self):
+    def test_object_retrieve_by_tag_id_raises_with_illegal_tag_arguments(self):
         tag = self._create_test_tag(value=u'Test title',
                                     description=u'Description')
         tag.id = 1L
 
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag('1')
+            self.object_service.retrieve_by_tag_id('1')
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag('Bjorn')
+            self.object_service.retrieve_by_tag_id('Bjorn')
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(None)
+            self.object_service.retrieve_by_tag_id(None)
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(1)
+            self.object_service.retrieve_by_tag_id(1)
         with self.assertRaises(ObjectCubeException):
-            self.object_service.retrieve_by_tag(0)
+            self.object_service.retrieve_by_tag_id(0)
 
         with self.assertRaises(ObjectCubeException):
             tag.id = None
-            self.object_service.retrieve_by_tag(tag)
+            self.object_service.retrieve_by_tag_id(tag)
         with self.assertRaises(ObjectCubeException):
             tag.id = 'ID'
-            self.object_service.retrieve_by_tag(tag)
+            self.object_service.retrieve_by_tag_id(tag)
         with self.assertRaises(ObjectCubeException):
             tag.id = 3.1415297
-            self.object_service.retrieve_by_tag(tag)
+            self.object_service.retrieve_by_tag_id(tag)
         with self.assertRaises(ObjectCubeException):
             tag.id = []
-            self.object_service.retrieve_by_tag(tag)
+            self.object_service.retrieve_by_tag_id(tag)
 
     def test_update_updates_object_name(self):
         before_change_title = u'test-title'

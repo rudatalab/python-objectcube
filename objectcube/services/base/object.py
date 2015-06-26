@@ -69,7 +69,7 @@ class BaseObjectService(Service):
         """
         raise NotImplementedError()
 
-    def retrieve_by_tag(self, tag, offset=0L, limit=10L):
+    def retrieve_by_tag_id(self, tag_id, offset=0L, limit=10L):
         """
         Retrieves all objects tagged with a particular tag
         :param: tag: tag to match

@@ -132,13 +132,11 @@ class ObjectService(BaseObjectService):
         params = (name, offset, limit)
         return execute_sql_fetch_multiple(Object, sql, params)
 
-    def retrieve_by_tag(self, tag, offset=0L, limit=10L):
-        self.logger.debug('retrieve_by_tag(): %s / %s / %s',
-                          repr(tag), repr(offset), repr(limit))
+    def retrieve_by_tag_id(self, tag_id, offset=0L, limit=10L):
+        self.logger.debug('retrieve_by_tag_id(): %s / %s / %s',
+                          repr(tag_id), repr(offset), repr(limit))
 
-        if not isinstance(tag, Tag):
-            raise ObjectCubeException('Function requires valid Tag')
-        if not tag.id:
+        if not isinstance(tag_id, LongType):
             raise ObjectCubeException('Function requires valid Tag id')
 
         if not isinstance(offset, LongType):
@@ -150,5 +148,5 @@ class ObjectService(BaseObjectService):
               'FROM OBJECTS O JOIN TAGGINGS T ON O.ID = T.OBJECT_ID ' \
               'WHERE T.TAG_ID = %s ' \
               'OFFSET %s LIMIT %s'
-        params = (tag.id, offset, limit)
+        params = (tag_id, offset, limit)
         return execute_sql_fetch_multiple(Object, sql, params)
