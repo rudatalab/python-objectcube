@@ -30,8 +30,8 @@ class BaseTagService(Service):
     def retrieve_by_value(self, value, offset=0L, limit=10L):
         raise NotImplementedError()
 
-    def retrieve_by_plugin(self, plugin, offset=0L, limit=10L):
+    def retrieve_by_plugin_id(self, plugin_id, offset=0L, limit=10L):
         raise NotImplementedError()
 
-    def retrieve_by_concept(self, concept, offset=0L, limit=10L):
+    def retrieve_by_concept_id(self, concept_id, offset=0L, limit=10L):
         raise NotImplementedError()

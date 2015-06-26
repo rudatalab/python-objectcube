@@ -795,82 +795,78 @@ class TestTagService(ObjectCubeTestCase):
 
     # ==== retrieve_by_plugin()
 
-    def test_tag_retrieve_by_plugin(self):
+    def test_tag_retrieve_by_plugin_id(self):
         db_plugin = self.plugin_service.add(Plugin(name=u'test1_plugin',
                                                    module=u'dummy1_plugin'))
         self._add_test_tags(['41', '42', '42', '43'], plugin=db_plugin)
         no_plugin = self.plugin_service.add(Plugin(name=u'test2_plugin',
                                                    module=u'dummy2_plugin'))
 
-        db_plugin_set = self.tag_service.retrieve_by_plugin(db_plugin)
+        db_plugin_set = self.tag_service.retrieve_by_plugin_id(db_plugin.id)
         self.assertEquals(len(db_plugin_set), self.tag_service.count())
 
-        no_plugin_set = self.tag_service.retrieve_by_plugin(no_plugin)
+        no_plugin_set = self.tag_service.retrieve_by_plugin_id(no_plugin.id)
         self.assertEquals(len(no_plugin_set), 0)
 
-    def test_tag_retrieve_by_plugin_raises_on_invalid_arguments(self):
+    def test_tag_retrieve_by_plugin_id_raises_on_invalid_arguments(self):
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(None)
-
+            self.tag_service.retrieve_by_plugin_id(None)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(Plugin())
-
+            self.tag_service.retrieve_by_plugin_id(True)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(Concept(id=1))
+            self.tag_service.retrieve_by_plugin_id(False)
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin_id(0)
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin_id(1)
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin_id('ID')
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_plugin_id([])
 
-    def test_tag_retrieve_by_plugin_raises_on_invalid_limit_offset(self):
+    def test_tag_retrieve_by_plugin_id_raises_on_invalid_limit_offset(self):
         db_plugin = self.plugin_service.add(Plugin(name=u'test1_plugin',
                                                    module=u'dummy1_plugin'))
         self.assertEquals(0, self.tag_service.count(),
                           msg='Database is not empty in beginning')
         self._add_test_tags(range(7))
 
+        id = db_plugin.id
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                offset=-1)
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   offset=-1)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                offset='0')
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   offset='0')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                offset='ID')
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   offset='ID')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                offset=3.1415297)
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   offset=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                offset=[])
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   offset=[])
 
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                limit=-1)
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   limit=-1)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                limit='0')
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   limit='0')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                limit='ID')
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   limit='ID')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                limit=3.1415297)
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   limit=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin,
-                                                limit=[])
-
-    def test_tag_retrieve_by_plugin_raises_on_no_id(self):
-        self.assertEquals(0, self.tag_service.count(),
-                          msg='Database is not empty in beginning')
-        self._add_test_tags(range(7))
-        db_plugin = self.plugin_service.add(Plugin(name=u'test1_plugin',
-                                                   module=u'dummy1_plugin'))
-        db_plugin.id = None
-
-        with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_plugin(plugin=db_plugin)
+            self.tag_service.retrieve_by_plugin_id(plugin_id=id,
+                                                   limit=[])
 
     # ==== retrieve_by_concept()
 
-    def test_tag_retrieve_by_concept(self):
+    def test_tag_retrieve_by_concept_id(self):
         db_concept = self.concept_service.add(
             Concept(title=u'test_concept', description=u'test concept'))
         db_plugin = self.plugin_service.add(Plugin(name=u'Plugin',
@@ -878,7 +874,8 @@ class TestTagService(ObjectCubeTestCase):
         db_tags = self._add_test_tags(values=['41', '42', '42', '43'],
                                       mutable=True)
 
-        retrieved_before = self.tag_service.retrieve_by_concept(db_concept)
+        retrieved_before = self.tag_service.retrieve_by_concept_id(
+            db_concept.id)
         self.assertEquals(len(retrieved_before), 0)
 
         # add tag with concept or/and assign concept to some of the tags
@@ -897,69 +894,68 @@ class TestTagService(ObjectCubeTestCase):
         tag_ids_with_concept.add(
             self.tag_service.retrieve_or_create(add_or_create_tag).id)
 
-        retrieve_after = self.tag_service.retrieve_by_concept(db_concept)
+        retrieve_after = self.tag_service.retrieve_by_concept_id(
+            db_concept.id)
         self.assertEquals(
             self._tags_to_id_set(retrieve_after), tag_ids_with_concept)
 
-    def test_tag_retrieve_by_concept_raises_on_invalid_arguments(self):
+    def test_tag_retrieve_by_concept_id_raises_on_invalid_arguments(self):
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(None)
-
+            self.tag_service.retrieve_by_concept_id(None)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(Concept())
-
+            self.tag_service.retrieve_by_concept_id(True)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(Plugin(id=1))
+            self.tag_service.retrieve_by_concept_id(False)
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept_id(0)
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept_id(1)
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept_id('ID')
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept_id([])
+        with self.assertRaises(ObjectCubeException):
+            self.tag_service.retrieve_by_concept_id(3.1415297)
 
-    def test_tag_retrieve_by_concept_raises_on_invalid_limit_offset(self):
+    def test_tag_retrieve_by_concept_id_raises_on_invalid_limit_offset(self):
         db_concept = self.concept_service.add(Concept(
             title=u'Title', description=u'Desc'))
         self.assertEquals(0, self.tag_service.count(),
                           msg='Database is not empty in beginning')
         self._add_test_tags(range(7))
 
+        id = db_concept.id
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 offset=-1)
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    offset=-1)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 offset='0')
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    offset='0')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 offset='ID')
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    offset='ID')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 offset=3.1415297)
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    offset=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 offset=[])
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    offset=[])
 
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 limit=-1)
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    limit=-1)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 limit='0')
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    limit='0')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 limit='ID')
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    limit='ID')
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 limit=3.1415297)
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    limit=3.1415297)
         with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept,
-                                                 limit=[])
-
-    def test_tag_retrieve_by_concept_raises_on_no_id(self):
-        self.assertEquals(0, self.tag_service.count(),
-                          msg='Database is not empty in beginning')
-        self._add_test_tags(range(7))
-        db_concept = self.concept_service.add(Concept(
-            title=u'Title', description=u'Desc'))
-        db_concept.id = None
-
-        with self.assertRaises(ObjectCubeException):
-            self.tag_service.retrieve_by_concept(concept=db_concept)
+            self.tag_service.retrieve_by_concept_id(concept_id=id,
+                                                    limit=[])
 
     # ==== retrieve_by_value()
 

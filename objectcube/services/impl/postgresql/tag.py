@@ -256,12 +256,10 @@ class TagService(BaseTagService):
             params = (description, offset, limit)
         return execute_sql_fetch_multiple(Tag, sql, params)
 
-    def retrieve_by_plugin(self, plugin, offset=0L, limit=10L):
-        self.logger.debug('retrieve_by_plugin(): %s', repr(plugin))
+    def retrieve_by_plugin_id(self, plugin_id, offset=0L, limit=10L):
+        self.logger.debug('retrieve_by_plugin_id(): %s', repr(plugin_id))
 
-        if not isinstance(plugin, Plugin):
-            raise ObjectCubeException('Function requires valid Plugin')
-        if not plugin.id:
+        if not isinstance(plugin_id, LongType):
             raise ObjectCubeException('Function requires valid Plugin id')
 
         if not isinstance(offset, LongType):
@@ -273,15 +271,13 @@ class TagService(BaseTagService):
               'FROM TAGS ' \
               'WHERE PLUGIN_ID = %s ' \
               'OFFSET %s LIMIT %s'
-        params = (plugin.id, offset, limit)
+        params = (plugin_id, offset, limit)
         return execute_sql_fetch_multiple(Tag, sql, params)
 
-    def retrieve_by_concept(self, concept, offset=0L, limit=10L):
-        self.logger.debug('retrieve_by_concept(): %s', repr(concept))
+    def retrieve_by_concept_id(self, concept_id, offset=0L, limit=10L):
+        self.logger.debug('retrieve_by_concept_id(): %s', repr(concept_id))
 
-        if not isinstance(concept, Concept):
-            raise ObjectCubeException('Function requires valid Concept')
-        if not concept.id:
+        if not isinstance(concept_id, LongType):
             raise ObjectCubeException('Function requires valid Concept id')
 
         if not isinstance(offset, LongType):
@@ -293,5 +289,5 @@ class TagService(BaseTagService):
               'FROM TAGS ' \
               'WHERE CONCEPT_ID = %s ' \
               'OFFSET %s LIMIT %s'
-        params = (concept.id, offset, limit)
+        params = (concept_id, offset, limit)
         return execute_sql_fetch_multiple(Tag, sql, params)
