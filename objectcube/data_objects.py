@@ -116,10 +116,10 @@ class Tagging(ObjectCubeClass):
 class DimensionNode(ObjectCubeClass):
     fields = {'root_tag_id': LongType,
               'node_tag_id': LongType,
-              'node_tag_value': UnicodeType,
-              'left_border': LongType,
-              'right_border': LongType,
-              'child_nodes': ListType}
+              'node_tag_value': (UnicodeType, NoneType),
+              'left_border': (LongType, NoneType),
+              'right_border': (LongType, NoneType),
+              'child_nodes': (ListType, NoneType)}
 
     def __init__(self, **kwargs):
         super(DimensionNode, self).__init__(**kwargs)
