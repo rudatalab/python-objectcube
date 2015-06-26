@@ -1,7 +1,7 @@
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
 from objectcube.services.base import BaseDimensionService
 from objectcube.exceptions import ObjectCubeException
-from objectcube.data_objects import Tag, DimensionNode
+from objectcube.data_objects import DimensionNode
 from types import LongType
 from logging import getLogger
 
@@ -134,8 +134,6 @@ class DimensionService(BaseDimensionService):
         return None
 
     def count(self):
-        # Input: None
-        # Output: The count of valid dimensions in the database
         self.logger.debug('count()')
         sql = 'SELECT ' \
               'COUNT(DISTINCT root_tag_id) AS count ' \
@@ -143,9 +141,6 @@ class DimensionService(BaseDimensionService):
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, root):
-        # Input: A tag that is not already a root (only the id need be valid)
-        # Side effect: A new dimension has been created in the database
-        # Output: The root node of the valid dimension tree
         self.logger.debug('add(): %s', repr(root))
 
         if not isinstance(root, DimensionNode):
@@ -159,9 +154,6 @@ class DimensionService(BaseDimensionService):
         return self.retrieve_dimension(root)
 
     def delete(self, root):
-        # Input: The root node of a valid dimension
-        # Side effect: The sub-tree has been deleted from the database
-        # Output: None
         self.logger.debug('delete(): %s', repr(root))
 
         if not isinstance(root, DimensionNode):
@@ -196,12 +188,7 @@ class DimensionService(BaseDimensionService):
         return self._read_tree(root)
 
     def replace_or_create(self, root):
-        # Input: The root node of a valid tree structure
-        # Side effect: If the dimension existed, it has been replaced.
-        #              If it did not exist, it has been created.
-        # Output: The resulting tree
-        self.logger.debug('replace_or_create_dimension(): %s',
-                          repr(root))
+        self.logger.debug('replace_or_create_dimension(): %s', repr(root))
 
         if not isinstance(root, DimensionNode):
             raise ObjectCubeException('Function requires valid root')
@@ -211,12 +198,20 @@ class DimensionService(BaseDimensionService):
         # which can safely be passed to the caller
         self._calculate_borders(root)
 
-        # If the tree exists, then we must delete it
-        if self.retrieve_dimension(root):
-            self._delete_all(root)
+        # Retrieve the old tree, if it exists, for safekeeping, then delete it
+        old_tree = self.retrieve_dimension(root)
+        if old_tree:
+            self._delete_all(old_tree)
 
         # Then we write the new tree
-        self._write_nodes(root)
+        # If it fails then we reinstall the old tree and raise exception
+        # Otherwise return the new tree and be happy :)
+        try:
+            self._write_nodes(root)
+        except:
+            self._delete_all(root)
+            self._write_nodes(old_tree)
+            raise ObjectCubeException('Could not replace with illegal tree')
 
         # Return the result
         return self.retrieve_dimension(root)

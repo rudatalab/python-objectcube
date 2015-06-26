@@ -18,7 +18,7 @@ class BaseDimensionService(Service):
     def retrieve_roots(self):
         raise NotImplementedError()
 
-    def retrieve_roots_by_tag(self, tag):
+    def retrieve_roots_by_tag_id(self, tag_id):
         raise NotImplementedError()
 
     def retrieve_dimension(self, root_node):

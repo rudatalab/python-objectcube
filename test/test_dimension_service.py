@@ -492,7 +492,7 @@ class TestDimensionService(TestDatabaseAwareTest):
 
         # Make an illegal tree, and try to create or replace it
         root_node = self.dimension_service.retrieve_dimension(roots[0])
-        root_node.child_nodes = [1, 3, 4]
+        root_node.child_nodes[0].node_tag_id += 200L
         with self.assertRaises(ObjectCubeException):
             self.dimension_service.replace_or_create(root_node)
 
