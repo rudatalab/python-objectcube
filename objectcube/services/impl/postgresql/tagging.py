@@ -24,6 +24,8 @@ class TaggingService(BaseTaggingService):
             raise ObjectCubeException('Function requires valid tagging')
         if tagging.id is not None:
             raise ObjectCubeException('Function must not get Tagging id')
+        if tagging.plugin_set_id and not tagging.plugin_id:
+            raise ObjectCubeException('Cannot have plugin set w/o plugin')
 
         # Build the SQL expression, starting with required attributes
         sql_attributes = 'TAG_ID, OBJECT_ID'
@@ -59,6 +61,17 @@ class TaggingService(BaseTaggingService):
         if not tagging.id:
             raise ObjectCubeException('Function requires valid id')
 
+        # Get the old tag to verify that it exists,
+        # and then run some business logic checks
+        old = self.retrieve_by_id(tagging.id)
+        if not old:
+            raise ObjectCubeException('No Tag found to update')
+        if tagging.tag_id != old.tag_id \
+                or tagging.object_id != old.object_id \
+                or tagging.plugin_id != old.plugin_id \
+                or tagging.plugin_set_id != old.plugin_set_id:
+            raise ObjectCubeException('Can only update meta')
+
         if tagging.meta:
             sql = 'UPDATE TAGGINGS ' \
                   'SET META = %s ' \
@@ -81,14 +94,15 @@ class TaggingService(BaseTaggingService):
         if not tagging.plugin_set_id:
             raise ObjectCubeException('Function requires valid plugin set id')
 
-        # Either update or add, depending on
-        # whether this is a new tagging or an old one
         if tagging.id:
             db_tagging = self.update(tagging)
         else:
             db_tagging = self.add(tagging)
 
         # Delete all the other ones in the set
+        # It is possible that this deletes nothing, which is OK
+        # This could happen, for example, when confirming a tagging
+        # without alternatives
         sql = 'DELETE ' \
               'FROM TAGGINGS ' \
               'WHERE PLUGIN_SET_ID = %s ' \
