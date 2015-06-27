@@ -423,7 +423,7 @@ class TestDimensionService(TestDatabaseAwareTest):
         fake_dim = self.dimension_service.retrieve_dimension(fake_root)
         self.assertIsNone(fake_dim)
 
-    # ==== replace_or_create()
+    # ==== update_or_create()
 
     def test_dimension_replace_or_create_replaces(self):
         self._create_test_concepts()
@@ -444,7 +444,7 @@ class TestDimensionService(TestDatabaseAwareTest):
         small_dim.node_tag_id = roots[1].node_tag_id
 
         # Replace the large dimension by the modified copy
-        new_dim = self.dimension_service.replace_or_create(small_dim)
+        new_dim = self.dimension_service.update_or_create(small_dim)
         self.assertEquals(self._count_nodes(new_dim), small_cnt)
         self.assertEquals(len(self.dimension_service.retrieve_roots()), 1)
         self.assertTrue(self._test_dimension_equal(small_dim, new_dim))
@@ -464,37 +464,32 @@ class TestDimensionService(TestDatabaseAwareTest):
         self.assertEquals(len(self.dimension_service.retrieve_roots()), 1)
 
         # Reinsert small dimension
-        new_dim = self.dimension_service.replace_or_create(small_dim)
+        new_dim = self.dimension_service.update_or_create(small_dim)
         self.assertEquals(self._count_nodes(new_dim), small_cnt)
         self.assertEquals(len(self.dimension_service.retrieve_roots()), 2)
         self.assertTrue(self._test_dimension_equal(small_dim, new_dim))
-
-    def test_dimension_replace_or_create_raises_illegal_tree(self):
-        self._create_test_concepts()
-        self._setup_small_dimension()
-        self._setup_large_dimension()
-
-        root_node = DimensionNode(root_tag_id=1L,
-                                  node_tag_id=1L,
-                                  child_nodes=[1, 3, 4])
-        with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(root_node)
-        self.assertEquals(self.dimension_service.count(), 2)
 
     def test_dimension_replace_or_create_illegal_tree_leaves_tree_ok(self):
         self._create_test_concepts()
         self._setup_large_dimension()
         self._setup_small_dimension()
 
+        # Try structurally unsound dimension
+        root_node = DimensionNode(root_tag_id=1L,
+                                  node_tag_id=1L,
+                                  child_nodes=[1, 3, 4])
+        with self.assertRaises(ObjectCubeException):
+            self.dimension_service.update_or_create(root_node)
+
         # Make note of large dimension
         roots = self.dimension_service.retrieve_roots()
         before_node = self.dimension_service.retrieve_dimension(roots[0])
 
-        # Make an illegal tree, and try to create or replace it
+        # Make an illegal reference to a tag, and try to create or replace it
         root_node = self.dimension_service.retrieve_dimension(roots[0])
         root_node.child_nodes[0].node_tag_id += 200L
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(root_node)
+            self.dimension_service.update_or_create(root_node)
 
         # Ensure nothing changed
         self.assertEquals(self.dimension_service.count(), 2)
@@ -507,14 +502,14 @@ class TestDimensionService(TestDatabaseAwareTest):
         self._setup_large_dimension()
 
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create('1')
+            self.dimension_service.update_or_create('1')
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(0)
+            self.dimension_service.update_or_create(0)
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(None)
+            self.dimension_service.update_or_create(None)
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(False)
+            self.dimension_service.update_or_create(False)
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(True)
+            self.dimension_service.update_or_create(True)
         with self.assertRaises(ObjectCubeException):
-            self.dimension_service.replace_or_create(1)
+            self.dimension_service.update_or_create(1)

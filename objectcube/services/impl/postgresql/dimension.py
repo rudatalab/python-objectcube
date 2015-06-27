@@ -153,6 +153,35 @@ class DimensionService(BaseDimensionService):
         # Return a valid tree from disk to make sure
         return self.retrieve_dimension(root)
 
+    def update_or_create(self, root):
+        self.logger.debug('replace_or_create_dimension(): %s', repr(root))
+
+        if not isinstance(root, DimensionNode):
+            raise ObjectCubeException('Function requires valid root')
+
+        # Make the tree correct, this checks the structure
+        # If the structure is not ok, then an exception is raised
+        # which can safely be passed to the caller
+        self._calculate_borders(root)
+
+        # Retrieve the old tree, if it exists, for safekeeping, then delete it
+        old_tree = self.retrieve_dimension(root)
+        if old_tree:
+            self._delete_all(old_tree)
+
+        # Then we write the new tree
+        # If it fails then we reinstall the old tree and raise exception
+        # Otherwise return the new tree and be happy :)
+        try:
+            self._write_nodes(root)
+        except:
+            self._delete_all(root)
+            self._write_nodes(old_tree)
+            raise ObjectCubeException('Could not replace with illegal tree')
+
+        # Return the result
+        return self.retrieve_dimension(root)
+
     def delete(self, root):
         self.logger.debug('delete(): %s', repr(root))
 
@@ -186,32 +215,3 @@ class DimensionService(BaseDimensionService):
             raise ObjectCubeException('Function requires valid root node')
 
         return self._read_tree(root)
-
-    def replace_or_create(self, root):
-        self.logger.debug('replace_or_create_dimension(): %s', repr(root))
-
-        if not isinstance(root, DimensionNode):
-            raise ObjectCubeException('Function requires valid root')
-
-        # Make the tree correct, this checks the structure
-        # If the structure is not ok, then an exception is raised
-        # which can safely be passed to the caller
-        self._calculate_borders(root)
-
-        # Retrieve the old tree, if it exists, for safekeeping, then delete it
-        old_tree = self.retrieve_dimension(root)
-        if old_tree:
-            self._delete_all(old_tree)
-
-        # Then we write the new tree
-        # If it fails then we reinstall the old tree and raise exception
-        # Otherwise return the new tree and be happy :)
-        try:
-            self._write_nodes(root)
-        except:
-            self._delete_all(root)
-            self._write_nodes(old_tree)
-            raise ObjectCubeException('Could not replace with illegal tree')
-
-        # Return the result
-        return self.retrieve_dimension(root)

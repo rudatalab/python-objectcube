@@ -9,7 +9,7 @@ class BaseDimensionService(Service):
     def add(self, root_node):
         raise NotImplementedError()
 
-    def replace_or_create(self, root_node):
+    def update_or_create(self, root_node):
         raise NotImplementedError()
 
     def delete(self, root_node):
