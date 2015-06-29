@@ -4,84 +4,86 @@ from service import Service
 class BaseConceptService(Service):
     def count(self):
         """
-        Returns approximation of number of concepts in data store.
-        :return: Number
+        Counts the number of objects in data store.
+        Note that this value may not be accurate
+        :return: Number of Concept in database as number
         """
         raise NotImplementedError()
 
     def add(self, concept):
         """
-        Adds new concept to data store.
-        :param concept: Concept object.
-        :return: Updated Concept object.
+        Adds new concept to data store
+        :param: concept: instance of Concept to add
+        :return: added concept
         """
         raise NotImplementedError()
 
     def update(self, concept):
         """
-        Update concept in data store.
-        :param concept: Concept object. Note that this object must have
-        a valid id.
-        :return: Updated Concept object.
+        Updates the given concept
+        :param concept: instance of Concept to update
+        :return: updated concept
         """
         raise NotImplementedError()
 
-    def delete_by_id(self, id):
+    def delete_by_id(self, id_):
         """
-        Delete concept object from data store.
-        :param id: identifier of Concept object
-        that will be deleted.
-        :return: None
+        Deletes a concept with given id from the database
+        :param: id_: id of Concept to delete
+        :return: None, raises exception if none found
         """
         raise NotImplementedError()
 
     def delete(self, concept):
         """
-        Delete concept object from data store.
-        :param concept: Concept object
-        that will be deleted.
-        :return: None
+        Deletes a given concept from the database
+        :param: concept: instance of Concept to delete
+        :return: None, raises exception if none found
         """
         raise NotImplementedError()
 
     def retrieve_or_create(self, concept):
         """
-        Retrieves a given concept if it exists, if not new concept is
-         created and returned.
-        :param concept: Concept object.
-        :return: Concept object.
+        Retrieves a given concept if it exists.
+        If it does not exist a new concept is created and returned.
+        :param: concept: instance of Concept to add
+        :return: existing or added concept
         """
         raise NotImplementedError()
 
-    def retrieve_by_id(self, id):
+    def retrieve_by_id(self, id_):
         """
-        Fetches Concept by id.
-        :param concept_id: Number
-        :return: Returns Concept by given id if found, otherwise None.
+        Retrieves a given concept by id
+        :param: id_: the identifier of the Concept
+        :return: Concept if found, None otherwise
         """
         raise NotImplementedError()
 
     def retrieve_by_title(self, title):
         """
         Fetches Concept by id.
-        :param concept_title: Title for a given concept.
+        :param: title: Title for a given Concept.
         :return: Returns a Concept if found by a given title, None otherwise.
         """
         raise NotImplementedError()
 
-    def retrieve(self, offset=0, limit=10):
+    def retrieve(self, offset=0L, limit=10L):
         """
-        Fetches list of concepts, by offset and limit, in data store.
-        :param offset: Offset value
-        :param limit: Limit value
-        :return: List of concepts.
+        Retrieves all concepts in database
+        :param: offset: the first concepts to return
+        :param: limit: the number of concepts to return
+        :return: [Concept], empty set if none found
         """
         raise NotImplementedError()
 
-    def retrieve_by_regex(self, regex, offset=0, limit=10):
+    def retrieve_by_regex(self, title=None, description=None,
+                          offset=0L, limit=10L):
         """
-        Fetches Concept by id.
-        :param concept_title: Title for a given concept.
-        :return: Returns a Concept if found by a given title, None otherwise.
+        Retrieves a given object by regex on name and/or description
+        :param: title: regular expression to match on name
+        :param: description: regular expression to match on description
+        :param: offset: the first object to return
+        :param: limit: the number of objects to return
+        :return: [Concept], empty set if none found
         """
         raise NotImplementedError()

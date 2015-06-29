@@ -1,14 +1,13 @@
-import logging
+import psycopg2
+import psycopg2.extensions
 from psycopg2.extras import NamedTupleCursor
-
 from objectcube.contexts import Connection
 from objectcube.exceptions import ObjectCubeException
-from types import StringTypes, IntType, LongType
+from logging import getLogger
 
-StringTypes = StringTypes
-IntTypes = (IntType, LongType)
-
-logger = logging.getLogger('db-utils')
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+logger = getLogger('PostgreSQL: Utils')
 
 
 def execute_sql_fetch_single(value_object_class, sql, params=()):

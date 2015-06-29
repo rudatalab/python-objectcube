@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from flask.ext import restful
 from flask import request
-from objectcube.vo import Tag
+from objectcube.data_objects import Tag
 from objectcube.factory import get_service
 from meta import api_metable
 
@@ -102,17 +102,35 @@ class TagResource(restful.Resource):
         data = json.loads(request.data)
         if data is None:
             return 'No data to post', 400
+
         value = data.get('value')
-        ttype = data.get('type')
-        description = data.get('description', '')
+        type_ = data.get('type')
+        mutable = data.get('mutable')
+        description = data.get('description')
 
         if value is None:
             return 'Tag must have a value', 400
-        if ttype is None:
+        else:
+            value = unicode(value)
+        if description is None:
+            return 'Tag must have a description', 400
+        else:
+            description = unicode(description)
+        if type_ is None:
             return 'Tag must have a type', 400
+        else:
+            type_ = long(type_)
+        if mutable is None:
+            return 'Tag must have mutable value', 400
+        else:
+            mutable = bool(mutable)
+
         try:
             tag = self.tag_service.add(
-                Tag(value=value, type=ttype, description=description))
+                Tag(value=value,
+                    description=description,
+                    type=type_,
+                    mutable=mutable))
         except Exception as ex:
             return ex.message, 401
         return tag.to_dict(), 201
@@ -179,16 +197,17 @@ class TagResourceByID(restful.Resource):
         super(TagResourceByID, self).__init__(*args, **kwargs)
         self.tag_service = get_service('TagService')
 
-    def get(self, _id):
+    def get(self, id_):
+        id_ = long(id_)
         if 'description' in request.args:
             return self.description
 
         a = datetime.now()
-        tag = self.tag_service.retrieve_by_id(_id)
+        tag = self.tag_service.retrieve_by_id(id_)
         b = datetime.now()
 
         if tag is None:
-            return 'No tag found for ID: {}'.format(_id), 404
+            return 'No tag found for ID: {}'.format(id_), 404
 
         response_object = {
             'meta': {
@@ -199,7 +218,8 @@ class TagResourceByID(restful.Resource):
 
         return response_object, 200
 
-    def put(self, _id):
+    def put(self, id_):
+        id_ = long(id_)
         data = json.loads(request.data)
         if data is None:
             return 'Missing value, type or description for edit', 400
@@ -210,15 +230,15 @@ class TagResourceByID(restful.Resource):
         if not tag_value and not description and not tag_type:
             return 'Missing value, type or description for edit', 400
 
-        tag = self.tag_service.retrieve_by_id(_id)
+        tag = self.tag_service.retrieve_by_id(id_)
         if tag is None:
-            return 'No tag exists with id {}'.format(_id), 404
+            return 'No tag exists with id {}'.format(id_), 404
         if tag_value:
-            tag.value = tag_value
+            tag.value = unicode(tag_value)
         if description:
-            tag.description = description
+            tag.description = unicode(description)
         if tag_type:
-            tag.type = tag_type
+            tag.type = long(tag_type)
 
         try:
             tag = self.tag_service.update(tag)
@@ -226,14 +246,15 @@ class TagResourceByID(restful.Resource):
             return ex.message, 401
         return tag.to_dict(), 200
 
-    def delete(self, _id):
+    def delete(self, id_):
+        id_ = long(id_)
         try:
-            tag = self.tag_service.retrieve_by_id(_id)
+            tag = self.tag_service.retrieve_by_id(id_)
             self.tag_service.delete(tag)
         except Exception as ex:
             return ex.message, 404
 
-        return 'Tag id={} deleted.'.format(_id), 204
+        return 'Tag id={} deleted.'.format(id_), 204
 
 
 @api_metable

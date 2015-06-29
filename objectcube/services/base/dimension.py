@@ -3,16 +3,23 @@ from service import Service
 
 class BaseDimensionService(Service):
 
-    def add_dimension(self, tag):
-        '''Returns root node'''
+    def count(self):
         raise NotImplementedError()
 
-    def add_node(self, parent_node, tag):
-        ''' tag is a child tag '''
+    def add(self, root_node):
         raise NotImplementedError()
 
-    def delete(self, subtree_root_node):
+    def update_or_create(self, root_node):
         raise NotImplementedError()
 
-    def retrieve_dimension(self, tag):
+    def delete(self, root_node):
+        raise NotImplementedError()
+
+    def retrieve_roots(self):
+        raise NotImplementedError()
+
+    def retrieve_roots_by_tag_id(self, tag_id):
+        raise NotImplementedError()
+
+    def retrieve_dimension(self, root_node):
         raise NotImplementedError()

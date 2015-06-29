@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from flask.ext import restful
 from flask import request
-from objectcube.vo import Object
+from objectcube.data_objects import Object
 from objectcube.utils import md5_from_value
 from objectcube.factory import get_service
 from meta import api_metable
@@ -98,14 +98,16 @@ class ObjectResource(restful.Resource):
 
         if name is None:
             return 'Object must have a name', 400
+        else:
+            name = unicode(name)
 
         if digest is None:
-            digest = md5_from_value(name)
+            digest = unicode(md5_from_value(name))
         try:
-            obj = self.object_service.add(Object(name=name, digest=digest))
+            object_ = self.object_service.add(Object(name=name, digest=digest))
         except Exception as ex:
             return ex.message, 401
-        return obj.to_dict(), 201
+        return object_.to_dict(), 201
 
 
 @api_metable
@@ -162,27 +164,29 @@ class ObjectResourceByID(restful.Resource):
         super(ObjectResourceByID, self).__init__(*args, **kwargs)
         self.object_service = get_service('ObjectService')
 
-    def get(self, _id):
+    def get(self, id_):
+        id_ = long(id_)
         if 'description' in request.args:
             return self.description
 
         a = datetime.now()
-        obj = self.object_service.retrieve_by_id(_id)
+        object_ = self.object_service.retrieve_by_id(id_)
         b = datetime.now()
 
-        if obj is None:
-            return 'No tag found for ID: {}'.format(_id), 404
+        if object_ is None:
+            return 'No tag found for ID: {}'.format(id_), 404
 
         response_object = {
             'meta': {
                 'time': (b - a).microseconds / 1000.0
             },
-            'object': obj.to_dict()
+            'object': object_.to_dict()
         }
 
         return response_object, 200
 
-    def put(self, _id):
+    def put(self, id_):
+        id_ = long(id_)
         data = json.loads(request.data)
         if data is None:
             return 'Missing name and/or digest for edit', 400
@@ -191,22 +195,23 @@ class ObjectResourceByID(restful.Resource):
         if not obj_name:
             return 'Missing name and/or digest for edit', 400
 
-        obj = self.object_service.retrieve_by_id(_id)
-        if obj is None:
-            return 'No object exists with id {}'.format(_id), 404
-        obj.name = obj_name
+        object_ = self.object_service.retrieve_by_id(id_)
+        if object_ is None:
+            return 'No object exists with id {}'.format(id_), 404
+        object_.name = obj_name
 
         try:
-            obj = self.object_service.update(obj)
+            object_ = self.object_service.update(object_)
         except Exception as ex:
             return ex.message, 401
-        return obj.to_dict(), 200
+        return object_.to_dict(), 200
 
-    def delete(self, _id):
+    def delete(self, id_):
+        id_ = long(id_)
         try:
-            obj = self.object_service.retrieve_by_id(_id)
-            self.object_service.delete(obj)
+            object_ = self.object_service.retrieve_by_id(id_)
+            self.object_service.delete(object_)
         except Exception as ex:
             return ex.message, 404
 
-        return 'Object named {} deleted.'.format(_id), 204
+        return 'Object named {} deleted.'.format(id_), 204

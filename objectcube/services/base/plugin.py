@@ -9,14 +9,14 @@ class BasePluginService(Service):
     def add(self, plugin):
         raise NotImplementedError()
 
-    def retrieve_by_id(self, id):
+    def retrieve_by_id(self, id_):
         raise NotImplementedError()
 
     def retrieve_by_name(self, name):
         raise NotImplementedError()
 
-    def retrieve(self, offset=0, limit=10):
+    def retrieve(self, offset=0L, limit=10L):
         raise NotImplementedError()
 
-    def retrieve_by_regex(self, regex, offset=0, limit=10):
+    def retrieve_by_regex(self, name, offset=0L, limit=10L):
         raise NotImplementedError()

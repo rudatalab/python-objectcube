@@ -1,32 +1,29 @@
-import logging
-
-from objectcube.vo import Concept
 from utils import execute_sql_fetch_single, execute_sql_fetch_multiple
+from objectcube.data_objects import Concept
 from objectcube.exceptions import ObjectCubeException
 from objectcube.services.base import BaseConceptService
-from types import IntType, LongType, StringType, UnicodeType
-
-logger = logging.getLogger('PostgreSQL:ConceptService')
+from types import LongType, UnicodeType, NoneType
+from logging import getLogger
 
 
 class ConceptService(BaseConceptService):
+    def __init__(self):
+        super(ConceptService, self).__init__()
+        self.logger = getLogger('postgreSQL: ConceptService')
+
     def count(self):
-        logger.debug('count()')
+        self.logger.debug('count()')
         sql = 'SELECT COUNT(1) AS count ' \
               'FROM CONCEPTS'
         return execute_sql_fetch_single(lambda count: count, sql)
 
     def add(self, concept):
-        logger.debug('add(): %s', repr(concept))
+        self.logger.debug('add(): %s', repr(concept))
 
-        if concept is None or not isinstance(concept, Concept):
+        if not isinstance(concept, Concept):
             raise ObjectCubeException('Function requires valid concept')
-        if concept.title is None or not isinstance(concept.title, (StringType, UnicodeType)):
-            raise ObjectCubeException('Function requires valid title')
-        if concept.description is None or not isinstance(concept.description, (StringType, UnicodeType)):
-            raise ObjectCubeException('Function requires valid description')
-        if concept.id is not    None:
-            raise ObjectCubeException('Function must not get ID')
+        if concept.id is not None:
+            raise ObjectCubeException('Function must not get id')
 
         sql = 'INSERT INTO ' \
               'CONCEPTS (TITLE, DESCRIPTION) ' \
@@ -35,30 +32,30 @@ class ConceptService(BaseConceptService):
         params = (concept.title, concept.description)
         return execute_sql_fetch_single(Concept, sql, params)
 
-    def delete_by_id(self, id):
-        logger.debug('delete_by_id(): %s', repr(id))
+    def delete_by_id(self, id_):
+        self.logger.debug('delete_by_id(): %s', repr(id_))
 
-        if id is None or not isinstance(id, (IntType, LongType)):
-            raise ObjectCubeException('Function requires valid ID')
+        if not isinstance(id_, LongType):
+            raise ObjectCubeException('Function requires valid id')
 
         sql = 'DELETE ' \
               'FROM CONCEPTS ' \
               'WHERE ID = %s ' \
               'RETURNING *'
-        params = (id,)
+        params = (id_,)
         db_concept = execute_sql_fetch_single(Concept, sql, params)
 
-        if db_concept is None:
-            raise ObjectCubeException('No concept to delete')
+        if not db_concept:
+            raise ObjectCubeException('No Concept found to delete')
         return None
 
     def delete(self, concept):
-        logger.debug('delete(): %s', repr(concept))
+        self.logger.debug('delete(): %s', repr(concept))
 
-        if concept is None or not isinstance(concept, Concept):
-            raise ObjectCubeException('Function requires valid concept')
-        if concept.id is None or not isinstance(concept.id, (IntType, LongType)):
-            raise ObjectCubeException('Function requires valid ID')
+        if not isinstance(concept, Concept):
+            raise ObjectCubeException('Function requires valid Concept')
+        if not concept.id:
+            raise ObjectCubeException('Function requires valid Concept id')
 
         sql = 'DELETE ' \
               'FROM CONCEPTS ' \
@@ -67,43 +64,32 @@ class ConceptService(BaseConceptService):
         params = (concept.id,)
         db_concept = execute_sql_fetch_single(Concept, sql, params)
 
-        if db_concept is None:
-            raise ObjectCubeException('No concept to delete')
+        if not db_concept:
+            raise ObjectCubeException('No Concept found to delete')
         return None
 
     def retrieve_or_create(self, concept):
-        logger.debug('retrieve_or_create(): %s', repr(concept))
+        self.logger.debug('retrieve_or_create(): %s', repr(concept))
 
-        if concept is None or not isinstance(concept, Concept):
-            raise ObjectCubeException('Function requires valid concept')
-        if concept.title is None or not isinstance(concept.title, (StringType, UnicodeType)):
-            raise ObjectCubeException('Function requires valid title')
+        if not isinstance(concept, Concept):
+            raise ObjectCubeException('Function requires valid Concept')
 
-        # Try to retrieve a concept with the title, if found return it
+        # Try to retrieve a concept with the title
         db_concept = self.retrieve_by_title(concept.title)
-        if db_concept is not None:
-            return db_concept
 
-        # No concept exists, so make sure description is valid and add one
-        if concept.description is None:
-            concept.description = ''
-        return self.add(concept)
+        # If concept was found return it, otherwise add and return
+        if db_concept:
+            return db_concept
+        else:
+            return self.add(concept)
 
     def update(self, concept):
-        logger.debug('update(): %s', repr(concept))
+        self.logger.debug('update(): %s', repr(concept))
 
-        if concept is None or \
-                not isinstance(concept, Concept):
-            raise ObjectCubeException('Function requires valid concept')
-        if concept.id is None or \
-                not isinstance(concept.id, (IntType, LongType)):
-            raise ObjectCubeException('Function requires valid ID')
-        if concept.title is None or \
-                not isinstance(concept.title, (StringType, UnicodeType)):
-            raise ObjectCubeException('Function requires valid title')
-        if concept.description is None or \
-                not isinstance(concept.description, (StringType, UnicodeType)):
-            raise ObjectCubeException('Function requires valid description')
+        if not isinstance(concept, Concept):
+            raise ObjectCubeException('Function requires valid Concept')
+        if not concept.id:
+            raise ObjectCubeException('Function requires valid Concept id')
 
         sql = 'UPDATE CONCEPTS ' \
               'SET TITLE=%s, DESCRIPTION=%s ' \
@@ -113,25 +99,25 @@ class ConceptService(BaseConceptService):
         db_concept = execute_sql_fetch_single(Concept, sql, params)
 
         if not db_concept:
-            raise ObjectCubeException('No concept to update')
+            raise ObjectCubeException('No Concept found to update')
         return db_concept
 
-    def retrieve_by_id(self, id):
-        logger.debug('retrieve_by_id(): %s', repr(id))
+    def retrieve_by_id(self, id_):
+        self.logger.debug('retrieve_by_id(): %s', repr(id_))
 
-        if id is None or not isinstance(id, (IntType, LongType)):
-            raise ObjectCubeException('Function requires valid ID')
+        if not isinstance(id_, LongType):
+            raise ObjectCubeException('Function requires valid id')
 
         sql = 'SELECT * ' \
               'FROM CONCEPTS ' \
               'WHERE ID = %s'
-        params = (id,)
+        params = (id_,)
         return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve_by_title(self, title):
-        logger.debug('retrieve_or_create(): %s', repr(title))
+        self.logger.debug('retrieve_or_create(): %s', repr(title))
 
-        if title is None or not isinstance(title, (StringType, UnicodeType)):
+        if not isinstance(title, UnicodeType):
             raise ObjectCubeException('Function requires valid title')
 
         sql = 'SELECT * ' \
@@ -140,12 +126,12 @@ class ConceptService(BaseConceptService):
         params = (title, )
         return execute_sql_fetch_single(Concept, sql, params)
 
-    def retrieve(self, offset=0, limit=10):
-        logger.debug('retrieve()')
+    def retrieve(self, offset=0L, limit=10L):
+        self.logger.debug('retrieve(): %s / %s', repr(offset), repr(limit))
 
-        if offset is None or not isinstance(offset, (IntType, LongType)):
+        if not isinstance(offset, LongType):
             raise ObjectCubeException('Function requires valid offset')
-        if limit is None or not isinstance(limit, (IntType, LongType)):
+        if not isinstance(limit, LongType):
             raise ObjectCubeException('Function requires valid limit')
 
         sql = 'SELECT * ' \
@@ -154,19 +140,41 @@ class ConceptService(BaseConceptService):
         params = (offset, limit)
         return execute_sql_fetch_multiple(Concept, sql, params)
 
-    def retrieve_by_regex(self, regex, offset=0, limit=10):
-        logger.debug('retrieve_or_create(): %s', repr(regex))
+    def retrieve_by_regex(self, title=None, description=None,
+                          offset=0L, limit=10L):
+        self.logger.debug('retrieve_or_create(): %s / %s / %s / %s',
+                          repr(title), repr(description),
+                          repr(offset), repr(limit))
 
-        if regex is None or not isinstance(regex, (StringType, UnicodeType)):
-            raise ObjectCubeException('Function requires valid title')
-        if offset is None or not isinstance(offset, (IntType, LongType)):
+        if not isinstance(title, (UnicodeType, NoneType)):
+            raise ObjectCubeException('Function requires valid name regex')
+        if not isinstance(description, (UnicodeType, NoneType)):
+            raise ObjectCubeException('Function requires valid desc regex')
+        if not title and not description:
+            raise ObjectCubeException('Function requires one valid regex')
+
+        if offset is None or not isinstance(offset, LongType):
             raise ObjectCubeException('Function requires valid offset')
-        if limit is None or not isinstance(limit, (IntType, LongType)):
+        if limit is None or not isinstance(limit, LongType):
             raise ObjectCubeException('Function requires valid limit')
 
-        sql = 'SELECT * ' \
-              'FROM CONCEPTS ' \
-              'WHERE TITLE ~ %s ' \
-              'OFFSET %s LIMIT %s'
-        params = (regex, offset, limit)
+        if title and description:
+            sql = 'SELECT * ' \
+                  'FROM CONCEPTS ' \
+                  'WHERE TITLE ~ %s ' \
+                  '  AND DESCRIPTION ~ %s' \
+                  'OFFSET %s LIMIT %s'
+            params = (title, description, offset, limit)
+        elif title:
+            sql = 'SELECT * ' \
+                  'FROM CONCEPTS ' \
+                  'WHERE TITLE ~ %s ' \
+                  'OFFSET %s LIMIT %s'
+            params = (title, offset, limit)
+        else:
+            sql = 'SELECT * ' \
+                  'FROM CONCEPTS ' \
+                  'WHERE DESCRIPTION ~ %s ' \
+                  'OFFSET %s LIMIT %s'
+            params = (description, offset, limit)
         return execute_sql_fetch_multiple(Concept, sql, params)
