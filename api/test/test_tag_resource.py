@@ -26,7 +26,8 @@ class TestAPITagResource(APITest):
         data = {
             'description': 'tag_description',
             'value': 'tag_value',
-            'type': 0
+            'type': 0,
+            'mutable': False
         }
         res = self.post(self.base_url, data=data)
         self.assertEqual(res.status_code, 201)
@@ -35,7 +36,8 @@ class TestAPITagResource(APITest):
         data = {
             'description': u'tag_description',
             'value': u'tag_value',
-            'type': 0
+            'type': 0L,
+            'mutable': True
         }
         res = self.post(self.base_url, data=data)
         res_data = json.loads(res.data)

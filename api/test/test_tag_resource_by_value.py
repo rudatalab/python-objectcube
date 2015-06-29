@@ -13,7 +13,8 @@ class TestAPITagResourceByValue(APITest):
         data = {
             'description': 'tag_description',
             'value': 'tag_value',
-            'type': 0
+            'type': 0,
+            'mutable': True
         }
         res = self.post('/api/tags', data=data)
         self.assertEquals(res.status_code, 201)
