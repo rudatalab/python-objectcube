@@ -100,6 +100,12 @@ class ConceptResource(restful.Resource):
 
         if not title:
             return 'Concept must have a title', 400
+        else:
+            title = unicode(title)
+        if not description:
+            return 'Concept must have a description', 400
+        else:
+            description = unicode(description)
         try:
             concept = self.concept_service.add(
                 Concept(title=title, description=description))
