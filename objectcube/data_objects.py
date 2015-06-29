@@ -57,6 +57,9 @@ class ObjectCubeClass(object):
             out[field] = self.data[field]
         return out
 
+    def to_dict(self):
+        return self.__dict__()
+
     def serialize(self):
         pass
 
