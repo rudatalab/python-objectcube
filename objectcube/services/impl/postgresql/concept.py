@@ -115,7 +115,7 @@ class ConceptService(BaseConceptService):
         return execute_sql_fetch_single(Concept, sql, params)
 
     def retrieve_by_title(self, title):
-        self.logger.debug('retrieve_or_create(): %s', repr(title))
+        self.logger.debug('retrieve_by_title(): %s', repr(title))
 
         if not isinstance(title, UnicodeType):
             raise ObjectCubeException('Function requires valid title')
@@ -142,7 +142,7 @@ class ConceptService(BaseConceptService):
 
     def retrieve_by_regex(self, title=None, description=None,
                           offset=0L, limit=10L):
-        self.logger.debug('retrieve_or_create(): %s / %s / %s / %s',
+        self.logger.debug('retrieve_by_regex(): %s / %s / %s / %s',
                           repr(title), repr(description),
                           repr(offset), repr(limit))
 

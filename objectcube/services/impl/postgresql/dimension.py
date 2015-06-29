@@ -20,8 +20,6 @@ class DimensionService(BaseDimensionService):
             counter = [1L]
 
         root_node.left_border = counter[0]
-        self.logger.debug('_calculate_borders(): %s ',
-                          repr(type(counter[0])))
         counter[0] += 1
 
         if root_node.child_nodes:
