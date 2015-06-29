@@ -98,9 +98,11 @@ class ObjectResource(restful.Resource):
 
         if name is None:
             return 'Object must have a name', 400
+        else:
+            name = unicode(name)
 
         if digest is None:
-            digest = md5_from_value(name)
+            digest = unicode(md5_from_value(name))
         try:
             object_ = self.object_service.add(Object(name=name, digest=digest))
         except Exception as ex:
@@ -163,6 +165,7 @@ class ObjectResourceByID(restful.Resource):
         self.object_service = get_service('ObjectService')
 
     def get(self, id_):
+        id_ = long(id_)
         if 'description' in request.args:
             return self.description
 
@@ -183,6 +186,7 @@ class ObjectResourceByID(restful.Resource):
         return response_object, 200
 
     def put(self, id_):
+        id_ = long(id_)
         data = json.loads(request.data)
         if data is None:
             return 'Missing name and/or digest for edit', 400
@@ -203,6 +207,7 @@ class ObjectResourceByID(restful.Resource):
         return object_.to_dict(), 200
 
     def delete(self, id_):
+        id_ = long(id_)
         try:
             object_ = self.object_service.retrieve_by_id(id_)
             self.object_service.delete(object_)
