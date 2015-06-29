@@ -159,16 +159,17 @@ class ConceptResourceByID(restful.Resource):
         super(ConceptResourceByID, self).__init__(*args, **kwargs)
         self.concept_service = get_service('ConceptService')
 
-    def get(self, _id):
+    def get(self, id_):
+        id_ = long(id_)
         if 'description' in request.args:
             return self.description
 
         a = datetime.now()
-        concept = self.concept_service.retrieve_by_id(_id)
+        concept = self.concept_service.retrieve_by_id(id_)
         b = datetime.now()
 
         if concept is None:
-            return 'No concept found for ID: {}'.format(_id), 404
+            return 'No concept found for ID: {}'.format(id_), 404
 
         response_object = {
             'meta': {
@@ -179,7 +180,8 @@ class ConceptResourceByID(restful.Resource):
 
         return response_object, 200
 
-    def put(self, _id):
+    def put(self, id_):
+        id_ = long(id_)
         if not request.data:
             return 'Missing title and/or description for edit', 400
         data = json.loads(request.data)
@@ -189,13 +191,13 @@ class ConceptResourceByID(restful.Resource):
         if not title and not description:
             return 'Missing title and/or description for edit', 400
 
-        concept = self.concept_service.retrieve_by_id(_id)
+        concept = self.concept_service.retrieve_by_id(id_)
         if concept is None:
-            return 'No concept exists with id {}'.format(_id), 404
+            return 'No concept exists with id {}'.format(id_), 404
         if title:
-            concept.title = title
+            concept.title = unicode(title)
         if description:
-            concept.description = description
+            concept.description = unicode(description)
 
         try:
             concept = self.concept_service.update(concept)
@@ -203,10 +205,11 @@ class ConceptResourceByID(restful.Resource):
             return ex.message, 401
         return concept.to_dict(), 200
 
-    def delete(self, _id):
+    def delete(self, id_):
+        id_ = long(id_)
         try:
-            self.concept_service.delete_by_id(_id)
+            self.concept_service.delete_by_id(id_)
         except Exception as ex:
             return ex.message, 404
 
-        return 'Concept id={} deleted.'.format(_id), 204
+        return 'Concept id={} deleted.'.format(id_), 204

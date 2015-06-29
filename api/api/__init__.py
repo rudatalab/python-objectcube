@@ -14,16 +14,16 @@ api = restful.Api(app)
 
 # Concept API
 api.add_resource(ConceptResource, '/api/concepts')
-api.add_resource(ConceptResourceByID, '/api/concepts/<int:_id>')
+api.add_resource(ConceptResourceByID, '/api/concepts/<int:id_>')
 
 # Tag API
 api.add_resource(TagResource, '/api/tags')
-api.add_resource(TagResourceByID, '/api/tags/<int:_id>')
+api.add_resource(TagResourceByID, '/api/tags/<int:id_>')
 api.add_resource(TagResourceByValue, '/api/tags/values')
 
 # Object API
 api.add_resource(ObjectResource, '/api/objects')
-api.add_resource(ObjectResourceByID, '/api/objects/<int:_id>')
+api.add_resource(ObjectResourceByID, '/api/objects/<int:id_>')
 
 # Blob API
 api.add_resource(BlobResourceByURI, '/api/blobs/uri/<string:digest>')

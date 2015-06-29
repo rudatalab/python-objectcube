@@ -179,16 +179,16 @@ class TagResourceByID(restful.Resource):
         super(TagResourceByID, self).__init__(*args, **kwargs)
         self.tag_service = get_service('TagService')
 
-    def get(self, _id):
+    def get(self, id_):
         if 'description' in request.args:
             return self.description
 
         a = datetime.now()
-        tag = self.tag_service.retrieve_by_id(_id)
+        tag = self.tag_service.retrieve_by_id(id_)
         b = datetime.now()
 
         if tag is None:
-            return 'No tag found for ID: {}'.format(_id), 404
+            return 'No tag found for ID: {}'.format(id_), 404
 
         response_object = {
             'meta': {
@@ -199,7 +199,7 @@ class TagResourceByID(restful.Resource):
 
         return response_object, 200
 
-    def put(self, _id):
+    def put(self, id_):
         data = json.loads(request.data)
         if data is None:
             return 'Missing value, type or description for edit', 400
@@ -210,9 +210,9 @@ class TagResourceByID(restful.Resource):
         if not tag_value and not description and not tag_type:
             return 'Missing value, type or description for edit', 400
 
-        tag = self.tag_service.retrieve_by_id(_id)
+        tag = self.tag_service.retrieve_by_id(id_)
         if tag is None:
-            return 'No tag exists with id {}'.format(_id), 404
+            return 'No tag exists with id {}'.format(id_), 404
         if tag_value:
             tag.value = tag_value
         if description:
@@ -226,14 +226,14 @@ class TagResourceByID(restful.Resource):
             return ex.message, 401
         return tag.to_dict(), 200
 
-    def delete(self, _id):
+    def delete(self, id_):
         try:
-            tag = self.tag_service.retrieve_by_id(_id)
+            tag = self.tag_service.retrieve_by_id(id_)
             self.tag_service.delete(tag)
         except Exception as ex:
             return ex.message, 404
 
-        return 'Tag id={} deleted.'.format(_id), 204
+        return 'Tag id={} deleted.'.format(id_), 204
 
 
 @api_metable
