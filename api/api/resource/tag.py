@@ -1,14 +1,17 @@
 import json
 from datetime import datetime
-from flask.ext import restful
+
 from flask import request
+from flask_restful import Resource
+
+from meta import api_metable
+
 from objectcube.data_objects import Tag
 from objectcube.factory import get_service
-from meta import api_metable
 
 
 @api_metable
-class TagResource(restful.Resource):
+class TagResource(Resource):
     ep_name = 'api/tags'
     description = {
         'endpoint': ep_name,
@@ -137,7 +140,7 @@ class TagResource(restful.Resource):
 
 
 @api_metable
-class TagResourceByID(restful.Resource):
+class TagResourceByID(Resource):
     ep_name = 'api/tags/<int:id>'
     description = {
         'endpoint': ep_name,
@@ -258,7 +261,7 @@ class TagResourceByID(restful.Resource):
 
 
 @api_metable
-class TagResourceByValue(restful.Resource):
+class TagResourceByValue(Resource):
     ep_name = 'api/tags/values'
     description = {
         'endpoint': ep_name,

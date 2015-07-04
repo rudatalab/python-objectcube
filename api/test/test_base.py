@@ -1,6 +1,8 @@
 import json
-from unittest import TestCase
+
 from objectcube.contexts import Connection
+
+from unittest import TestCase
 
 
 class DatabaseAwareTest(TestCase):

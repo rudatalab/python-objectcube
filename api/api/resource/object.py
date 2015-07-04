@@ -1,15 +1,18 @@
 import json
 from datetime import datetime
-from flask.ext import restful
+
 from flask import request
+from flask_restful import Resource
+
+from meta import api_metable
+
 from objectcube.data_objects import Object
 from objectcube.utils import md5_from_value
 from objectcube.factory import get_service
-from meta import api_metable
 
 
 @api_metable
-class ObjectResource(restful.Resource):
+class ObjectResource(Resource):
     ep_name = 'api/objects'
 
     description = {
@@ -111,7 +114,7 @@ class ObjectResource(restful.Resource):
 
 
 @api_metable
-class ObjectResourceByID(restful.Resource):
+class ObjectResourceByID(Resource):
     ep_name = 'api/objects/<int:id>'
 
     description = {

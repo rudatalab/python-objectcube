@@ -1,7 +1,5 @@
-from flask import Flask
-from flask import jsonify
-from flask import render_template
-from flask.ext import restful
+from flask import Flask, jsonify, render_template
+from flask_restful import Api
 
 from resource.concept import ConceptResource, ConceptResourceByID
 from resource.tag import TagResource, TagResourceByID, TagResourceByValue
@@ -10,7 +8,7 @@ from resource.blob import BlobResourceByURI
 from resource.meta import get_all_meta
 
 app = Flask(__name__)
-api = restful.Api(app)
+api = Api(app)
 
 # Concept API
 api.add_resource(ConceptResource, '/api/concepts')

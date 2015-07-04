@@ -1,12 +1,15 @@
 from datetime import datetime
-from flask.ext import restful
+
 from flask import request
-from objectcube.factory import get_service
+from flask_restful import Resource
+
 from meta import api_metable
+
+from objectcube.factory import get_service
 
 
 @api_metable
-class BlobResourceByURI(restful.Resource):
+class BlobResourceByURI(Resource):
     ep_name = 'api/blobs/uri/<digest>'
     description = {
         'endpoint': ep_name,
