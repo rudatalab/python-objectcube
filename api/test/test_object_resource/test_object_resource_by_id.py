@@ -1,8 +1,7 @@
 import json
 
 from api import app
-
-from test_base import APITest
+from api.test import APITest
 
 
 class TestAPIObjectResourceByID(APITest):
